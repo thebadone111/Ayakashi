@@ -255,6 +255,37 @@ def tumble_board_event(gamestate):
         "explodingSymbols": exploding,
     }
     gamestate.book.add_event(event)
+def fs_multiplier_event(gamestate, multiplier_symbol_key: str = "fs_multiplier"):
+    """
+    Multiplies the awarded free spins based on how many multiplier symbols
+    are present on the board. Updates gamestate.tot_fs accordingly.
+    """
+    multiplier_positions = []
+    symbol_count = 0
+
+    for reel, _ in enumerate(gamestate.special_syms_on_board.get(multiplier_symbol_key, {})):
+        pos = gamestate.special_syms_on_board[multiplier_symbol_key][reel]
+        if pos:
+            symbol_count += 1
+            multiplier_positions.append(pos)
+
+    if symbol_count == 0:
+        return
+
+    # Multiply total free spins by the number of symbols found
+    original_fs = gamestate.tot_fs
+    gamestate.tot_fs *= symbol_count
+
+    event = {
+        "index": len(gamestate.book.events),
+        "type": EventConstants.FS_MULTIPLIER.value,
+        "symbolCount": symbol_count,
+        "multiplier": symbol_count,
+        "originalFs": original_fs,
+        "totalFs": gamestate.tot_fs,
+        "positions": multiplier_positions,
+    }
+    gamestate.book.add_event(event)
 
 
 def enter_bonus_event(gamestate) -> None:
