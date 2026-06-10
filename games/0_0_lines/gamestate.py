@@ -11,11 +11,16 @@ class GameState(GameStateOverride):
             self.reset_book()
             self.draw_board()
 
-            # Evaluate wins, update wallet, transmit events
             self.evaluate_lines_board()
+            self.emit_tumble_win_events()
+            while self.win_data["totalWin"] > 0 and not self.wincap_triggered:
+                self.tumble_game_board()
+                self.evaluate_lines_board()
+                self.emit_tumble_win_events()
+            self.set_end_tumble_event()
 
             self.win_manager.update_gametype_wins(self.gametype)
-            if self.check_fs_condition():
+            if self.check_fs_condition() and self.check_freespin_entry():
                 self.run_freespin_from_base()
 
             self.evaluate_finalwin()
@@ -29,6 +34,12 @@ class GameState(GameStateOverride):
             self.draw_board()
 
             self.evaluate_lines_board()
+            self.emit_tumble_win_events()
+            while self.win_data["totalWin"] > 0 and not self.wincap_triggered:
+                self.tumble_game_board()
+                self.evaluate_lines_board()
+                self.emit_tumble_win_events()
+            self.set_end_tumble_event()
 
             if self.check_fs_condition():
                 self.update_fs_retrigger_amt()

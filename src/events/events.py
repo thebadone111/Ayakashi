@@ -255,7 +255,7 @@ def tumble_board_event(gamestate):
         "explodingSymbols": exploding,
     }
     gamestate.book.add_event(event)
-def fs_multiplier_event(gamestate, multiplier_symbol_key: str = "fs_multiplier"):
+def fs_multiplier_event(gamestate, multiplier_symbol_key: str = "fsMultiplier"):
     """
     Multiplies the awarded free spins based on how many multiplier symbols
     are present on the board. Updates gamestate.tot_fs accordingly.
@@ -272,15 +272,16 @@ def fs_multiplier_event(gamestate, multiplier_symbol_key: str = "fs_multiplier")
     if symbol_count == 0:
         return
 
-    # Multiply total free spins by the number of symbols found
+    FS_MULT_TABLE = {1: 2, 2: 3, 3: 5, 4: 10, 5: 20}
+    multiplier = FS_MULT_TABLE.get(symbol_count, 1)
     original_fs = gamestate.tot_fs
-    gamestate.tot_fs *= symbol_count
+    gamestate.tot_fs *= multiplier
 
     event = {
         "index": len(gamestate.book.events),
         "type": EventConstants.FS_MULTIPLIER.value,
         "symbolCount": symbol_count,
-        "multiplier": symbol_count,
+        "multiplier": multiplier,
         "originalFs": original_fs,
         "totalFs": gamestate.tot_fs,
         "positions": multiplier_positions,

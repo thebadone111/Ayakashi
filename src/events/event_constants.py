@@ -23,6 +23,8 @@ class EventConstants(Enum):
     FREE_SPIN_END = "freeSpinEnd"
     ENTER_BONUS = "enterBonus"
 
+    FS_MULTIPLIER = "fsMultiplier"
+
     # Tumble events
     TUMBLE_BOARD = "tumbleBoard"
     SET_TUMBLE_WIN = "setTumbleWin"

@@ -1,5 +1,6 @@
 from game_executables import GameExecutables
 from src.calculations.statistics import get_random_outcome
+from src.events.events import fs_multiplier_event
 
 
 class GameStateOverride(GameExecutables):
@@ -10,6 +11,10 @@ class GameStateOverride(GameExecutables):
 
     def reset_book(self):
         super().reset_book()
+
+    def update_freespin_amount(self, scatter_key: str = "scatter") -> None:
+        super().update_freespin_amount(scatter_key)
+        fs_multiplier_event(self)
 
     def assign_special_sym_function(self):
         self.special_symbol_functions = {
