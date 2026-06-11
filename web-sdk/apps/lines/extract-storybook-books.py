@@ -12,7 +12,7 @@ and picks representative books per category, then writes:
 Run from anywhere with the backend venv:
 
     cd C:\\Users\\tiger\\Desktop\\Stake\\game-1\\Ayakashi
-    env\\Scripts\\python.exe web-sdk\\apps\\lines\\extract-storybook-books.py
+    math-sdk\\env\\Scripts\\python.exe web-sdk\\apps\\lines\\extract-storybook-books.py
 """
 
 import io
@@ -26,8 +26,10 @@ except ImportError:
     sys.exit("zstandard module missing — run with the backend venv (env\\Scripts\\python.exe)")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# Repo layout: Ayakashi/{math-sdk,web-sdk}. From web-sdk/apps/lines, the math
+# books live under ../../../math-sdk/games/0_0_lines/library/publish_files.
 PUBLISH = os.path.normpath(
-    os.path.join(HERE, "..", "..", "..", "games", "0_0_lines", "library", "publish_files")
+    os.path.join(HERE, "..", "..", "..", "math-sdk", "games", "0_0_lines", "library", "publish_files")
 )
 OUT_DIR = os.path.join(HERE, "src", "stories", "data")
 
@@ -55,15 +57,21 @@ def board_has_symbol(book, name):
     return False
 
 
+def count_type(book, name):
+    return sum(1 for e in book["events"] if e["type"] == name)
+
+
 def pick_base(path):
     want = {
-        # ordinary books first — the random story should mostly feel like real play
+        # ordinary books first — the random story should mostly feel like real play.
+        # NB: in this game *every* win triggers a tumble cascade, so there is no
+        # such thing as a win without a tumbleBoard event.
         "zero": None,          # no win, shortest
         "zero_2": None,        # another loss
         "zero_3": None,        # and another (losses are ~62% of real spins)
-        "plain_win": None,     # small win, no tumble drama
-        "plain_win_2": None,   # another modest win
-        "win_tumble": None,    # small win with a tumble cascade
+        "small_win": None,     # modest win, single tumble
+        "medium_win": None,    # mid win, a couple of cascades
+        "win_tumble": None,    # multi-cascade tumble chain (>=3 tumbles)
         # showcase books — one of each feature
         "exploder": None,      # X (Oni Kanabo) on board + tumble
         "freespin": None,      # free spin trigger
@@ -77,24 +85,26 @@ def pick_base(path):
         ev = book["events"]
         ts = types_of(book)
         n = len(ev)
-        mult = book["payoutMultiplier"]
+        # payoutMultiplier is in hundredths of the bet (100 == 1x, 200000 == 2000x cap).
+        mult_x = book["payoutMultiplier"] / 100.0
+        no_fs = "freeSpinTrigger" not in ts
+        tumbles = count_type(book, "tumbleBoard")
 
-        if want["zero"] is None and mult == 0 and n <= 4:
+        if want["zero"] is None and mult_x == 0 and n <= 4:
             want["zero"] = book
-        elif want["zero_2"] is None and mult == 0 and n <= 4:
+        elif want["zero_2"] is None and mult_x == 0 and n <= 4:
             want["zero_2"] = book
-        elif want["zero_3"] is None and mult == 0 and n <= 4:
+        elif want["zero_3"] is None and mult_x == 0 and n <= 4:
             want["zero_3"] = book
-        if want["plain_win"] is None and 0 < mult <= 2 and "tumbleBoard" not in ts and "freeSpinTrigger" not in ts and n <= 8:
-            want["plain_win"] = book
-        elif want["plain_win_2"] is None and 0 < mult <= 2 and "tumbleBoard" not in ts and "freeSpinTrigger" not in ts and n <= 8:
-            want["plain_win_2"] = book
+        if want["small_win"] is None and 0 < mult_x <= 2 and no_fs and n <= 16:
+            want["small_win"] = book
+        elif want["medium_win"] is None and 2 < mult_x <= 12 and no_fs and n <= 30:
+            want["medium_win"] = book
         if (
             want["win_tumble"] is None
-            and "tumbleBoard" in ts
-            and "freeSpinTrigger" not in ts
-            and 0 < mult < 10
-            and n <= 14
+            and tumbles >= 3
+            and no_fs
+            and 0 < mult_x < 25
         ):
             want["win_tumble"] = book
         if (
@@ -182,8 +192,16 @@ def main():
     for k, v in bonus.items():
         print(f"  {k:14s}", "OK  id=%s events=%d mult=%s" % (v["id"], len(v["events"]), v["payoutMultiplier"]) if v else "NOT FOUND")
 
-    base_books = [v for v in base.values() if v]
-    bonus_books = [v for v in bonus.values() if v]
+    def dedupe(books):
+        seen, out = set(), []
+        for b in books:
+            if b["id"] not in seen:
+                seen.add(b["id"])
+                out.append(b)
+        return out
+
+    base_books = dedupe([v for v in base.values() if v])
+    bonus_books = dedupe([v for v in bonus.values() if v])
 
     write_ts(os.path.join(OUT_DIR, "base_books.ts"), base_books)
     write_ts(os.path.join(OUT_DIR, "base_events.ts"), sample_events(base_books))
