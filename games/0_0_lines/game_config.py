@@ -20,7 +20,7 @@ class GameConfig(Config):
         self.game_id = "0_0_lines"
         self.provider_number = 0
         self.working_name = "Sample Lines Game"
-        self.wincap = 5000.0
+        self.wincap = 2000.0
         self.win_type = "lines"
         self.rtp = 0.9700
         self.construct_paths()
@@ -47,19 +47,19 @@ class GameConfig(Config):
             (3, "H4"): 1,
             (5, "L1"): 5,
             (4, "L1"): 1,
-            (3, "L1"): 0.5,
+            (3, "L1"): 1.0,
             (5, "L2"): 3,
             (4, "L2"): 0.7,
-            (3, "L2"): 0.3,
+            (3, "L2"): 0.6,
             (5, "L3"): 3,
             (4, "L3"): 0.7,
-            (3, "L3"): 0.3,
+            (3, "L3"): 0.6,
             (5, "L4"): 2,
             (4, "L4"): 0.5,
-            (3, "L4"): 0.2,
+            (3, "L4"): 0.4,
             (5, "L5"): 1,
             (4, "L5"): 0.3,
-            (3, "L5"): 0.1,
+            (3, "L5"): 0.3,
         }
 
         self.paylines = {
@@ -70,7 +70,7 @@ class GameConfig(Config):
     4:  [3, 3, 3, 3, 3],
     5:  [4, 4, 4, 4, 4],
 
-    # --- V-shapes / peaks (was lines 4-5) ---
+    # --- V-shapes / peaks ---
     6:  [0, 1, 2, 1, 0],
     7:  [2, 1, 0, 1, 2],
     8:  [0, 2, 4, 2, 0],
@@ -78,7 +78,7 @@ class GameConfig(Config):
     10: [1, 2, 3, 2, 1],
     11: [3, 2, 1, 2, 3],
 
-    # --- Diagonal slopes (was lines 6-7) ---
+    # --- Diagonal slopes ---
     12: [0, 1, 2, 3, 4],
     13: [4, 3, 2, 1, 0],
     14: [0, 0, 1, 2, 2],
@@ -87,68 +87,47 @@ class GameConfig(Config):
     17: [4, 4, 3, 2, 2],
     18: [0, 1, 2, 2, 2],
     19: [2, 2, 2, 1, 0],
-    20: [2, 3, 4, 3, 2],
-    21: [2, 1, 0, 1, 2],  # already covered but reused as a shallow V
 
-    # --- Zigzag / wave (was lines 8-9) ---
-    22: [1, 0, 1, 2, 1],
-    23: [1, 2, 1, 0, 1],
-    24: [2, 1, 2, 3, 2],
-    25: [2, 3, 2, 1, 2],
-    26: [0, 1, 0, 1, 0],
-    27: [4, 3, 4, 3, 4],
-    28: [3, 4, 3, 2, 3],
-    29: [1, 0, 1, 0, 1],
+    # --- Zigzag / wave ---
+    20: [1, 0, 1, 2, 1],
+    21: [1, 2, 1, 0, 1],
+    22: [2, 1, 2, 3, 2],
+    23: [2, 3, 2, 1, 2],
+    24: [0, 1, 0, 1, 0],
+    25: [4, 3, 4, 3, 4],
 
-    # --- Skewed diagonals (was lines 10-11) ---
-    30: [0, 1, 1, 1, 2],
-    31: [2, 1, 1, 1, 0],
-    32: [0, 2, 2, 2, 4],
-    33: [4, 2, 2, 2, 0],
-    34: [1, 2, 2, 2, 3],
-    35: [3, 2, 2, 2, 1],
+    # --- Skewed diagonals ---
+    26: [0, 1, 1, 1, 2],
+    27: [2, 1, 1, 1, 0],
+    28: [0, 2, 2, 2, 4],
+    29: [4, 2, 2, 2, 0],
+    30: [1, 2, 2, 2, 3],
+    31: [3, 2, 2, 2, 1],
 
-    # --- Shallow S-curves (was lines 12-13) ---
-    36: [0, 1, 0, 1, 2],
-    37: [2, 1, 2, 1, 0],
-    38: [2, 3, 2, 3, 4],
-    39: [4, 3, 4, 3, 2],
-    40: [1, 2, 1, 2, 3],
-    41: [3, 2, 3, 2, 1],
+    # --- Shallow S-curves ---
+    32: [0, 1, 0, 1, 2],
+    33: [2, 1, 2, 1, 0],
+    34: [2, 3, 2, 3, 4],
+    35: [4, 3, 4, 3, 2],
+    36: [1, 2, 1, 2, 3],
+    37: [3, 2, 3, 2, 1],
 
-    # --- Dip/bump on middle col (was lines 14-15) ---
-    42: [1, 1, 0, 1, 1],
-    43: [1, 1, 2, 1, 1],
-    44: [2, 2, 1, 2, 2],
-    45: [2, 2, 3, 2, 2],
-    46: [0, 0, 1, 0, 0],
-    47: [3, 3, 2, 3, 3],
-    48: [4, 4, 3, 4, 4],
-    49: [3, 3, 4, 3, 3],
+    # --- Dip/bump on middle col ---
+    38: [1, 1, 0, 1, 1],
+    39: [1, 1, 2, 1, 1],
+    40: [2, 2, 1, 2, 2],
+    41: [2, 2, 3, 2, 2],
+    42: [0, 0, 1, 0, 0],
+    43: [3, 3, 2, 3, 3],
 
-    # --- Wide W/M shapes (was lines 16-17) ---
-    50: [0, 4, 2, 0, 4],
-    51: [4, 0, 2, 4, 0],
-    52: [0, 3, 1, 3, 0],
-    53: [4, 1, 3, 1, 4],
-    54: [0, 2, 1, 2, 0],  # subtle M
-    55: [4, 2, 3, 2, 4],  # subtle W
-
-    # --- Corner-dip (was lines 18-19) ---
-    56: [0, 0, 2, 0, 0],
-    57: [2, 2, 0, 2, 2],
-    58: [0, 0, 4, 0, 0],
-    59: [4, 4, 0, 4, 4],
-    60: [4, 4, 2, 4, 4],
-    61: [2, 2, 4, 2, 2],
-
-    # --- Edge-hug (was line 20) ---
-    62: [1, 0, 0, 0, 1],
-    63: [3, 4, 4, 4, 3],
-    64: [0, 0, 0, 0, 1],  # trailing lift
-    65: [4, 4, 4, 4, 3],
-    66: [1, 0, 0, 0, 0],  # leading lift
-    67: [3, 4, 4, 4, 4],
+    # --- Restored shallow shapes ---
+    44: [2, 3, 4, 3, 2],  # shallow V down from centre
+    45: [2, 1, 0, 1, 2],  # shallow V up from centre
+    46: [4, 4, 3, 4, 4],  # top-row dip
+    47: [0, 0, 0, 1, 2],  # trailing rise right
+    48: [2, 1, 0, 0, 0],  # trailing rise left
+    49: [0, 1, 1, 1, 0],  # centre hug top
+    50: [4, 3, 3, 3, 4],  # centre hug bottom
 }
 
         self.include_padding = True
@@ -225,7 +204,7 @@ class GameConfig(Config):
             "force_freegame": False,
         }
 
-        mode_maxwins = {"base": 5000, "bonus": 5000}
+        mode_maxwins = {"base": 2000, "bonus": 2000}
         # Contains all game-logic simulation conditions
         self.bet_modes = [
             BetMode(
@@ -244,8 +223,8 @@ class GameConfig(Config):
                         conditions=wincap_condition,
                     ),
                     Distribution(criteria="freegame", quota=0.1, conditions=freegame_condition),
-                    Distribution(criteria="0", quota=0.4, win_criteria=0.0, conditions=zerowin_condition),
-                    Distribution(criteria="basegame", quota=0.5, conditions=basegame_condition),
+                    Distribution(criteria="0", quota=0.25, win_criteria=0.0, conditions=zerowin_condition),
+                    Distribution(criteria="basegame", quota=0.65, conditions=basegame_condition),
                 ],
             ),
             BetMode(
