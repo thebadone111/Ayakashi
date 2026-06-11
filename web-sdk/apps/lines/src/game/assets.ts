@@ -22,28 +22,28 @@ export default {
 	// Ayakashi background layers (driven by BackgroundAmbient)
 	bgBg: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/background/bg_bg.png', import.meta.url).href,
+		src: new URL('../../assets/sprites/background/bg_bg.webp', import.meta.url).href,
 		preload: true,
 	},
 	bgFg: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/background/bg_fg.png', import.meta.url).href,
+		src: new URL('../../assets/sprites/background/bg_fg.webp', import.meta.url).href,
 		preload: true,
 	},
 	bgEffect: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/background/bg_effect.png', import.meta.url).href,
+		src: new URL('../../assets/sprites/background/bg_effect.webp', import.meta.url).href,
 		preload: true,
 	},
 	bgMist: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/background/bg_mist.png', import.meta.url).href,
+		src: new URL('../../assets/sprites/background/bg_mist.webp', import.meta.url).href,
 		preload: true,
 	},
 	// Ayakashi avatar (driven by AvatarActor)
 	avatar: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/avatar/avatar.png', import.meta.url).href,
+		src: new URL('../../assets/sprites/avatar/avatar.webp', import.meta.url).href,
 	},
 	// Ayakashi logo (SVG — rasterised by Pixi at load)
 	logo: {
@@ -59,21 +59,21 @@ export default {
 	// lacquered ink-cloud panel behind the reels (Max's frame_bg1)
 	frameBgPanel: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/reelsFrame/frame_bg1.png', import.meta.url).href,
+		src: new URL('../../assets/sprites/reelsFrame/frame_bg1.webp', import.meta.url).href,
 	},
 	// hero one-piece red/gold lacquer frame — REQUIRES rembg'd reel_frame.png
 	reelFrame: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/reelsFrame/reel_frame.png', import.meta.url).href,
+		src: new URL('../../assets/sprites/reelsFrame/reel_frame.webp', import.meta.url).href,
 	},
 	// ornate FS counter panel (oni emblem + foxfire)
 	fsCounterPanel: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/reelsFrame/Frame_FSCounter2.png', import.meta.url).href,
+		src: new URL('../../assets/sprites/reelsFrame/Frame_FSCounter2.webp', import.meta.url).href,
 	},
 	payFrame: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/payFrame/payFrame.png', import.meta.url).href,
+		src: new URL('../../assets/sprites/payFrame/payFrame.webp', import.meta.url).href,
 	},
 	// fonts (placeholder reference bitmap fonts)
 	goldFont: {
@@ -110,10 +110,11 @@ export default {
 		type: 'spriteSheet',
 		src: new URL('../../assets/sprites/coin/SD2_Coin.json', import.meta.url).href,
 	},
-	// audio (placeholder reference set)
+	// audio (placeholder reference set) — NOT preloaded: ~4MB of audio must not
+	// block first paint. It background-loads (phase 2) and is ready before the
+	// loading bar fills, so the first interactive frame appears far sooner.
 	sound: {
 		type: 'audio',
 		src: new URL('../../assets/audio/sounds.json', import.meta.url).href,
-		preload: true,
 	},
 } as const;
