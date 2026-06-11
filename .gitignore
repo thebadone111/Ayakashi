@@ -25,3 +25,8 @@ dist/
 # Large throwaway art exploration (the source masters live in art/finals/;
 # rejected drafts are preserved on disk + in _git_backup, not in git history)
 art/rejected/
+
+# Claude dev helpers / scratch (headless screenshot capture)
+_shot.jpg
+_shot.b64
+_shot_server.py
