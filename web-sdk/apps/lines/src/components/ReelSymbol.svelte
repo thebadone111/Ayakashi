@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Symbol from './Symbol.svelte';
 	import SymbolWrap from './SymbolWrap.svelte';
-	import { getSymbolInfo, getSymbolX } from '../game/utils';
+	import { getSymbolX } from '../game/utils';
 	import type { ReelSymbol } from '../game/stateGame.svelte';
 	import { fxManager } from '../game/fxManager';
 
@@ -11,9 +11,6 @@
 	};
 
 	const props: Props = $props();
-	const symbolInfo = $derived(
-		getSymbolInfo({ rawSymbol: props.reelSymbol.rawSymbol, state: props.reelSymbol.symbolState }),
-	);
 
 	// Kitsune orb impact when a Wild lands (procedural, replaces the
 	// wild_dynamite_land Spine state). Fires once per land.
@@ -42,8 +39,7 @@
 <SymbolWrap
 	x={getSymbolX(props.reelIndex)}
 	y={props.reelSymbol.symbolY()}
-	animating={symbolInfo.type === 'spine' &&
-		(props.reelSymbol.symbolState === 'land' || props.reelSymbol.symbolState === 'win')}
+	animating={props.reelSymbol.symbolState === 'land' || props.reelSymbol.symbolState === 'win'}
 >
 	<Symbol
 		state={props.reelSymbol.symbolState}
