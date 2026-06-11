@@ -13,7 +13,7 @@ export { WinCelebration, type BigWinAlias, type WinCelebrationOptions, type Play
 export { BonusTriggerAnimation, type BonusTriggerOptions, type BonusTriggerPlayOptions } from './bonusTrigger';
 export { FreeSpinsScreen, type FreeSpinsScreenOptions } from './freeSpinsScreen';
 export { WildLandingAnimation, type WildLandingOptions } from './wildLanding';
-export { ReelSpinFx, AYAKASHI_SPIN_OPTIONS, type ReelSpinFxOptions } from './reelSpinFx';
+export { ReelSpinFx, type ReelSpinFxOptions } from './reelSpinFx';
 export { PaylineHighlight, type PaylineHighlightOptions } from './paylineHighlight';
 export { SymbolIdleManager, type IdleProfile } from './symbolIdle';
 export { BackgroundAmbient, type BackgroundAmbientOptions } from './backgroundAmbient';

@@ -66,26 +66,29 @@ const HIGH_SYMBOL_SIZE = 0.9;
 const LOW_SYMBOL_SIZE = 0.9;
 const SPECIAL_SYMBOL_SIZE = 1;
 
-const SPIN_OPTIONS_SHARED = {
-	reelBounceBackSpeed: 0.15,
-	reelSpinSpeedBeforeBounce: 4,
-	reelPaddingMultiplierNormal: 1.2,
-	reelPaddingMultiplierAnticipated: 3, // short scatter tease
-	reelSpinDelay: 110,
-};
-
+// Tuned Ayakashi reel feel — heavier, weightier stop and a longer scatter
+// tease than the SDK reference. This is the single source of truth read by
+// stateGame's spinOptions plumbing.
 export const SPIN_OPTIONS_DEFAULT = {
-	...SPIN_OPTIONS_SHARED,
-	reelPreSpinSpeed: 3,
-	reelSpinSpeed: 4.2,
-	reelBounceSizeMulti: 0.3,
+	reelPreSpinSpeed: 2.2,
+	reelSpinSpeed: 3.4,
+	reelBounceSizeMulti: 0.38, // weightier stop than reference 0.3
+	reelBounceBackSpeed: 0.13,
+	reelSpinSpeedBeforeBounce: 4.5,
+	reelPaddingMultiplierNormal: 1.2,
+	reelPaddingMultiplierAnticipated: 12, // long scatter tease
+	reelSpinDelay: 145,
 };
 
 export const SPIN_OPTIONS_FAST = {
-	...SPIN_OPTIONS_SHARED,
 	reelPreSpinSpeed: 5,
-	reelSpinSpeed: 5,
-	reelBounceSizeMulti: 0.05,
+	reelSpinSpeed: 5.5,
+	reelBounceSizeMulti: 0.06,
+	reelBounceBackSpeed: 0.15,
+	reelSpinSpeedBeforeBounce: 5.5,
+	reelPaddingMultiplierNormal: 1.2,
+	reelPaddingMultiplierAnticipated: 6,
+	reelSpinDelay: 70,
 };
 
 export const MOTION_BLUR_VELOCITY = 31;

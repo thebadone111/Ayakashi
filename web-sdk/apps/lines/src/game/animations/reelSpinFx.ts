@@ -10,8 +10,9 @@
  *   - startAnticipation(reelIndex) / stopAnticipation(): spectral glow column
  *     behind a reel while it keeps spinning for a possible scatter — pulsing
  *     foxfire, edge embers. Replaces the reference `anticipation` Spine.
- *   - AYAKASHI_SPIN_OPTIONS: tuned constants (heavier bounce, slightly faster
- *     spin) Tom can feed to the existing SPIN_OPTIONS plumbing in constants.ts.
+ *
+ * The tuned reel feel (bounce weight, scatter tease) now lives in constants.ts
+ * as SPIN_OPTIONS_DEFAULT / SPIN_OPTIONS_FAST (wired into stateGame).
  *
  * Wiring (Tom):
  *   const reelFx = new ReelSpinFx({ app, effectsLayer, boardOrigin: {x,y}, reelCount: 5, rowCount: 5 });
@@ -35,30 +36,6 @@ import {
 	easings,
 	fxBus,
 } from './fx';
-
-/** Drop-in tuning for the SDK's spin options (see constants.ts). */
-export const AYAKASHI_SPIN_OPTIONS = {
-	default: {
-		reelPreSpinSpeed: 2.2,
-		reelSpinSpeed: 3.4,
-		reelBounceSizeMulti: 0.38, // heavier, weightier stop than reference 0.3
-		reelBounceBackSpeed: 0.13,
-		reelSpinSpeedBeforeBounce: 4.5,
-		reelPaddingMultiplierNormal: 1.2,
-		reelPaddingMultiplierAnticipated: 12, // longer scatter tease
-		reelSpinDelay: 145,
-	},
-	fast: {
-		reelPreSpinSpeed: 5,
-		reelSpinSpeed: 5.5,
-		reelBounceSizeMulti: 0.06,
-		reelBounceBackSpeed: 0.15,
-		reelSpinSpeedBeforeBounce: 5.5,
-		reelPaddingMultiplierNormal: 1.2,
-		reelPaddingMultiplierAnticipated: 6,
-		reelSpinDelay: 70,
-	},
-} as const;
 
 export interface ReelSpinFxOptions {
 	app: Application;
