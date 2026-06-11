@@ -1,0 +1,35 @@
+<svg width="690" height="270" viewBox="0 0 690 270" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<mask id="imagine-text-gaps-g9g52a" maskUnits="userSpaceOnUse"><rect x="0" y="0" width="690" height="270" fill="white"/><rect x="109.68121337890625" y="36.3932991027832" width="467.0101623535156" height="93.50837707519531" fill="black" rx="2"/><rect x="106.68124389648438" y="33.39329147338867" width="467.0101623535156" height="93.50837707519531" fill="black" rx="2"/><rect x="106.68124389648438" y="33.39329147338867" width="467.0101623535156" height="93.50837707519531" fill="black" rx="2"/><rect x="236.02777099609375" y="133.96119689941406" width="207.94442749023438" height="36.548500061035156" fill="black" rx="2"/><rect x="230.35720825195312" y="180.6080322265625" width="217.6581268310547" height="18.646825790405273" fill="black" rx="2"/></mask></defs>
+
+<!-- Background removed — logo floats transparent over the game scene -->
+
+<!-- ═══════════════ MAIN TITLE ═══════════════ -->
+<text x="344" y="110" text-anchor="middle" font-size="62" fill="#3A0000" letter-spacing="3" style="font-family:'Dela Gothic One', Impact, 'Arial Black', sans-serif">AYAKASHI</text>
+<text x="341" y="107" text-anchor="middle" font-size="62" fill="#FFD700" letter-spacing="3" style="font-family:'Dela Gothic One', Impact, 'Arial Black', sans-serif">AYAKASHI</text>
+<text x="341" y="107" text-anchor="middle" font-size="62" fill="none" stroke="#FF8C00" stroke-width="1.2" letter-spacing="3" opacity="0.25" style="font-family:'Dela Gothic One', Impact, 'Arial Black', sans-serif">AYAKASHI</text>
+
+<!-- ═══════════════ DIVIDER ═══════════════ -->
+<line x1="65" y1="125" x2="270" y2="125" stroke="#6B0000" stroke-width="0.8" mask="url(#imagine-text-gaps-g9g52a)"/>
+<polygon points="276,125 283,120 290,125 283,130" fill="#DC143C"/>
+<polygon points="320,125 329,118 337,125 329,132" fill="#C8960C"/>
+<polygon points="343,125 351,118 359,125 351,132" fill="#C8960C"/>
+<polygon points="390,125 397,120 404,125 397,130" fill="#DC143C"/>
+<line x1="410" y1="125" x2="615" y2="125" stroke="#6B0000" stroke-width="0.8" mask="url(#imagine-text-gaps-g9g52a)"/>
+
+<!-- ═══════════════ JAPANESE SUBTITLE ═══════════════ -->
+<text x="340" y="162" text-anchor="middle" font-size="22" fill="#D4A017" letter-spacing="18" opacity="0.95" style="font-family:'Noto Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', Georgia, serif; font-weight:600">妖　か　し</text>
+
+<!-- ═══════════════ TAGLINE ═══════════════ -->
+<text x="340" y="194" text-anchor="middle" font-size="10" fill="#7A0000" letter-spacing="5" style="font-family:'Dela Gothic One', Impact, 'Arial Black', sans-serif">DARK     YOKAI     SLOTS</text>
+
+<!-- Bottom rule removed with the box -->
+<polygon points="336,216 340,211 344,216 340,221" fill="#6B0000"/>
+
+<!-- Ambient particles -->
+<circle cx="108" cy="130" r="1.5" fill="#00B4B4" opacity="0.3"/>
+<circle cx="572" cy="130" r="1.5" fill="#00B4B4" opacity="0.3"/>
+<circle cx="88" cy="165" r="1" fill="#C8960C" opacity="0.25"/>
+<circle cx="592" cy="165" r="1" fill="#C8960C" opacity="0.25"/>
+
+</svg>

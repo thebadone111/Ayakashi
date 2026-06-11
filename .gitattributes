@@ -1,0 +1,15 @@
+# Normalize line endings; let git decide text vs binary by default
+* text=auto
+
+# Binary assets — never normalize
+*.png  binary
+*.webp binary
+*.jpg  binary
+*.jpeg binary
+*.ico  binary
+*.gif  binary
+*.mp3  binary
+*.wav  binary
+*.ogg  binary
+*.zip  binary
+*.xlsx binary

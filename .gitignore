@@ -1,29 +1,27 @@
-__pycache__
-*/.pyc
-*.prof
-*/setup.txt
-*/setup.toml
-*.egg-info/
-*/SOURCES.txt
+# --- Ayakashi unified repo root ignores ---
+# (math-sdk/.gitignore and web-sdk/.gitignore still apply within their subtrees)
 
-**/library/**
-**/configs/*
-**/forces/*
-**/books/*
-**/lookup_tables/*
-**/books_compressed/*
-**temp_multi_threaded_files
+# Claude Code local project config
+.claude/
 
-
-**/target/*
-**/debug/*
-**release/*
-**/optimization_files/**
-
-/env
-*.env
+# OS cruft
 *.DS_Store
-*.toml
+Thumbs.db
 
-**/site/*
+# Python
+__pycache__/
+*.pyc
+env/
+.venv/
 
+# Node / build (safety net — web-sdk/.gitignore also covers these)
+node_modules/
+.svelte-kit/
+.turbo/
+build/
+dist/
+.vercel/
+
+# Large throwaway art exploration (the source masters live in art/finals/;
+# rejected drafts are preserved on disk + in _git_backup, not in git history)
+art/rejected/
