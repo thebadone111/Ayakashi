@@ -97,6 +97,7 @@ export class AvatarActor {
 	private texW: number;
 	private texH: number;
 	private baseY: number;
+	private baseX = 0;
 	private scaleFit: number;
 
 	// physics — soft and well-damped: she should breathe and settle like silk,
@@ -125,6 +126,7 @@ export class AvatarActor {
 		this.texH = opts.texture.height;
 		this.scaleFit = height / this.texH;
 		this.baseY = opts.y;
+		this.baseX = opts.x;
 
 		this.root = new Container();
 		this.root.position.set(opts.x, opts.y);
@@ -275,6 +277,8 @@ export class AvatarActor {
 		// hop — tanh gives a smooth arc with a tiny natural dip on landing,
 		// plus a gentle idle bob so she's never frozen to the floor
 		this.root.y = this.baseY - Math.tanh(this.hop.value * 0.6) * 30 + Math.sin(t * 0.9) * 2.5;
+		// weight shift — she slowly rocks foot to foot, never statue-still
+		this.root.x = this.baseX + Math.sin(t * 0.22) * 3;
 
 		// --- mesh flow waves -----------------------------------------------------
 		const buffer = this.mesh.geometry.getBuffer('aPosition');
@@ -282,15 +286,23 @@ export class AvatarActor {
 		const base = this.basePositions;
 		const waveAmp = this.texH * 0.0042 * excitement;
 		const swayShear = Math.tanh(this.sway.value * 0.5) * this.texW * 0.04;
+		// follow-through: hair/cloth lag behind body motion — proportional to
+		// sway VELOCITY (not position), so a stop produces a whip-and-settle
+		const followThrough = this.sway.velocity * this.texW * 0.012;
 		for (let i = 0; i < base.length; i += 2) {
 			const x0 = base[i];
 			const y0 = base[i + 1];
 			const ny = y0 / this.texH; // 0 = top (head), 1 = bottom (feet)
 			const topWeight = Math.pow(1 - ny, 1.4); // top flows, feet planted
+			const hairWeight = Math.pow(1 - ny, 2.6); // hair-only band, even higher
 			const flow =
 				Math.sin(t * 1.5 + ny * 4.0) * waveAmp * 0.7 +
-				Math.sin(t * 2.6 + ny * 6.0 + x0 * 0.01) * waveAmp * 0.35;
-			data[i] = x0 + (flow + swayShear) * topWeight;
+				// phase lags toward the top: the wave travels UP through her,
+				// so hair arrives late — classic follow-through read
+				Math.sin(t * 2.6 + ny * 6.0 - topWeight * 0.9 + x0 * 0.01) * waveAmp * 0.35;
+			// slow head-lean arc, hair band only — she looks around, dreamily
+			const headLean = Math.sin(t * 0.35) * this.texW * 0.009 * hairWeight;
+			data[i] = x0 + (flow + swayShear) * topWeight + headLean - followThrough * hairWeight;
 			// slight vertical ripple so fabric/hair feels loose
 			data[i + 1] = y0 + Math.sin(t * 2.6 + ny * 5.5 + x0 * 0.013) * waveAmp * 0.3 * topWeight;
 		}
