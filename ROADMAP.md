@@ -21,26 +21,28 @@ up, spill over, hard to see.
       edge lines
 - [ ] FS counter panel placement — revisit when FS mode is screenshot-verified
 
-## P1. Post-FX stack  `[ ]`
-- [ ] `pnpm add pixi-filters` (workspace: apps/lines)
-- [ ] AdvancedBloom (high threshold, subtle) on board-FX + overlay layers
-- [ ] Impact kick: 80ms RGBSplit + ZoomBlur pulse, fired via fxBus 'smash'/'bigwin'
-- [ ] Godray sweep during WinCelebration + FS intro
-- [ ] ShockwaveFilter ripple on kanabo slam (replace/augment Graphics ring)
+## P1. Post-FX stack  `[x]` (28f83e7)
+- [x] pixi-filters 6.1.0 added
+- [x] AdvancedBloom threshold 0.55 on board-FX + overlay layers
+- [x] Impact kick: 140ms RGBSplit + ZoomBlur via fxBus 'smash'/'bigwin'
+- [x] Godray sweep on bigwin + fsintro
+- [x] Shock ripple from kanabo impact point (smash now carries global coords)
+- [x] Verified live: kick+ripple visibly warp the frame; books play clean
 
-## P2. Time & camera grammar  `[ ]`
-- [ ] Hit-stop helper in fx.ts (ticker.speed dip ~4 frames) — kanabo contact
-- [ ] Camera container wrapping board+bg: 4px dip per tumble wave, 1.0→1.04
-      celebration zoom, backOut settle
-- [ ] WinCelebration 3-act: blackout+heartbeat → title slash-reveal → count-up
-      + yen-coin fountain
+## P2. Time & camera grammar  `[x]` (5ad25bf)
+- [x] hitStop() in fx.ts — 85ms ticker freeze on kanabo contact frame
+- [x] CameraGrammar: 4px tumble dip / 7px smash dip; 1.035 celebration zoom
+      with breathing, pivot-trick on stage, auto-release
+- [~] 3-act bigwin: inhale beat done earlier; full blackout+heartbeat act
+      deferred (needs heartbeat audio cue) — title slash-reveal comes with P4
+- [x] Verified: wincap book (36 free spins, $2000) plays through correctly
 
-## Sound audit  `[ ]`
-- [ ] Diff every `soundOnce`/`soundMusic`/`soundLoop` name in src against
-      sounds.json sprite keys
-- [ ] In-browser: confirm Howler loads the new bundle (deferred, not preloaded),
-      bgm_main loops, reel stops fire
-- [ ] Volume pass: bgm at -8dB vs sfx at -3dB — check balance feels right
+## Sound audit  `[x]` (5ad25bf)
+- [x] All 52 keys diffed — one real gap found: tumble wins were silent.
+      updateTumbleWin now plays escalating koto (tumble_win_1..5)
+- [x] In-browser: Howler loaded ogg bundle, 52 sprites, ctx running, deferred
+      load works, FS music switches
+- [ ] Volume balance pass — needs human ears (Max: listen to a few spins)
 
 ## P3. Textured particles  `[ ]`  (ComfyUI batch #1)
 - [ ] Generate: ink splatter ×3, sakura petal, paper shred, ember flake,
