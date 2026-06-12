@@ -85,14 +85,16 @@
 
 <FxHost zIndex={-1} onhost={hostGlow} />
 
-<!-- lacquered ink-cloud panel behind the reels (bleeds under the border) -->
+<!-- lacquered ink-cloud panel behind the reels. The frame's transparent window
+     equals the board size, so 1.05 covers the window and tucks the panel edge
+     just under the lacquer border — any bigger and it pokes out past it. -->
 <Sprite
 	key="frameBgPanel"
 	anchor={0.5}
 	x={frameLayout.x}
 	y={frameLayout.y}
-	width={context.stateGameDerived.boardLayout().width * 1.14}
-	height={context.stateGameDerived.boardLayout().height * 1.14}
+	width={context.stateGameDerived.boardLayout().width * 1.05}
+	height={context.stateGameDerived.boardLayout().height * 1.05}
 />
 
 <!-- hero red/gold lacquer frame on top (reel_frame.png, rembg'd) -->

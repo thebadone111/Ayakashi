@@ -18,8 +18,8 @@
  *
  *   reelstop → tiny bounce            tumble   → bounce
  *   wildland → lean + jiggle          smash    → big squash + wobble
- *   bonus    → double hop + aura      fsintro  → sustained excitement
- *   bigwin   → celebration hops scaled by win tier, long excitement
+ *   bonus    → pirouette + aura       fsintro  → sustained excitement
+ *   bigwin   → happy spin-on-the-spot (two turns on monster tiers)
  *
  * Excitement is a decaying scalar that amplifies wave amplitude, bob speed
  * and aura glow — after a big event the avatar visibly buzzes, then calms.
@@ -48,13 +48,7 @@ import {
 	Ticker,
 } from 'pixi.js';
 
-import {
-	PALETTE,
-	makeGlowTexture,
-	fxBus,
-	type FxEvent,
-	delay,
-} from './fx';
+import { PALETTE, makeGlowTexture, fxBus, type FxEvent } from './fx';
 
 export interface AvatarActorOptions {
 	app: Application;
@@ -105,13 +99,19 @@ export class AvatarActor {
 	private baseY: number;
 	private scaleFit: number;
 
-	// physics — soft, slightly under-damped: lifelike sway, no twitch
-	private squash = makeSpring(55, 8); // scale-y overshoot (jelly)
-	private sway = makeSpring(22, 6); // lean / horizontal shear
-	private hop = makeSpring(45, 7); // vertical hop offset
+	// physics — soft and well-damped: she should breathe and settle like silk,
+	// not vibrate. (Stiffness ~halved from the first pass, which read as jittery.)
+	private squash = makeSpring(26, 9); // scale-y overshoot (jelly)
+	private sway = makeSpring(13, 7); // lean / horizontal shear
+	private hop = makeSpring(30, 8.5); // vertical hop offset
 	private excite = 0; // 0..~2.5, decays
 	private time = Math.random() * 100;
 	private lastMicroImpulse = 0; // cooldown so 5 reel stops don't machine-gun her
+	// twirl — a single happy pirouette: scale.x sweeps cos(2π·turns) so she
+	// visibly turns on the spot (front → edge-on → back → front)
+	private twirlPhase = 1; // 1 = idle / finished
+	private twirlTurns = 1;
+	private twirlDuration = 0.9; // seconds
 
 	private busHandlers: Partial<Record<FxEvent, (data?: unknown) => void>> = {};
 	private tick = (ticker: Ticker) => this.update(ticker.deltaMS);
@@ -163,53 +163,55 @@ export class AvatarActor {
 		if (this.destroyed) return;
 		switch (event) {
 			case 'reelstop': {
-				// micro-bounce, rate-limited (one per 180 ms max)
+				// micro-bounce, rate-limited — barely perceptible acknowledgement
 				const now = performance.now();
-				if (now - this.lastMicroImpulse > 180) {
+				if (now - this.lastMicroImpulse > 420) {
 					this.lastMicroImpulse = now;
-					this.squash.velocity += 0.7;
+					this.squash.velocity += 0.4;
 				}
 				break;
 			}
 			case 'tumble':
-				this.squash.velocity += 2.0;
-				this.hop.velocity += 0.9;
+				this.squash.velocity += 1.2;
+				this.hop.velocity += 0.5;
 				break;
 			case 'wildland':
-				this.squash.velocity += 2.4;
-				this.sway.velocity += (Math.random() < 0.5 ? -1 : 1) * 2.6;
+				this.squash.velocity += 1.4;
+				this.sway.velocity += (Math.random() < 0.5 ? -1 : 1) * 1.8;
 				this.excite = Math.max(this.excite, 0.5);
 				break;
 			case 'smash':
-				this.squash.velocity += 4.5;
-				this.sway.velocity += (Math.random() < 0.5 ? -1 : 1) * 4.0;
+				this.squash.velocity += 2.8;
+				this.sway.velocity += (Math.random() < 0.5 ? -1 : 1) * 2.6;
 				this.excite = Math.max(this.excite, 0.8);
 				break;
 			case 'bonus':
-				this.excite = Math.max(this.excite, 1.4);
-				this.hopSequence(2, 4.5);
+				this.excite = Math.max(this.excite, 1.1);
+				this.twirl(1);
 				break;
 			case 'fsintro':
 				this.excite = Math.max(this.excite, 1.2);
-				this.sway.velocity += 3.0;
+				this.sway.velocity += 2.0;
 				break;
 			case 'bigwin': {
 				const level = (data as { level?: string } | undefined)?.level ?? 'big';
 				const intensity = TIER_INTENSITY[level] ?? 1;
 				this.excite = Math.max(this.excite, intensity);
-				this.hopSequence(Math.min(2 + Math.round(intensity), 5), 3.5 + intensity * 1.2);
+				// one delighted pirouette — two full turns for the monster tiers
+				this.twirl(intensity >= 1.6 ? 2 : 1);
 				break;
 			}
 		}
 	}
 
-	private async hopSequence(count: number, power: number) {
-		for (let i = 0; i < count; i++) {
-			if (this.destroyed) return;
-			this.hop.velocity += power * 0.8;
-			this.squash.velocity += power * 0.45;
-			await delay(380);
-		}
+	/** A happy spin-on-the-spot: one hop + full turn(s) around her vertical axis. */
+	private twirl(turns = 1) {
+		if (this.twirlPhase < 1) return; // already mid-spin — let it finish
+		this.twirlTurns = turns;
+		this.twirlDuration = 0.75 + turns * 0.3;
+		this.twirlPhase = 0;
+		this.hop.velocity += 3.4;
+		this.squash.velocity += 1.0;
 	}
 
 	setVisible(visible: boolean) {
@@ -244,14 +246,28 @@ export class AvatarActor {
 		this.integrate(this.hop, dt);
 		this.excite = Math.max(0, this.excite - dt * 0.35); // ~3-7 s calm-down
 
-		const excitement = 1 + this.excite * 1.2;
+		// excitement raises wave amplitude, but only mildly raises tempo —
+		// multiplying frequency by full excitement made her hyperventilate
+		const excitement = 1 + this.excite * 0.8;
+		const tempo = 1 + this.excite * 0.3;
+
+		// --- twirl (pirouette around her vertical axis) -------------------------
+		let facing = 1;
+		if (this.twirlPhase < 1) {
+			this.twirlPhase = Math.min(1, this.twirlPhase + dt / this.twirlDuration);
+			const p = this.twirlPhase;
+			// easeInOutQuad — she winds up, whips around, lands softly
+			const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+			facing = Math.cos(Math.PI * 2 * this.twirlTurns * eased);
+			if (this.twirlPhase >= 1) this.squash.velocity += 1.4; // landing plop
+		}
 
 		// --- whole-body transforms --------------------------------------------
 		// breathing + jelly squash (bottom anchored: scale up = grows upward)
-		const breath = Math.sin(t * (1.0 * excitement)) * 0.011;
+		const breath = Math.sin(t * tempo) * 0.011;
 		const squashAmt = Math.tanh(this.squash.value * 0.7) * 0.05; // soft-saturating
 		this.mesh.scale.set(
-			this.scaleFit * (1 - breath * 0.6 - squashAmt * 0.55),
+			this.scaleFit * (1 - breath * 0.6 - squashAmt * 0.55) * facing,
 			this.scaleFit * (1 + breath + squashAmt),
 		);
 		// lean — soft-limited so she sways, never tips
