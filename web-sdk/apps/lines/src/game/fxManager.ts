@@ -38,6 +38,7 @@ import {
 	TweenRunner,
 	PALETTE,
 	PostFx,
+	CameraGrammar,
 } from './animations';
 
 import { SYMBOL_SIZE, BOARD_SIZES, BOARD_ANCHOR, BOARD_DIMENSIONS } from './constants';
@@ -73,6 +74,7 @@ let _symbolIdles: SymbolIdleManager | null = null;
 let _avatar: AvatarActor | null = null;
 let _backgroundAmbient: BackgroundAmbient | null = null;
 let _postFx: PostFx | null = null;
+let _camera: CameraGrammar | null = null;
 
 // --- helpers -------------------------------------------------------------------
 
@@ -128,7 +130,12 @@ const needShakeTarget = (): Container => shakeTarget ?? needOverlay();
 
 const registerShakeTarget = (container: Container) => {
 	shakeTarget = container;
+	if (stateApp.pixiApplication) {
+		_camera = new CameraGrammar({ app: app(), dipTarget: container });
+	}
 	return () => {
+		_camera?.destroy();
+		_camera = null;
 		shakeTarget = null;
 	};
 };

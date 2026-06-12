@@ -329,6 +329,7 @@ export class ScreenShaker {
 	}
 
 	shake(opts: ShakeOptions = {}): Promise<void> {
+		if (this.target.destroyed || !this.target.position) return Promise.resolve();
 		if (this.active) this.finish(); // replace running shake
 		this.opts = { intensity: 12, duration: 500, frequency: 30, ...opts };
 		this.origin = { x: this.target.position.x, y: this.target.position.y };
@@ -339,6 +340,11 @@ export class ScreenShaker {
 
 	private update(deltaMS: number) {
 		if (!this.active) return;
+		// destroyed containers null their position observable — stop shaking
+		if (this.target.destroyed || !this.target.position) {
+			this.finish();
+			return;
+		}
 		this.elapsed += deltaMS;
 		const t = this.elapsed / this.opts.duration;
 		if (t >= 1) {
@@ -356,7 +362,9 @@ export class ScreenShaker {
 
 	private finish() {
 		this.active = false;
-		this.target.position.set(this.origin.x, this.origin.y);
+		if (!this.target.destroyed && this.target.position) {
+			this.target.position.set(this.origin.x, this.origin.y);
+		}
 		this.resolve?.();
 		this.resolve = null;
 	}

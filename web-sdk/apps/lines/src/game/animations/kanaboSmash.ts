@@ -40,6 +40,7 @@ import {
 	easings,
 	delay,
 	fxBus,
+	hitStop,
 } from './fx';
 
 export interface KanaboSmashOptions {
@@ -192,6 +193,9 @@ export class KanaboSmash {
 		// global (canvas-px) impact point so PostFx can centre the screen ripple
 		const g = node.toGlobal({ x, y });
 		fxBus.emit('smash', { x: g.x, y: g.y });
+		// hit-stop one frame AFTER the contact visuals spawn, so the flash is
+		// on screen when time freezes — the classic anime contact frame
+		setTimeout(() => hitStop(this.app.ticker, 85, 0.04), 16);
 		const s = this.symbolSize;
 		const areaRadius = s * 1.5; // 3x3 extent
 

@@ -10,6 +10,7 @@ import { stateGame, stateGameDerived } from './stateGame.svelte';
 import { fxManager } from './fxManager';
 import type { BookEvent, BookEventOfType, BookEventContext } from './typesBookEvent';
 import type { Position } from './types';
+import type { SoundName } from './sound';
 import config from './config';
 
 const winLevelSoundsPlay = ({ winLevelData }: { winLevelData: WinLevelData }) => {
@@ -53,8 +54,12 @@ const tryFx = async (run: () => Promise<unknown> | unknown) => {
 	}
 };
 
+// Escalating koto pluck per consecutive tumble win — resets each new spin.
+let tumbleWinStep = 0;
+
 export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContext> = {
 	reveal: async (bookEvent: BookEventOfType<'reveal'>, { bookEvents }: BookEventContext) => {
+		tumbleWinStep = 0;
 		const isBonusGame = checkIsMultipleRevealEvents({ bookEvents });
 		if (isBonusGame) {
 			eventEmitter.broadcast({ type: 'stopButtonEnable' });
@@ -151,6 +156,12 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		eventEmitter.broadcast({ type: 'boardShow' });
 	},
 	updateTumbleWin: async (bookEvent: BookEventOfType<'updateTumbleWin'>) => {
+		// escalating koto pluck — each consecutive tumble win climbs a step
+		tumbleWinStep = Math.min(tumbleWinStep + 1, 5);
+		eventEmitter.broadcast({
+			type: 'soundOnce',
+			name: `tumble_win_${tumbleWinStep}` as SoundName,
+		});
 		stateBet.winBookEventAmount = bookEvent.amount;
 	},
 	freeSpinTrigger: async (bookEvent: BookEventOfType<'freeSpinTrigger'>) => {

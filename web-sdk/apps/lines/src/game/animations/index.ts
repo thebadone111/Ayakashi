@@ -7,7 +7,7 @@
  * destroy() and release every ticker callback, tween, and display object.
  */
 
-export { PALETTE, easings, delay, TweenRunner, ParticlePool, ScreenShaker, RayBurst, flash, makeGlowTexture, makeRayTexture, makeParticleTexture, fxBus, type FxEvent } from './fx';
+export { PALETTE, easings, delay, hitStop, TweenRunner, ParticlePool, ScreenShaker, RayBurst, flash, makeGlowTexture, makeRayTexture, makeParticleTexture, fxBus, type FxEvent } from './fx';
 export { AvatarActor, type AvatarActorOptions } from './avatarFx';
 export { WinCelebration, type BigWinAlias, type WinCelebrationOptions, type PlayOptions } from './winCelebration';
 export { BonusTriggerAnimation, type BonusTriggerOptions, type BonusTriggerPlayOptions } from './bonusTrigger';
@@ -26,3 +26,4 @@ export { TransitionWipe, type TransitionWipeOptions } from './transitionWipe';
 export { LoaderOrbs, type LoaderOrbsOptions } from './loaderFx';
 export { LoadingScene, type LoadingSceneOptions } from './loadingScene';
 export { PostFx, type PostFxOptions } from './postFx';
+export { CameraGrammar, type CameraGrammarOptions } from './cameraGrammar';
