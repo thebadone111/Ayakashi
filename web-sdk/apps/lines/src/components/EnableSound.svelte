@@ -8,15 +8,23 @@
 
 	const context = getContext();
 
-	onMount(() => {
-		const loadedAudio = $state.snapshot(
-			context.stateApp.loadedAssets['sound'],
-		) as LoadedAudio<SoundName>;
-		const { destroy } = sound.load(loadedAudio);
+	// The audio bundle is NOT preloaded (it must not block first paint), so it
+	// may arrive after mount. Load the moment it appears; until then every
+	// sound.play() is a guarded no-op inside createSound.
+	let destroySound: (() => void) | null = null;
 
+	$effect(() => {
+		const raw = context.stateApp.loadedAssets['sound'];
+		if (raw && !destroySound) {
+			const loadedAudio = $state.snapshot(raw) as LoadedAudio<SoundName>;
+			destroySound = sound.load(loadedAudio).destroy;
+		}
+	});
+
+	onMount(() => {
 		return () => {
 			// Equivalent to onDestroy(); Leave this comment for searching.
-			destroy();
+			destroySound?.();
 		};
 	});
 
