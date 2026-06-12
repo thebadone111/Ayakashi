@@ -252,11 +252,20 @@ export class WinCelebration {
 		root.addChild(amountText);
 
 		// --- intro -----------------------------------------------------------
+		// Anticipation inhale (~240ms): the world dims while spirit energy
+		// converges into the centre — a held breath. THEN the slam. The beat of
+		// nothing before the impact is what makes the impact read as heavy.
+		this.rayBurst.container.alpha = 0;
+		glow.scale.set(1.9);
+		void this.tweens.to(dim, { alpha: 0.72 }, { duration: 260 });
+		void this.tweens.to(glow.scale, { x: 0.45, y: 0.45 }, { duration: 240, ease: easings.cubicIn });
+		await this.tweens.to(glow, { alpha: 0.55 }, { duration: 240 });
+
+		// the slam
 		void flash(root, this.tweens, { width: this.width, height: this.height, duration: 300 });
-		void this.tweens.to(dim, { alpha: 0.72 }, { duration: 400 });
-		void this.tweens.to(this.rayBurst.container, { alpha: 1 }, { duration: 300 });
-		void this.tweens.to(glow, { alpha: 0.9 }, { duration: 400 });
-		void this.tweens.to(glow.scale, { x: 1, y: 1 }, { duration: 600, ease: easings.backOut });
+		void this.tweens.to(this.rayBurst.container, { alpha: 1 }, { duration: 180 });
+		void this.tweens.to(glow, { alpha: 0.9 }, { duration: 250 });
+		void this.tweens.to(glow.scale, { x: 1, y: 1 }, { duration: 500, ease: easings.backOut });
 		void this.shaker.shake({ intensity: tier.shake, duration: 700 });
 		this.spawnShockwave(root, cx, cy, tier.rayColors[0]);
 		this.burst(cx, cy, tier);
