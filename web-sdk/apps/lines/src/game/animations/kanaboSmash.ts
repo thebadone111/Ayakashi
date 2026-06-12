@@ -189,7 +189,9 @@ export class KanaboSmash {
 
 	/** Impact frame: white flash + speed lines + shake + shockwave + debris. */
 	private impact(node: Container, x: number, y: number, cellCount: number) {
-		fxBus.emit('smash');
+		// global (canvas-px) impact point so PostFx can centre the screen ripple
+		const g = node.toGlobal({ x, y });
+		fxBus.emit('smash', { x: g.x, y: g.y });
 		const s = this.symbolSize;
 		const areaRadius = s * 1.5; // 3x3 extent
 

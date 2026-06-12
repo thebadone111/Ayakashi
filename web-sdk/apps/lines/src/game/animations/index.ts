@@ -25,3 +25,4 @@ export { SymbolWinFx, type SymbolTier, type SymbolWinFxOptions } from './symbolW
 export { TransitionWipe, type TransitionWipeOptions } from './transitionWipe';
 export { LoaderOrbs, type LoaderOrbsOptions } from './loaderFx';
 export { LoadingScene, type LoadingSceneOptions } from './loadingScene';
+export { PostFx, type PostFxOptions } from './postFx';

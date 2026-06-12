@@ -61,6 +61,24 @@ export const easings = {
 
 export const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
+/**
+ * Hit-stop: freeze game time for a beat on a heavy impact (the anime "contact
+ * frame"). Drops ticker.speed to near-zero and restores it on a wall-clock
+ * timeout (setTimeout is unaffected by ticker speed). Re-entrant calls during
+ * an active stop are ignored — overlapping impacts shouldn't stack freezes.
+ */
+let hitStopActive = false;
+export const hitStop = (ticker: Ticker, durationMs = 80, speed = 0.04) => {
+	if (hitStopActive) return;
+	hitStopActive = true;
+	const original = ticker.speed;
+	ticker.speed = speed;
+	setTimeout(() => {
+		ticker.speed = original;
+		hitStopActive = false;
+	}, durationMs);
+};
+
 // ---------------------------------------------------------------------------
 // fxBus — tiny pub/sub so passive actors (avatar) can react to game FX
 // without coupling modules to each other. Modules emit, listeners subscribe.

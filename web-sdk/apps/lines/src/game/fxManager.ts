@@ -37,6 +37,7 @@ import {
 	AvatarActor,
 	TweenRunner,
 	PALETTE,
+	PostFx,
 } from './animations';
 
 import { SYMBOL_SIZE, BOARD_SIZES, BOARD_ANCHOR, BOARD_DIMENSIONS } from './constants';
@@ -71,6 +72,7 @@ let _wildLanding: WildLandingAnimation | null = null;
 let _symbolIdles: SymbolIdleManager | null = null;
 let _avatar: AvatarActor | null = null;
 let _backgroundAmbient: BackgroundAmbient | null = null;
+let _postFx: PostFx | null = null;
 
 // --- helpers -------------------------------------------------------------------
 
@@ -131,9 +133,27 @@ const registerShakeTarget = (container: Container) => {
 	};
 };
 
+// PostFx needs both layers — created when the second one registers,
+// torn down when either unregisters.
+const maybeInitPostFx = () => {
+	if (_postFx || !boardFxLayer || !overlayLayer || !stateApp.pixiApplication) return;
+	_postFx = new PostFx({
+		app: app(),
+		boardFxLayer,
+		overlayLayer,
+	});
+};
+
+const teardownPostFx = () => {
+	_postFx?.destroy();
+	_postFx = null;
+};
+
 const registerBoardFx = (container: Container) => {
 	boardFxLayer = container;
+	maybeInitPostFx();
 	return () => {
+		teardownPostFx();
 		if (spotlightG && !spotlightG.destroyed) spotlightG.destroy();
 		spotlightG = null;
 		_fxTweens?.destroy();
@@ -155,7 +175,9 @@ const registerBoardFx = (container: Container) => {
 
 const registerOverlay = (container: Container) => {
 	overlayLayer = container;
+	maybeInitPostFx();
 	return () => {
+		teardownPostFx();
 		_winCelebration?.destroy();
 		_bonusTrigger?.destroy();
 		_freeSpins?.destroy();
