@@ -45,7 +45,9 @@ import { stateLayoutDerived } from './stateLayout';
 import type { Position } from './types';
 
 const PADDING_ROW_OFFSET = 1; // board reels carry 1 padding symbol on top
-const FONT_FAMILY = 'proxima-nova';
+// Locally-hosted brush face (see app.html @font-face) — used by every
+// procedural Text the FX modules draw (BIG WIN title, count-ups, badges).
+const FONT_FAMILY = 'Yuji Syuku';
 
 // --- registered containers (set by FxHost callbacks) -------------------------
 

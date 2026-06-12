@@ -114,16 +114,23 @@ export class ReelSpinFx {
 		});
 
 		// 3) scatter landed on this reel — foxfire accent instead of dust only
-		if (opts.scatterLanded) {
-			this.particles.emit({
-				x, y: baseY - (this.rowCount * this.symbolSize) / 2,
-				count: 12,
-				speed: [60, 220],
-				life: [500, 1000],
-				scaleStart: [0.4, 0.9],
-				tints: [PALETTE.FOXFIRE, 0xb7fdff],
-			});
-		}
+		if (opts.scatterLanded) this.scatterAccent(reelIndex);
+	}
+
+	/**
+	 * Foxfire burst over a reel when a scatter (Temple Bell) lands. Fired from
+	 * the symbol-land hook so it syncs with the scatter sound, not the reel thud.
+	 */
+	scatterAccent(reelIndex: number) {
+		this.particles.emit({
+			x: this.reelCenterX(reelIndex),
+			y: this.origin.y + (this.rowCount * this.symbolSize) / 2,
+			count: 12,
+			speed: [60, 220],
+			life: [500, 1000],
+			scaleStart: [0.4, 0.9],
+			tints: [PALETTE.FOXFIRE, 0xb7fdff],
+		});
 	}
 
 	/**

@@ -21,13 +21,17 @@ import {
 	SCATTER_LAND_SOUND_MAP,
 } from './constants';
 
-const onSymbolLand = ({ rawSymbol }: { rawSymbol: RawSymbol }) => {
+const onSymbolLand = (reelIndex: number, rawSymbol: RawSymbol) => {
 	if (rawSymbol.name === 'S') {
 		eventEmitter.broadcast({ type: 'soundScatterCounterIncrease' });
 		eventEmitter.broadcast({
 			type: 'soundOnce',
 			name: SCATTER_LAND_SOUND_MAP[scatterLandIndex()],
 		});
+		// foxfire burst on the reel, synced with the bell sound
+		import('./fxManager')
+			.then(({ fxManager }) => fxManager.reelSpinFx().scatterAccent(reelIndex))
+			.catch(() => {});
 	}
 
 	if (rawSymbol.name === 'W') {
@@ -55,7 +59,7 @@ const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
 				.then(({ fxManager }) => fxManager.reelSpinFx().onReelStop(reelIndex))
 				.catch(() => {});
 		},
-		onSymbolLand,
+		onSymbolLand: ({ rawSymbol }) => onSymbolLand(reelIndex, rawSymbol),
 	});
 
 	reel.reelState.spinOptions = () =>
