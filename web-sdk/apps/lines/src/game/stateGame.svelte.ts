@@ -21,17 +21,21 @@ import {
 	SCATTER_LAND_SOUND_MAP,
 } from './constants';
 
-const onSymbolLand = (reelIndex: number, rawSymbol: RawSymbol) => {
+// reelIndex is optional: reel spins pass it (foxfire accent over the reel);
+// TumbleBoard's slide-down calls with just { rawSymbol } — sound only.
+const onSymbolLand = ({ rawSymbol, reelIndex }: { rawSymbol: RawSymbol; reelIndex?: number }) => {
 	if (rawSymbol.name === 'S') {
 		eventEmitter.broadcast({ type: 'soundScatterCounterIncrease' });
 		eventEmitter.broadcast({
 			type: 'soundOnce',
 			name: SCATTER_LAND_SOUND_MAP[scatterLandIndex()],
 		});
-		// foxfire burst on the reel, synced with the bell sound
-		import('./fxManager')
-			.then(({ fxManager }) => fxManager.reelSpinFx().scatterAccent(reelIndex))
-			.catch(() => {});
+		if (reelIndex !== undefined) {
+			// foxfire burst on the reel, synced with the bell sound
+			import('./fxManager')
+				.then(({ fxManager }) => fxManager.reelSpinFx().scatterAccent(reelIndex))
+				.catch(() => {});
+		}
 	}
 
 	if (rawSymbol.name === 'W') {
@@ -59,7 +63,7 @@ const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
 				.then(({ fxManager }) => fxManager.reelSpinFx().onReelStop(reelIndex))
 				.catch(() => {});
 		},
-		onSymbolLand: ({ rawSymbol }) => onSymbolLand(reelIndex, rawSymbol),
+		onSymbolLand: ({ rawSymbol }) => onSymbolLand({ rawSymbol, reelIndex }),
 	});
 
 	reel.reelState.spinOptions = () =>

@@ -142,7 +142,11 @@ export class TweenRunner {
 	}
 
 	/** Tween numeric properties on any object. Resolves when complete (or killed). */
-	to(target: TweenTarget, props: Record<string, number>, opts: TweenOptions): Promise<void> {
+	to(target: TweenTarget | null | undefined, props: Record<string, number>, opts: TweenOptions): Promise<void> {
+		// Destroyed Pixi objects null their transform observables (sprite.scale
+		// becomes null), so chained tweens racing a teardown can receive null.
+		// Treat it as already-finished rather than crashing the FX pipeline.
+		if (target == null) return Promise.resolve();
 		return new Promise<void>((resolve) => {
 			const from: Record<string, number> = {};
 			for (const key of Object.keys(props)) from[key] = Number(target[key] ?? 0);

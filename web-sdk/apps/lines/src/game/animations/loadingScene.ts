@@ -127,7 +127,8 @@ export class LoadingScene {
 		if (this.progress >= 1 && !this.completed) {
 			this.completed = true;
 			void this.tweens.to(this.barCap.scale, { x: 2.2, y: 2.2 }, { duration: 250, ease: easings.quadOut })
-				.then(() => this.tweens.to(this.barCap.scale, { x: 1, y: 1 }, { duration: 400, ease: easings.backOut }));
+				// the scene can be torn down during the pop — barCap.scale is null then
+				.then(() => this.tweens.to(this.barCap?.scale, { x: 1, y: 1 }, { duration: 400, ease: easings.backOut }));
 			this.particles.emit({
 				x: this.barWidth / 2,
 				y: this.barY + 6,
