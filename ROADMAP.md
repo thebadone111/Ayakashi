@@ -9,16 +9,17 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
 
 ---
 
-## 0. Board alignment & readability  `[~]`
+## 0. Board alignment & readability  `[x]`
 Max's screenshot: frame bg, reel frame (and FS frame) and symbols don't line
 up, spill over, hard to see.
-- [ ] Measure reel_frame.webp's actual transparent-window bbox with PIL; bake
-      exact scale+offset into BoardFrame (replace FRAME_RATIOS guesswork — the
-      window is NOT centered in the art, hence right-edge symbol cut)
-- [ ] Flatten frameBgPanel texture further (streaks cross symbols) — near-flat
-      dark panel, or generate a clean washi-texture panel in the gen batch
-- [ ] Check the masked board rect vs frame window after fix (screenshot verify)
-- [ ] Same treatment for the FS counter panel placement
+- [x] Measured window: 79.64% x 83.29% of art (old guess 86%/82% made the
+      window ~7% narrower than the board = border covered outer columns).
+      FRAME_RATIOS now 1.02/measured (2% breathing room)
+- [x] Panel contrast compressed to 38% + darkened 18% — symbols pop, streaks
+      are whispers (flatten-panel.py)
+- [x] Screenshot-verified: all 5 columns inside the window, no spill, no red
+      edge lines
+- [ ] FS counter panel placement — revisit when FS mode is screenshot-verified
 
 ## P1. Post-FX stack  `[ ]`
 - [ ] `pnpm add pixi-filters` (workspace: apps/lines)

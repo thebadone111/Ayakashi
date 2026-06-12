@@ -10,13 +10,15 @@ export const REEL_PADDING = 0.53;
 // below centre) — shared by boardLayout() and fxManager.boardOrigin().
 export const BOARD_ANCHOR = { x: 0.34, y: 0.52 };
 
-// Frame assembly: frame_bg1 panel behind the reels, reel_frame.png (rembg'd
-// red/gold lacquer) on top. Its inner window is ~86% x ~82% of the image —
-// ratios scale the frame so the window covers the board. Tweak if symbols
-// touch the border.
+// Frame assembly: frame_bg1 panel behind the reels, reel_frame.webp (rembg'd
+// red/gold lacquer) on top. MEASURED (measure-frame-window.py): the art's
+// transparent window is 79.64% x 83.29% of the canvas, centred to within 0.2%.
+// The old guess (86%/82%) made the window ~7% narrower than the board, so the
+// border covered the outer symbol columns. 1.02 = 2% breathing room so edge
+// symbols never kiss the border.
 export const FRAME_RATIOS = {
-	width: 1 / 0.86,
-	height: 1 / 0.82,
+	width: 1.02 / 0.7964,
+	height: 1.02 / 0.8329,
 };
 
 // 5x5 visible board + 1 padding row top and bottom = 7 symbols per reel.
