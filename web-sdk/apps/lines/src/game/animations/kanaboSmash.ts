@@ -30,6 +30,8 @@
 
 import { Application, Container, Graphics, Sprite, Texture } from 'pixi.js';
 
+import { getParticleTexture } from './particleLib';
+
 import {
 	PALETTE,
 	TweenRunner,
@@ -126,12 +128,14 @@ export class KanaboSmash {
 				x: club.x + Math.cos(headAngle) * headR,
 				y: club.y + Math.sin(headAngle) * headR,
 				count: 3,
+				texture: getParticleTexture('ember'),
 				speed: [140, 340],
 				angle: [headAngle + Math.PI / 2 - 0.3, headAngle + Math.PI / 2 + 0.3],
 				gravity: 300,
 				life: [350, 750],
-				scaleStart: [0.4, 0.8],
+				scaleStart: [0.25, 0.5],
 				tints: [PALETTE.EMBER, PALETTE.BLOOD, PALETTE.EMBER_HI],
+				rotationSpeed: [-4, 4],
 			});
 		}, 30);
 		await this.tweens.to(spinState, { rot: Math.PI * 2 * 3 }, {
@@ -161,11 +165,13 @@ export class KanaboSmash {
 			void delay(60 * i).then(() => {
 				this.particles.emit({
 					x: pc.x, y: pc.y,
-					count: 8,
+					count: 6,
+					texture: getParticleTexture('ink'),
 					speed: [80, 240],
 					life: [300, 700],
-					scaleStart: [0.3, 0.7],
+					scaleStart: [0.15, 0.32],
 					tints: [PALETTE.EMBER, PALETTE.BLOOD, 0x3a3a4a],
+					rotationSpeed: [-5, 5],
 				});
 			});
 		}
@@ -175,13 +181,16 @@ export class KanaboSmash {
 		void this.tweens.to(club, { alpha: 0, y: c.y - s * 0.3 }, { duration: 500, ease: easings.quadOut });
 		this.particles.emit({
 			x: c.x, y: c.y,
-			count: 12,
+			count: 10,
+			texture: getParticleTexture('smoke'),
 			speed: [30, 110],
 			gravity: -160,
 			drag: 0.5,
 			life: [800, 1500],
-			scaleStart: [0.5, 1],
+			scaleStart: [0.3, 0.6],
+			scaleEnd: 1.0,
 			tints: [PALETTE.BLOOD, PALETTE.SPIRIT, PALETTE.FOXFIRE],
+			rotationSpeed: [-1, 1],
 		});
 
 		await delay(550);

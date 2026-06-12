@@ -28,6 +28,8 @@
 
 import { Application, Container, Graphics, Sprite, Ticker } from 'pixi.js';
 
+import { getParticleTexture } from './particleLib';
+
 import {
 	PALETTE,
 	TweenRunner,
@@ -97,20 +99,22 @@ export class ReelSpinFx {
 				.then(() => this.tweens.to(reel.scale, { y: sy, x: sx }, { duration: 260, ease: easings.backOut }));
 		}
 
-		// 2) ink-dust puff at the reel base
+		// 2) ink-dust puff at the reel base (textured smoke wisps)
 		this.particles.emit({
 			x, y: baseY,
-			count: 8,
+			count: 6,
+			texture: getParticleTexture('smoke'),
 			speed: [40, 140],
 			angle: [-Math.PI * 0.85, -Math.PI * 0.15], // up-and-out fan
 			gravity: 140,
 			drag: 0.4,
 			life: [350, 700],
-			scaleStart: [0.5, 1],
-			scaleEnd: 1.6, // dust expands as it fades
+			scaleStart: [0.25, 0.5],
+			scaleEnd: 0.9, // dust expands as it fades
 			alphaStart: 0.5,
 			tints: [0x3a3a4a, 0x52526a, 0x2a2a38],
 			blendMode: 'normal',
+			rotationSpeed: [-1.5, 1.5],
 		});
 
 		// 3) scatter landed on this reel — foxfire accent instead of dust only
@@ -122,14 +126,30 @@ export class ReelSpinFx {
 	 * the symbol-land hook so it syncs with the scatter sound, not the reel thud.
 	 */
 	scatterAccent(reelIndex: number) {
+		const x = this.reelCenterX(reelIndex);
+		const y = this.origin.y + (this.rowCount * this.symbolSize) / 2;
 		this.particles.emit({
-			x: this.reelCenterX(reelIndex),
-			y: this.origin.y + (this.rowCount * this.symbolSize) / 2,
+			x, y,
 			count: 12,
 			speed: [60, 220],
 			life: [500, 1000],
 			scaleStart: [0.4, 0.9],
 			tints: [PALETTE.FOXFIRE, 0xb7fdff],
+		});
+		// drifting petals — the temple bell stirs the air
+		this.particles.emit({
+			x, y,
+			count: 6,
+			texture: getParticleTexture('petal'),
+			speed: [30, 120],
+			gravity: 60,
+			drag: 0.5,
+			life: [900, 1700],
+			scaleStart: [0.22, 0.4],
+			alphaStart: 0.9,
+			tints: [0xffd9e8, 0xffc4dd, 0xfff0f6],
+			blendMode: 'normal',
+			rotationSpeed: [-3, 3],
 		});
 	}
 

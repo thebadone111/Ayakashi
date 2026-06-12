@@ -24,6 +24,8 @@
 
 import { Application, Container, Sprite } from 'pixi.js';
 
+import { getParticleTexture } from './particleLib';
+
 import {
 	PALETTE,
 	TweenRunner,
@@ -86,19 +88,35 @@ export class TumbleExplosion {
 			});
 		void this.tweens.to(glow.scale, { x: 1.5, y: 1.5 }, { duration: 430, ease: easings.cubicOut });
 
-		// ink splash (dark, normal blend) + spirit sparks (additive)
+		// ink splash (textured splatter, dark, normal blend) + spirit sparks
 		this.particles.emit({
 			x, y,
-			count: 10,
+			count: 8,
+			texture: getParticleTexture('ink'),
 			speed: [80, 280],
 			gravity: 500,
 			life: [350, 800],
-			scaleStart: [0.4, 0.9],
-			scaleEnd: 1.2,
-			alphaStart: 0.6,
+			scaleStart: [0.18, 0.4],
+			scaleEnd: 0.55,
+			alphaStart: 0.75,
 			tints: [0x2a2a38, 0x3a3a4a, 0x1c1824],
 			blendMode: 'normal',
 			rotationSpeed: [-5, 5],
+		});
+		// paper shreds fluttering out — the symbol tears apart
+		this.particles.emit({
+			x, y,
+			count: 5,
+			texture: getParticleTexture('paper'),
+			speed: [60, 200],
+			gravity: 260,
+			drag: 0.6,
+			life: [450, 950],
+			scaleStart: [0.2, 0.4],
+			alphaStart: 0.85,
+			tints: [0xcfc4ae, 0xa89c86, 0xe8e0d0],
+			blendMode: 'normal',
+			rotationSpeed: [-7, 7],
 		});
 		this.particles.emit({
 			x, y,

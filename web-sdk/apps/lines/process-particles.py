@@ -34,6 +34,13 @@ for job, (fn, out_name, max_px) in PICKS.items():
     im = Image.open(path).convert("RGB")
     arr = np.asarray(im).astype(np.float32)
     lum = (0.299 * arr[..., 0] + 0.587 * arr[..., 1] + 0.114 * arr[..., 2])
+    # auto-polarity: FLUX sometimes delivers black-on-white (ink prior is
+    # strong) — sample the corners; if the background is bright, invert.
+    h_, w_ = lum.shape
+    corners = np.mean([lum[:20, :20].mean(), lum[:20, -20:].mean(),
+                       lum[-20:, :20].mean(), lum[-20:, -20:].mean()])
+    if corners > 128:
+        lum = 255 - lum
     # gentle knee so faint glow survives but the black floor clips to 0
     alpha = np.clip((lum - 12) / (255 - 12), 0, 1) ** 0.9 * 255
 

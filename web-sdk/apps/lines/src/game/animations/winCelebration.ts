@@ -47,6 +47,7 @@ import {
 	delay,
 	fxBus,
 } from './fx';
+import { getParticleTexture } from './particleLib';
 
 export type BigWinAlias = 'big' | 'superwin' | 'mega' | 'epic' | 'max';
 
@@ -352,18 +353,35 @@ export class WinCelebration {
 	}
 
 	private burst(cx: number, cy: number, tier: TierConfig, scale = 1) {
-		// gold coins / sparks — heavy, gravity-bound
+		// gold embers / sparks — heavy, gravity-bound
 		this.particles.emit({
 			x: cx, y: cy,
-			count: Math.round(tier.burstCount * 0.6 * scale),
+			count: Math.round(tier.burstCount * 0.45 * scale),
+			texture: getParticleTexture('ember'),
 			speed: [300, 900],
 			angle: [-Math.PI, 0], // upward hemisphere
 			gravity: 1400,
 			life: [900, 1800],
-			scaleStart: [0.5, 1.1],
-			scaleEnd: 0.2,
+			scaleStart: [0.3, 0.6],
+			scaleEnd: 0.1,
 			tints: [PALETTE.GOLD, PALETTE.EMBER_HI, 0xfff2b0],
 			rotationSpeed: [-6, 6],
+		});
+		// gold petals raining through the rays — festival confetti
+		this.particles.emit({
+			x: cx, y: cy,
+			count: Math.round(tier.burstCount * 0.25 * scale),
+			texture: getParticleTexture('petal'),
+			speed: [200, 600],
+			angle: [-Math.PI, 0],
+			gravity: 500,
+			drag: 0.35,
+			life: [1400, 2600],
+			scaleStart: [0.25, 0.45],
+			alphaStart: 0.95,
+			tints: [0xffd700, 0xffe9a8, 0xffc4dd],
+			blendMode: 'normal',
+			rotationSpeed: [-5, 5],
 		});
 		// spirit flames — light, floaty, additive
 		this.particles.emit({
@@ -407,13 +425,16 @@ export class WinCelebration {
 				x: Math.random() * this.width,
 				y: -20,
 				count: 1,
+				// alternate embers and drifting petals for a festival-fall mix
+				texture: getParticleTexture(Math.random() < 0.65 ? 'ember' : 'petal'),
 				speed: [40, 120],
 				angle: [Math.PI * 0.4, Math.PI * 0.6], // downward
 				gravity: 60,
 				life: [2500, 4500],
-				scaleStart: [0.3, 0.8],
+				scaleStart: [0.2, 0.45],
 				scaleEnd: 0,
 				tints: [PALETTE.EMBER, PALETTE.EMBER_HI, PALETTE.GOLD],
+				rotationSpeed: [-2.5, 2.5],
 			});
 		};
 		this.app.ticker.add(this.emberTick);

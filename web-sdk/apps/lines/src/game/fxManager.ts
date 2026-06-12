@@ -39,6 +39,8 @@ import {
 	PALETTE,
 	PostFx,
 	CameraGrammar,
+	setParticleTexture,
+	type ParticleName,
 } from './animations';
 
 import { SYMBOL_SIZE, BOARD_SIZES, BOARD_ANCHOR, BOARD_DIMENSIONS } from './constants';
@@ -114,8 +116,26 @@ const boardCellToCanvas = (pos: Position) => {
 	};
 };
 
+// Generated alpha sprites for ParticlePool (background-loaded; modules fall
+// back to the glow dot until these resolve). Refreshed on every module getter
+// because assets can land after the layers register.
+const PARTICLE_ASSET_MAP: Record<ParticleName, string> = {
+	ink: 'particleInk',
+	petal: 'particlePetal',
+	paper: 'particlePaper',
+	ember: 'particleEmber',
+	smoke: 'particleSmoke',
+};
+
+const refreshParticleTextures = () => {
+	for (const [name, key] of Object.entries(PARTICLE_ASSET_MAP)) {
+		setParticleTexture(name as ParticleName, texture(key));
+	}
+};
+
 const needBoardFx = (): Container => {
 	if (!boardFxLayer) throw new Error('fxManager: board FX layer not registered');
+	refreshParticleTextures();
 	return boardFxLayer;
 };
 
