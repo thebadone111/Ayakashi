@@ -44,12 +44,18 @@ up, spill over, hard to see.
       load works, FS music switches
 - [ ] Volume balance pass — needs human ears (Max: listen to a few spins)
 
-## P3. Textured particles  `[ ]`  (ComfyUI batch #1)
-- [ ] Generate: ink splatter ×3, sakura petal, paper shred, ember flake,
-      smoke wisp, brush speed-line (white/light on black, 256-512px)
-- [ ] PIL: luminance→alpha, crop, pack small atlas
-- [ ] Wire: tumble = ink+paper · scatter = petal+foxfire · kanabo = ink+ember
-      · reel dust = smoke wisp · win sparkle = ember+petal
+## P3. Textured particles  `[~]`  (ComfyUI batch #1 RUNNING — gen-batch-1.py)
+- [~] Generating: 11 jobs (5 particles, 2 brush strokes, 2 flipbook sheets,
+      2 avatar poses). ink-splatter done (4 candidates, black-on-white —
+      process script auto-inverts polarity)
+- [x] process-particles.py ready: luminance→alpha (auto-polarity), crop,
+      downscale, white-body sprites for runtime tinting. PICKS need filling
+      after visual review of candidates
+- [x] Integration code SHIPPED (78a6819): particleLib registry + all emit-site
+      swaps (tumble=ink+paper, dust=smoke, scatter=petals, kanabo=ember/ink/
+      smoke, celebration=ember+gold petals). Falls back to glow dot until
+      textures land — game safe either way
+- [ ] Fill PICKS, run processing, add 5 entries to assets.ts, verify visually
 
 ## P4. Brush-stroke reveals  `[ ]`  (same gen batch)
 - [ ] Generate 4-6 wide brush strokes (white on black)
@@ -62,11 +68,12 @@ up, spill over, hard to see.
 - [ ] Slice/pack with PIL (like build-coin-sheet.py), play at 12fps
 - [ ] Use: scatter land (bell glyph), wild land (foxfire burst), kanabo (slash arc)
 
-## P6. Avatar alive  `[ ]`  (same gen batch, img2img)
-- [ ] img2img pose variants of avatar.png at denoise ~0.5: wink, cheer (arms up),
-      surprised — keep outfit/colors identical, curate hard
+## P6. Avatar alive  `[~]`  (same gen batch, img2img)
+- [~] img2img pose variants generating (avatar-cheer denoise 0.5,
+      avatar-wink denoise 0.45) — curate hard on arrival
 - [ ] Crossfade pose swap on bigwin/bonus (mesh idle stays the base)
-- [ ] Motion pass: slower head-tilt arc, hair follow-through wave phase offset
+- [x] Motion pass DONE (ad279a9): weight shift foot-to-foot, head-lean arc on
+      hair band, velocity-coupled hair follow-through with upward phase lag
 
 ---
 
