@@ -113,6 +113,13 @@ export class AvatarActor {
 	private twirlPhase = 1; // 1 = idle / finished
 	private twirlTurns = 1;
 	private twirlDuration = 0.9; // seconds
+	// reaction poses (img2img variants of the same texture). Swapped exactly
+	// at the twirl's edge-on frame (scale.x ≈ 0) so no crossfade is needed —
+	// she spins and comes back around in the new pose.
+	private poses: Partial<Record<'cheer' | 'wink', Texture>> = {};
+	private baseTexture: Texture;
+	private pendingTexture: Texture | null = null;
+	private poseRevertTimer: ReturnType<typeof setTimeout> | null = null;
 
 	private busHandlers: Partial<Record<FxEvent, (data?: unknown) => void>> = {};
 	private tick = (ticker: Ticker) => this.update(ticker.deltaMS);
@@ -152,9 +159,19 @@ export class AvatarActor {
 
 		const buffer = this.mesh.geometry.getBuffer('aPosition');
 		this.basePositions = new Float32Array(buffer.data);
+		this.baseTexture = opts.texture;
 
 		if (opts.autoReact ?? true) this.subscribe();
 		this.app.ticker.add(this.tick);
+	}
+
+	/**
+	 * Register reaction-pose textures (img2img variants of the base art —
+	 * same character, same dimensions). Optional: without them the twirl
+	 * simply spins the base pose.
+	 */
+	setPoses(poses: Partial<Record<'cheer' | 'wink', Texture>>) {
+		this.poses = { ...this.poses, ...poses };
 	}
 
 	// =========================================================================
@@ -189,7 +206,7 @@ export class AvatarActor {
 				break;
 			case 'bonus':
 				this.excite = Math.max(this.excite, 1.1);
-				this.twirl(1);
+				this.twirl(1, 'wink');
 				break;
 			case 'fsintro':
 				this.excite = Math.max(this.excite, 1.2);
@@ -200,20 +217,36 @@ export class AvatarActor {
 				const intensity = TIER_INTENSITY[level] ?? 1;
 				this.excite = Math.max(this.excite, intensity);
 				// one delighted pirouette — two full turns for the monster tiers
-				this.twirl(intensity >= 1.6 ? 2 : 1);
+				this.twirl(intensity >= 1.6 ? 2 : 1, 'cheer');
 				break;
 			}
 		}
 	}
 
-	/** A happy spin-on-the-spot: one hop + full turn(s) around her vertical axis. */
-	private twirl(turns = 1) {
+	/**
+	 * A happy spin-on-the-spot: one hop + full turn(s) around her vertical
+	 * axis. If a reaction pose is registered she comes out of the spin in it,
+	 * holds for a moment, then twirls back to the base pose.
+	 */
+	private twirl(turns = 1, pose?: 'cheer' | 'wink') {
 		if (this.twirlPhase < 1) return; // already mid-spin — let it finish
 		this.twirlTurns = turns;
 		this.twirlDuration = 0.75 + turns * 0.3;
 		this.twirlPhase = 0;
 		this.hop.velocity += 3.4;
 		this.squash.velocity += 1.0;
+
+		const poseTexture = pose && this.poses[pose];
+		if (poseTexture) {
+			this.pendingTexture = poseTexture;
+			if (this.poseRevertTimer) clearTimeout(this.poseRevertTimer);
+			this.poseRevertTimer = setTimeout(() => {
+				this.poseRevertTimer = null;
+				if (this.destroyed || this.mesh.texture === this.baseTexture) return;
+				this.pendingTexture = this.baseTexture;
+				this.twirl(1); // spin back to the base pose
+			}, 2600);
+		}
 	}
 
 	setVisible(visible: boolean) {
@@ -261,6 +294,11 @@ export class AvatarActor {
 			// easeInOutQuad — she winds up, whips around, lands softly
 			const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
 			facing = Math.cos(Math.PI * 2 * this.twirlTurns * eased);
+			// pose swap, hidden at the edge-on frame: nobody sees the cut
+			if (this.pendingTexture && Math.abs(facing) < 0.12) {
+				this.mesh.texture = this.pendingTexture;
+				this.pendingTexture = null;
+			}
 			if (this.twirlPhase >= 1) this.squash.velocity += 1.4; // landing plop
 		}
 
@@ -336,9 +374,10 @@ export class AvatarActor {
 
 	destroy() {
 		this.destroyed = true;
+		if (this.poseRevertTimer) clearTimeout(this.poseRevertTimer);
 		this.unsubscribe();
 		this.app.ticker.remove(this.tick);
-		// texture belongs to the asset loader — keep it
+		// textures belong to the asset loader — keep them
 		this.root.destroy({ children: true, texture: false });
 	}
 }
