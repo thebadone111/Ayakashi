@@ -30,3 +30,7 @@ art/rejected/
 _shot.jpg
 _shot.b64
 _shot_server.py
+
+# scraping scratch
+pixabay_*
+test_dl.*
