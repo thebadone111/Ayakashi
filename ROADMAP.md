@@ -59,7 +59,8 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
       instead of shrinking to a point. Reads as destruction now.
 - [x] **A3 transition** — mist wipe sped up ~40% in+out (tighter stagger, faster
       veil) so it feels decisive instead of a slow drift.
-- [ ] **A4 free-spins intro/outro touch-up** — maybe new assets.
+- [x] **A4 FS intro touch-up** — gate rise snappier (1100->750ms) + drifting
+      petals for atmosphere (cohesive with bell/celebration).
 
 ### Console noise (ANSWERED — not the game)
 - ObjectMultiplex / content.js / app-init-liveness / MaxListenersExceeded /

@@ -43,6 +43,7 @@ import {
 	delay,
 	fxBus,
 } from './fx';
+import { getParticleTexture } from './particleLib';
 
 export interface FreeSpinsScreenOptions {
 	app: Application;
@@ -124,9 +125,9 @@ export class FreeSpinsScreen {
 		root.addChild(hint);
 
 		// --- choreography ------------------------------------------------------
-		// gate rises through the mist
-		void this.tweens.to(gate, { alpha: 1 }, { duration: 700 });
-		await this.tweens.to(gate.position, { y: cy + 40 }, { duration: 1100, ease: easings.cubicOut });
+		// gate rises through the mist (A4: snappier — was 1100ms, felt sluggish)
+		void this.tweens.to(gate, { alpha: 1 }, { duration: 450 });
+		await this.tweens.to(gate.position, { y: cy + 40 }, { duration: 750, ease: easings.cubicOut });
 
 		// pillars ignite
 		for (const pillar of [pillarL, pillarR]) {
@@ -143,6 +144,22 @@ export class FreeSpinsScreen {
 			life: [1000, 2000],
 			scaleStart: [0.6, 1.3],
 			tints: [PALETTE.FOXFIRE, PALETTE.SPIRIT, 0xb7fdff],
+		});
+		// drifting petals for atmosphere (cohesive with bell/celebration)
+		this.particles.emit({
+			x: cx, y: cy - 60,
+			count: 10,
+			texture: getParticleTexture('petal'),
+			speed: [40, 150],
+			angle: [-Math.PI, 0],
+			gravity: 50,
+			drag: 0.5,
+			life: [1600, 2800],
+			scaleStart: [0.25, 0.45],
+			alphaStart: 0.9,
+			tints: [0xffd9e8, 0xfff0f6, 0xffc4dd],
+			blendMode: 'normal',
+			rotationSpeed: [-3, 3],
 		});
 
 		// title + count slam
