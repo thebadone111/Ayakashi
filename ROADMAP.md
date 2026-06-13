@@ -11,7 +11,19 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
 
 ## ROUND 2 — Max review 2026-06-13 (NEW ISSUES, not yet started)
 
-### Bugs (functional)
+### DONE this round (RunComfy cloud FLUX)
+- [x] **RunComfy API wired** — driver (runcomfy_generate.py), skill updated to
+      prefer cloud; deployment created+terminated via API (no idle cost)
+- [x] **Q3 symbols regenerated** — all 14 HQ on cloud FLUX, shared style spec,
+      cut to alpha + uniform 90% size, atlas repacked. Cohesive matched set.
+      Screenshot-verified on the board.
+- [x] **Q1 reel frame regenerated** — ornate red/gold square-window frame,
+      window cut + measured, FRAME_RATIOS updated. Live. (fit is a touch loose —
+      ornate corners spread beyond the board border; could tighten later)
+- [x] fs-frame (blue foxfire, square window) generated — NOT yet wired as the
+      FS-mode board frame (optional; ties into B3)
+
+### Bugs (functional) — STILL TODO
 - [ ] **B1 MAX-WIN keeps rolling free spins** — after wincap is hit the game
       should STOP, not continue spinning FS. Wrong end-state. (highest priority)
 - [ ] **B2 winning combos appear OUTSIDE the reel frame** — looks like a win
