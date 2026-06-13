@@ -32,9 +32,9 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
       internally); mask clips vertical padding (5 rows shown). Added a defensive
       isVisible() filter in winInfo so a padding-row position can NEVER present
       even if math emits one. Likely was a pre-frame-rework artifact.
-- [ ] **B3 FS blue border** — a weird blue border rings the reel frame during
-      free spins (likely the BoardFrame foxfire glow at full alpha, or FS-mode
-      tint). Remove/restyle.
+- [x] **B3 FS blue border** — was the BoardFrame foxfire (blue) glow; recolored
+      to a soft GOLD halo that hugs the frame (matches red/gold lacquer),
+      lowered alpha + slower pulse so it reads as the frame lighting up.
 
 ### Betting UI (Max 2026-06-13)
 - [ ] **U1 betting UI redesign + custom assets** — current UI bar overlaps/covers

@@ -39,15 +39,18 @@
 
 		const { x, y, width, height } = frameLayout;
 
+		// Warm GOLD halo (was blue FOXFIRE, which clashed with the red/gold frame
+		// and read as a stray blue border in free spins — B3). Softer + hugs the
+		// frame so it looks like the lacquer lighting up, not a separate ring.
 		glowGraphics = new PIXI.Graphics();
 		for (const [pad, stroke, alpha] of [
-			[16, 20, 0.1],
-			[8, 11, 0.2],
-			[2, 5, 0.5],
+			[12, 16, 0.05],
+			[6, 9, 0.1],
+			[1, 4, 0.22],
 		] as const) {
 			glowGraphics
 				.roundRect(-width / 2 - pad, -height / 2 - pad, width + pad * 2, height + pad * 2, 28)
-				.stroke({ color: PALETTE.FOXFIRE, width: stroke, alpha });
+				.stroke({ color: PALETTE.GOLD, width: stroke, alpha });
 		}
 		glowGraphics.blendMode = 'add';
 		glowGraphics.position.set(x, y);
@@ -65,10 +68,10 @@
 		boardFrameGlowShow: () => {
 			if (!glowGraphics || !tweens) return;
 			tweens.killAll();
-			void tweens.to(glowGraphics, { alpha: 1 }, { duration: 400 }).then(() => {
+			void tweens.to(glowGraphics, { alpha: 0.7 }, { duration: 400 }).then(() => {
 				if (!glowGraphics || glowGraphics.destroyed) return;
-				void tweens?.to(glowGraphics, { alpha: 0.55 }, {
-					duration: 700,
+				void tweens?.to(glowGraphics, { alpha: 0.35 }, {
+					duration: 900,
 					ease: easings.sineInOut,
 					repeat: -1,
 					yoyo: true,
