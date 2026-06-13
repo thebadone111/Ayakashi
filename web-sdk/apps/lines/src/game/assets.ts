@@ -110,6 +110,29 @@ export default {
 		type: 'spriteSheet',
 		src: new URL('../../assets/sprites/coin/SD2_Coin.json', import.meta.url).href,
 	},
+	// FLUX-generated textured particles (white-body alpha sprites; ParticlePool
+	// tints them per effect). Not preloaded — modules fall back to the glow dot
+	// until these arrive in phase 2.
+	particleInk: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/ink_splat.webp', import.meta.url).href,
+	},
+	particlePetal: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/petal.webp', import.meta.url).href,
+	},
+	particlePaper: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/paper.webp', import.meta.url).href,
+	},
+	particleEmber: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/ember.webp', import.meta.url).href,
+	},
+	particleSmoke: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/smoke.webp', import.meta.url).href,
+	},
 	// audio (placeholder reference set) — NOT preloaded: ~4MB of audio must not
 	// block first paint. It background-loads (phase 2) and is ready before the
 	// loading bar fills, so the first interactive frame appears far sooner.

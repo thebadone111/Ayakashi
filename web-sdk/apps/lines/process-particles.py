@@ -19,7 +19,7 @@ OUT = os.path.join(HERE, "static", "assets", "sprites", "particles")
 # job-dir: (filename, out-name, max-px)  — filename chosen after visual review
 PICKS = {
     "ink-splatter":  ("ink-splatter__00004_.png", "ink_splat", 256),  # most radial energy
-    "sakura-petal":  ("sakura-petal__00001_.png", "petal", 128),
+    "sakura-petal":  ("sakura-petal__00002_.png", "petal", 128),       # single petal, not full flower
     "paper-shred":   ("paper-shred__00001_.png", "paper", 128),
     "ember-flake":   ("ember-flake__00001_.png", "ember", 128),
     "smoke-wisp":    ("smoke-wisp__00001_.png", "smoke", 192),
