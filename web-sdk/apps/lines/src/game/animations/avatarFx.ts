@@ -253,6 +253,17 @@ export class AvatarActor {
 		this.root.visible = visible;
 	}
 
+	/**
+	 * Her current on-screen rectangle in GLOBAL (canvas) space — used by the
+	 * win celebration to anchor foxfire + the win banner around her, wherever
+	 * the layout has placed her. Returns null if she's hidden.
+	 */
+	getScreenBounds(): { x: number; y: number; width: number; height: number } | null {
+		if (!this.root.visible || this.destroyed) return null;
+		const r = this.mesh.getBounds().rectangle;
+		return { x: r.x, y: r.y, width: r.width, height: r.height };
+	}
+
 	/** Move the actor (e.g. layout change portrait/landscape). */
 	setPosition(x: number, y: number) {
 		this.baseY = y;

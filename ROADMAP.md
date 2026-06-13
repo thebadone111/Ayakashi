@@ -23,9 +23,15 @@ RunComfy, then ENCHANT them with the animation libs (GSAP + shaders + particles
       the climax `toll` rings were never `addChild`-ed (invisible) — now added.
       Removed dead wisp system + unused imports. Screenshot-verified over the dark
       board: gold/white ripples radiate cleanly, no blob.
-- [ ] **WIN celebration — replace the spinning ray-fan "carousel".** Wants
-      CHARACTER; use the AVATAR more (she reacts/poses, foxfire around her, win
-      amount in a brush banner near her).
+- [~] **WIN celebration — replace the spinning ray-fan "carousel".** Rebuilt
+      FULLY AVATAR-LED: ray-fan carousel removed; the moment anchors to the live
+      avatar (getScreenBounds plumbed via fxManager): a radial SPOTLIGHT vignette
+      keeps her clear while the board dims, a foxfire bloom + spirit-flame swirl
+      rise around her, and the win amount + tier title slam into a brush banner
+      beside her (toward centre). Procedural lacquer-plaque banner as fallback;
+      bespoke sumi-e brush asset ('brushWide') still TO GENERATE on RunComfy
+      (needs RUNCOMFY_API_KEY). Screenshot-verified (had to strip PostFx filters
+      to bypass an extract+filter darkening artifact — see screenshot memory).
 - [ ] **FS intro — more character + polish.** Wire the generated foxfire
       flipbook as animated extras around the gate/title.
 - [ ] **Avatar MORE ALIVE** — voice lines via Japanese speech bubbles

@@ -1,9 +1,13 @@
 /**
  * Ayakashi — Big Win celebration sequence (BIG / SUPER / MEGA / EPIC / MAX).
  *
- * Pure PixiJS. Cinematic: ink-black vignette, rotating foxfire/gold ray fan,
- * shockwave ring, screen shake, ember + spirit-flame particle bursts, and an
- * elastic-scaling title with a count-up amount.
+ * CHARACTER-LED design (Max 2026-06-13): the kitsune avatar is the focal point.
+ * The old centred rotating ray-fan "carousel" is gone. Instead the celebration
+ * anchors to her on-screen position: a foxfire bloom ignites around her, spirit
+ * flames swirl up her body (her own pirouette fires via fxBus 'bigwin'), and the
+ * tier title + win amount slam into a sumi-e brush banner beside her (toward
+ * centre so it stays on-screen). Impact grammar (flash, shake, shockwave) now
+ * radiates from her, not screen-centre.
  *
  * Wiring (Tom): replace the Spine-based big win in `Win.svelte` —
  *
@@ -20,8 +24,12 @@
  *   // on game teardown:
  *   celebration.destroy();
  *
- * Escalation: each tier raises ray count, particle rates, shake intensity and
- * title scale. MAX adds a sustained ember rain + repeated shockwaves.
+ * Escalation: each tier raises particle rates, shake intensity, title scale and
+ * shockwave count. MAX adds a sustained ember rain + repeated shockwaves.
+ *
+ * The avatar focus point is supplied by `getAvatarFocus` (fxManager hands it the
+ * live avatar's screen rect). If she's hidden/absent it falls back to a
+ * right-of-centre anchor so the moment still plays.
  */
 
 import {
@@ -40,7 +48,6 @@ import {
 	TweenRunner,
 	ParticlePool,
 	ScreenShaker,
-	RayBurst,
 	flash,
 	makeGlowTexture,
 	speedLineBurst,
@@ -52,10 +59,18 @@ import { getParticleTexture } from './particleLib';
 
 export type BigWinAlias = 'big' | 'superwin' | 'mega' | 'epic' | 'max';
 
+/** Avatar's on-screen rectangle in canvas space (overlay-local). */
+export interface AvatarFocusRect {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
 interface TierConfig {
 	title: string;
-	rayCount: number;
-	rayColors: number[];
+	/** Tier palette — drives bloom, shockwave, banner and particle tints. */
+	palette: number[];
 	shake: number;
 	burstCount: number;
 	titleScale: number;
@@ -67,8 +82,7 @@ interface TierConfig {
 const TIERS: Record<BigWinAlias, TierConfig> = {
 	big: {
 		title: 'BIG WIN',
-		rayCount: 10,
-		rayColors: [PALETTE.GOLD, PALETTE.EMBER],
+		palette: [PALETTE.GOLD, PALETTE.EMBER],
 		shake: 10,
 		burstCount: 40,
 		titleScale: 1.0,
@@ -78,8 +92,7 @@ const TIERS: Record<BigWinAlias, TierConfig> = {
 	},
 	superwin: {
 		title: 'SUPER WIN',
-		rayCount: 12,
-		rayColors: [PALETTE.GOLD, PALETTE.EMBER, PALETTE.FOXFIRE],
+		palette: [PALETTE.GOLD, PALETTE.EMBER, PALETTE.FOXFIRE],
 		shake: 14,
 		burstCount: 60,
 		titleScale: 1.1,
@@ -89,8 +102,7 @@ const TIERS: Record<BigWinAlias, TierConfig> = {
 	},
 	mega: {
 		title: 'MEGA WIN',
-		rayCount: 14,
-		rayColors: [PALETTE.EMBER, PALETTE.EMBER_HI, PALETTE.FOXFIRE],
+		palette: [PALETTE.EMBER, PALETTE.EMBER_HI, PALETTE.FOXFIRE],
 		shake: 18,
 		burstCount: 80,
 		titleScale: 1.22,
@@ -100,8 +112,7 @@ const TIERS: Record<BigWinAlias, TierConfig> = {
 	},
 	epic: {
 		title: 'EPIC WIN!',
-		rayCount: 16,
-		rayColors: [PALETTE.SPIRIT, PALETTE.EMBER, PALETTE.GOLD],
+		palette: [PALETTE.SPIRIT, PALETTE.EMBER, PALETTE.GOLD],
 		shake: 24,
 		burstCount: 110,
 		titleScale: 1.35,
@@ -111,8 +122,7 @@ const TIERS: Record<BigWinAlias, TierConfig> = {
 	},
 	max: {
 		title: 'MAX WIN',
-		rayCount: 20,
-		rayColors: [PALETTE.BLOOD, PALETTE.GOLD, PALETTE.FOXFIRE, PALETTE.EMBER],
+		palette: [PALETTE.BLOOD, PALETTE.GOLD, PALETTE.FOXFIRE, PALETTE.EMBER],
 		shake: 30,
 		burstCount: 150,
 		titleScale: 1.5,
@@ -133,9 +143,11 @@ export interface WinCelebrationOptions {
 	height?: number;
 	/** Local font family — must be hosted in the project (no external fonts). */
 	fontFamily?: string;
-	/** Optional sumi-e brush stroke texture — swept in as a banner behind the
-	 *  title. Without it the title simply slams in (no banner). */
+	/** Optional sumi-e brush stroke texture for the banner. Without it a clean
+	 *  procedural lacquer plaque is drawn instead. */
 	brushTexture?: Texture;
+	/** Live avatar screen rect provider — the moment anchors to her. */
+	getAvatarFocus?: () => AvatarFocusRect | null;
 }
 
 export interface PlayOptions {
@@ -144,6 +156,14 @@ export interface PlayOptions {
 	formatAmount?: (n: number) => string;
 	/** Total presentation time (ms). Default from tier. */
 	duration?: number;
+}
+
+/** Resolved focus: her horizontal centre, upper-torso Y, and her on-screen size. */
+interface Focus {
+	cx: number;
+	torsoY: number;
+	w: number;
+	h: number;
 }
 
 export class WinCelebration {
@@ -159,8 +179,10 @@ export class WinCelebration {
 	private skipRequested = false;
 	private playing = false;
 	private emberTick: ((ticker: Ticker) => void) | null = null;
-	private rayBurst: RayBurst | null = null;
+	private foxfireTick: ((ticker: Ticker) => void) | null = null;
 	private brushTexture: Texture | null;
+	private getAvatarFocus: (() => AvatarFocusRect | null) | null;
+	private vignetteTexture: Texture | null = null;
 
 	constructor(opts: WinCelebrationOptions) {
 		this.app = opts.app;
@@ -169,6 +191,7 @@ export class WinCelebration {
 		this.height = opts.height ?? opts.app.screen.height;
 		this.fontFamily = opts.fontFamily ?? 'Arial';
 		this.brushTexture = opts.brushTexture ?? null;
+		this.getAvatarFocus = opts.getAvatarFocus ?? null;
 		this.tweens = new TweenRunner(opts.app.ticker);
 		this.particles = new ParticlePool(opts.app.ticker, opts.app.renderer, 400);
 		this.shaker = new ScreenShaker(opts.shakeTarget, opts.app.ticker);
@@ -190,125 +213,110 @@ export class WinCelebration {
 		this.skipRequested = false;
 
 		const tier = TIERS[opts.level];
-		fxBus.emit('bigwin', { level: opts.level });
+		fxBus.emit('bigwin', { level: opts.level }); // avatar pirouettes + glows
 		const fmt = opts.formatAmount ?? ((n: number) => n.toFixed(2));
-		const cx = this.width / 2;
-		const cy = this.height / 2;
+		const focus = this.resolveFocus();
 
 		// --- build scene -----------------------------------------------------
 		const root = new Container();
 		this.root = root;
 		this.parent.addChild(root);
 
-		// ink vignette
-		const dim = new Graphics().rect(0, 0, this.width, this.height).fill({ color: PALETTE.INK });
-		dim.alpha = 0;
-		root.addChild(dim);
+		// radial vignette — CLEAR over her, darkening to the screen edges, so she
+		// becomes the focal point. (The celebration draws above her layer, so a
+		// flat dim would just bury her; this spotlights her instead.)
+		const vignette = this.buildVignette(focus);
+		vignette.alpha = 0;
+		root.addChild(vignette);
 
-		// rotating ray fan
-		this.rayBurst = new RayBurst(this.app.ticker, this.app.renderer, {
-			rayCount: tier.rayCount,
-			length: Math.hypot(this.width, this.height) / 2,
-			colors: tier.rayColors,
-			rotationSpeed: 0.3,
-		});
-		this.rayBurst.container.position.set(cx, cy);
-		root.addChild(this.rayBurst.container);
+		// warm foxfire glow rising from around her feet — additive, kept LOW so it
+		// haloes her without washing out her face
+		const bloom = new Sprite(makeGlowTexture(this.app.renderer, 220, tier.palette[0]));
+		bloom.anchor.set(0.5);
+		bloom.position.set(focus.cx, focus.torsoY + focus.h * 0.34);
+		bloom.blendMode = 'add';
+		bloom.alpha = 0;
+		bloom.scale.set(0.5);
+		root.addChild(bloom);
 
-		// central glow
-		const glow = new Sprite(makeGlowTexture(this.app.renderer, 220, tier.rayColors[0]));
-		glow.anchor.set(0.5);
-		glow.position.set(cx, cy);
-		glow.blendMode = 'add';
-		glow.alpha = 0;
-		glow.scale.set(0.4);
-		root.addChild(glow);
-
-		// particle layer (above rays, below text)
+		// particle layer (above bloom, below banner/text)
 		root.addChild(this.particles.container);
+
+		// --- brush banner beside her (toward centre so it never goes off-screen)
+		const bannerW = Math.max(380, Math.min(this.width * 0.46, 680));
+		const bannerH = 200;
+		let bannerCx = focus.cx - focus.w * 0.5 - bannerW * 0.5 - 30; // fully beside her, with a gap
+		bannerCx = Math.max(bannerW * 0.5 + 30, bannerCx); // clamp on-screen
+		const bannerCy = focus.torsoY;
+		const banner = this.buildBanner(tier, bannerW, bannerH);
+		banner.position.set(bannerCx, bannerCy);
+		banner.alpha = 0;
+		banner.scale.x = 0; // swept open on the slam
+		root.addChild(banner);
 
 		// title
 		const titleStyle = new TextStyle({
 			fontFamily: this.fontFamily,
-			fontSize: 110,
+			fontSize: 56,
 			fontWeight: '900',
 			fill: tier.titleColor,
-			stroke: { color: PALETTE.INK, width: 10 },
-			dropShadow: { color: tier.rayColors[0], blur: 18, distance: 0, alpha: 0.9 },
-			letterSpacing: 6,
+			stroke: { color: PALETTE.INK, width: 8 },
+			dropShadow: { color: tier.palette[0], blur: 16, distance: 0, alpha: 0.9 },
+			letterSpacing: 4,
 		});
-		// sumi-e brush banner behind the title — swept in on the slam so the
-		// title reads as painted onto the screen with one confident stroke
-		let brush: Sprite | null = null;
-		if (this.brushTexture) {
-			brush = new Sprite(this.brushTexture);
-			brush.anchor.set(0.5);
-			brush.position.set(cx, cy - 60);
-			const bw = Math.min(this.width * 0.7, 900);
-			brush.width = bw;
-			brush.height = bw * (this.brushTexture.height / this.brushTexture.width);
-			brush.tint = tier.titleColor;
-			brush.alpha = 0;
-			brush.scale.x = 0; // swept open horizontally on the slam
-			root.addChild(brush);
-		}
-
 		const title = new Text({ text: tier.title, style: titleStyle });
 		title.anchor.set(0.5);
-		title.position.set(cx, cy - 70);
+		title.position.set(bannerCx, bannerCy - 50);
 		title.scale.set(0);
 		root.addChild(title);
 
-		// amount counter
+		// amount counter — the hero number, bigger than the title
 		const amountStyle = new TextStyle({
 			fontFamily: this.fontFamily,
-			fontSize: 72,
+			fontSize: 88,
 			fontWeight: '700',
 			fill: PALETTE.GOLD,
-			stroke: { color: PALETTE.INK, width: 8 },
-			dropShadow: { color: PALETTE.EMBER, blur: 12, distance: 0, alpha: 0.8 },
+			stroke: { color: PALETTE.INK, width: 9 },
+			dropShadow: { color: PALETTE.EMBER, blur: 14, distance: 0, alpha: 0.85 },
 		});
 		const amountText = new Text({ text: fmt(0), style: amountStyle });
 		amountText.anchor.set(0.5);
-		amountText.position.set(cx, cy + 60);
+		amountText.position.set(bannerCx, bannerCy + 36);
 		amountText.alpha = 0;
 		root.addChild(amountText);
 
-		// --- intro -----------------------------------------------------------
-		// Anticipation inhale (~240ms): the world dims while spirit energy
-		// converges into the centre — a held breath. THEN the slam. The beat of
-		// nothing before the impact is what makes the impact read as heavy.
-		this.rayBurst.container.alpha = 0;
-		glow.scale.set(1.9);
-		void this.tweens.to(dim, { alpha: 0.72 }, { duration: 260 });
-		void this.tweens.to(glow.scale, { x: 0.45, y: 0.45 }, { duration: 240, ease: easings.cubicIn });
-		await this.tweens.to(glow, { alpha: 0.55 }, { duration: 240 });
+		// --- intro: anticipation inhale --------------------------------------
+		// The world dims while spirit energy converges into her — a held breath
+		// before the slam. The beat of nothing is what makes the impact read heavy.
+		bloom.scale.set(1.6);
+		void this.tweens.to(vignette, { alpha: 1 }, { duration: 300 });
+		void this.tweens.to(bloom.scale, { x: 0.6, y: 0.6 }, { duration: 240, ease: easings.quadIn });
+		await this.tweens.to(bloom, { alpha: 0.4 }, { duration: 240 });
 
-		// the slam
+		// --- the slam --------------------------------------------------------
 		void flash(root, this.tweens, { width: this.width, height: this.height, duration: 300 });
-		void this.tweens.to(this.rayBurst.container, { alpha: 1 }, { duration: 180 });
-		void this.tweens.to(glow, { alpha: 0.9 }, { duration: 250 });
-		void this.tweens.to(glow.scale, { x: 1, y: 1 }, { duration: 500, ease: easings.backOut });
+		void this.tweens.to(bloom, { alpha: 0.6 }, { duration: 250 });
+		void this.tweens.to(bloom.scale, { x: 1.4, y: 1.4 }, { duration: 520, ease: easings.backOut });
 		void this.shaker.shake({ intensity: tier.shake, duration: 700 });
-		this.spawnShockwave(root, cx, cy, tier.rayColors[0]);
-		this.burst(cx, cy, tier);
+		this.spawnShockwave(root, focus.cx, focus.torsoY, tier.palette[0]);
+		this.burst(focus.cx, focus.torsoY, tier);
+		this.startFoxfireSwirl(focus);
 
-		// brush banner sweeps open just before the title lands
-		if (brush) {
-			void this.tweens.to(brush, { alpha: 0.92 }, { duration: 160 });
-			void this.tweens.to(brush.scale, { x: 1 }, { duration: 320, ease: easings.quadOut });
-		}
+		// banner sweeps open just before the title lands
+		void this.tweens.to(banner, { alpha: 1 }, { duration: 180 });
+		void this.tweens.to(banner.scale, { x: 1 }, { duration: 340, ease: easings.backOut });
 
 		// title slam — strike accent on the overshoot frame
-		void delay(180).then(() => {
+		void delay(160).then(() => {
 			if (!this.root || this.skipRequested) return;
 			speedLineBurst(this.root, this.tweens, {
-				x: cx, y: cy - 70,
+				x: bannerCx,
+				y: bannerCy - 50,
 				color: tier.titleColor,
-				count: 18,
-				innerRadius: 180,
-				length: 260,
-				duration: 340,
+				count: 16,
+				innerRadius: 150,
+				length: 220,
+				duration: 320,
 			});
 		});
 		await this.tweens.to(title.scale, { x: tier.titleScale, y: tier.titleScale }, {
@@ -327,12 +335,12 @@ export class WinCelebration {
 		// ember rain for high tiers
 		if (tier.emberRain) this.startEmberRain();
 
-		// extra shockwaves staggered
+		// extra shockwaves staggered, from her
 		for (let i = 1; i < tier.shockwaves; i++) {
 			void delay(i * 900).then(() => {
 				if (!this.playing || this.skipRequested || !this.root) return;
-				this.spawnShockwave(this.root, cx, cy, tier.rayColors[i % tier.rayColors.length]);
-				this.burst(cx, cy, tier, 0.5);
+				this.spawnShockwave(this.root, focus.cx, focus.torsoY, tier.palette[i % tier.palette.length]);
+				this.burst(focus.cx, focus.torsoY, tier, 0.5);
 				void this.shaker.shake({ intensity: tier.shake * 0.6, duration: 400 });
 			});
 		}
@@ -370,14 +378,67 @@ export class WinCelebration {
 		await this.outro();
 	}
 
-	private async outro() {
-		const root = this.root;
-		if (!root) return;
-		this.stopEmberRain();
-		this.tweens.killAll();
-		await this.tweens.to(root, { alpha: 0 }, { duration: 450, ease: easings.quadOut });
-		this.teardownScene();
-		this.playing = false;
+	/** Her horizontal centre + upper-torso Y, or a right-of-centre fallback. */
+	private resolveFocus(): Focus {
+		const b = this.getAvatarFocus?.();
+		if (b && b.width > 0 && b.height > 0) {
+			return { cx: b.x + b.width / 2, torsoY: b.y + b.height * 0.4, w: b.width, h: b.height };
+		}
+		return { cx: this.width * 0.72, torsoY: this.height * 0.46, w: this.width * 0.22, h: this.height * 0.6 };
+	}
+
+	/**
+	 * Radial spotlight vignette centred on her: transparent over the avatar,
+	 * fading to near-black at the screen edges. Built as a canvas-gradient
+	 * texture (rock-solid across Pixi versions) sized to the full canvas.
+	 */
+	private buildVignette(focus: Focus): Sprite {
+		const w = Math.round(this.width);
+		const h = Math.round(this.height);
+		const cnv = document.createElement('canvas');
+		cnv.width = w;
+		cnv.height = h;
+		const ctx = cnv.getContext('2d');
+		if (!ctx) return new Sprite();
+		// the clear zone must cover her WHOLE body: a front overlay can only
+		// darken, so she only reads as "spotlit" if her full silhouette stays at
+		// scene brightness while the surroundings fall off to dark.
+		const inner = Math.max(focus.w, focus.h) * 0.62;
+		const outer = Math.hypot(w, h) * 0.66;
+		const g = ctx.createRadialGradient(focus.cx, focus.torsoY, inner, focus.cx, focus.torsoY, outer);
+		g.addColorStop(0, 'rgba(9,6,13,0)');
+		g.addColorStop(0.55, 'rgba(9,6,13,0.3)');
+		g.addColorStop(1, 'rgba(9,6,13,0.82)');
+		ctx.fillStyle = g;
+		ctx.fillRect(0, 0, w, h);
+		this.vignetteTexture = Texture.from(cnv);
+		return new Sprite(this.vignetteTexture);
+	}
+
+	/**
+	 * Banner behind the title/amount: the supplied sumi-e brush stroke if one is
+	 * loaded, otherwise a clean procedural lacquer plaque (dark ink + gold rim)
+	 * that matches the red/gold frame until the generated brush asset lands.
+	 */
+	private buildBanner(tier: TierConfig, w: number, h: number): Container {
+		const c = new Container();
+		if (this.brushTexture) {
+			const s = new Sprite(this.brushTexture);
+			s.anchor.set(0.5);
+			s.width = w;
+			s.height = w * (this.brushTexture.height / this.brushTexture.width);
+			s.tint = tier.titleColor;
+			c.addChild(s);
+			return c;
+		}
+		const w2 = w / 2;
+		const h2 = h / 2;
+		const g = new Graphics();
+		g.roundRect(-w2, -h2, w, h, h2).fill({ color: PALETTE.INK, alpha: 0.82 });
+		g.roundRect(-w2, -h2, w, h, h2).stroke({ color: tier.titleColor, width: 3, alpha: 0.85 });
+		g.roundRect(-w2 + 9, -h2 + 9, w - 18, h - 18, h2 - 9).stroke({ color: 0xffe9a8, width: 1, alpha: 0.4 });
+		c.addChild(g);
+		return c;
 	}
 
 	private burst(cx: number, cy: number, tier: TierConfig, scale = 1) {
@@ -395,7 +456,7 @@ export class WinCelebration {
 			tints: [PALETTE.GOLD, PALETTE.EMBER_HI, 0xfff2b0],
 			rotationSpeed: [-6, 6],
 		});
-		// gold petals raining through the rays — festival confetti
+		// gold petals raining — festival confetti
 		this.particles.emit({
 			x: cx, y: cy,
 			count: Math.round(tier.burstCount * 0.25 * scale),
@@ -439,7 +500,42 @@ export class WinCelebration {
 				ring.scale.set(state.scale);
 				ring.alpha = state.alpha;
 			},
-		}).then(() => ring.destroy());
+		}).then(() => {
+			if (!ring.destroyed) ring.destroy();
+		});
+	}
+
+	/** Spirit flames continuously curl up around her body for the duration. */
+	private startFoxfireSwirl(focus: Focus) {
+		if (this.foxfireTick) return;
+		let accumulator = 0;
+		this.foxfireTick = (ticker: Ticker) => {
+			accumulator += ticker.deltaMS;
+			if (accumulator < 60) return;
+			accumulator = 0;
+			const ang = Math.random() * Math.PI * 2;
+			const rx = focus.w * 0.5 * (0.7 + Math.random() * 0.55);
+			const ry = focus.h * 0.5 * (0.7 + Math.random() * 0.55);
+			this.particles.emit({
+				x: focus.cx + Math.cos(ang) * rx,
+				y: focus.torsoY + Math.sin(ang) * ry * 0.7,
+				count: 1,
+				speed: [20, 90],
+				gravity: -100, // curl upward
+				drag: 0.5,
+				life: [900, 1700],
+				scaleStart: [0.6, 1.3],
+				scaleEnd: 0,
+				tints: [PALETTE.FOXFIRE, PALETTE.SPIRIT, 0xb7fdff],
+			});
+		};
+		this.app.ticker.add(this.foxfireTick);
+	}
+
+	private stopFoxfireSwirl() {
+		if (!this.foxfireTick) return;
+		this.app.ticker.remove(this.foxfireTick);
+		this.foxfireTick = null;
 	}
 
 	private startEmberRain() {
@@ -474,9 +570,18 @@ export class WinCelebration {
 		this.emberTick = null;
 	}
 
+	private async outro() {
+		const root = this.root;
+		if (!root) return;
+		this.stopEmberRain();
+		this.stopFoxfireSwirl();
+		this.tweens.killAll();
+		await this.tweens.to(root, { alpha: 0 }, { duration: 450, ease: easings.quadOut });
+		this.teardownScene();
+		this.playing = false;
+	}
+
 	private teardownScene() {
-		this.rayBurst?.destroy();
-		this.rayBurst = null;
 		this.particles.clear();
 		if (this.root) {
 			// particles container is owned by the pool — detach before destroy
@@ -484,11 +589,17 @@ export class WinCelebration {
 			this.root.destroy({ children: true });
 			this.root = null;
 		}
+		// the per-play vignette canvas texture isn't shared — release it
+		if (this.vignetteTexture) {
+			this.vignetteTexture.destroy(true);
+			this.vignetteTexture = null;
+		}
 	}
 
 	/** Full release — call on game unmount. Instance is unusable afterwards. */
 	destroy() {
 		this.stopEmberRain();
+		this.stopFoxfireSwirl();
 		this.teardownScene();
 		this.tweens.destroy();
 		this.particles.destroy();

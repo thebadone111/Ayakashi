@@ -276,6 +276,8 @@ const winCelebration = (): WinCelebration => {
 			height: sizes.height,
 			fontFamily: FONT_FAMILY,
 			brushTexture: texture('brushWide'),
+			// the celebration anchors foxfire + the win banner to the live avatar
+			getAvatarFocus: () => _avatar?.getScreenBounds() ?? null,
 		});
 	}
 	return _winCelebration;
@@ -518,3 +520,10 @@ export const fxManager = {
 	backgroundResize,
 	PADDING_ROW_OFFSET,
 };
+
+// Dev-only hook: expose the live (registered) instance so headless/Storybook
+// verification drives the SAME singleton the components register into (a bare
+// dynamic import resolves to a different, unregistered module copy under HMR).
+if (import.meta.env?.DEV && typeof window !== 'undefined') {
+	(window as unknown as { __fxManager?: typeof fxManager }).__fxManager = fxManager;
+}
