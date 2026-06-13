@@ -35,8 +35,8 @@ RunComfy, then ENCHANT them with the animation libs (GSAP + shaders + particles
       PostFx filters to bypass an extract+filter darkening artifact — see memory).
       RunComfy also produced a 3x3 foxfire flame SHEET (art/generated/fx/
       foxfire-sheet) ready for the FS-intro flipbook below.
-- [ ] **FS intro — more character + polish.** Wire the generated foxfire
-      flipbook as animated extras around the gate/title.
+- [~] **FS intro** — A4 done (snappier gate + petals). Wiring the generated
+      foxfire flipbook as extras around the gate/title still TODO.
 - [ ] **Avatar MORE ALIVE** — voice lines via Japanese speech bubbles
       (「やった！」 win, 「いくよ！」 spin), generated bubble asset shown on events.
 
