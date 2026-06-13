@@ -43,7 +43,37 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
   NOT Ayakashi. "deferred DOM Node" = harmless DevTools detached-node notice.
   No action.
 
-### KEY STRATEGIC DECISION PENDING: animation library
+### ANIMATION TOOLING — DECIDED 2026-06-13
+
+What I can drive SOLO (no human/GUI needed):
+- **GSAP** — ADOPTED + installed (3.15, motion.ts). Pure code, I own it 100%.
+  Use for rebuilt/new choreography (bell, destroy, transition, win sequence).
+  Caveat: GSAP's ticker ignores Pixi ticker.speed, so keep hit-stop-coupled
+  motion on TweenRunner.
+- **Sakuga spritesheets** — ComfyUI(FLUX)→PIL slice→PixiJS AnimatedSprite. I
+  generate frames + slice + play end-to-end (proved w/ the coin sheet). This is
+  my self-serve AUTHORED-animation path. USE FOR: bell ring, slash arc, foxfire
+  burst, symbol destroy. CAVEAT: 8GB GPU is the bottleneck — 1024px jobs
+  TIMED OUT this session (brush strokes failed at 1280px). Keep frame sheets
+  modest (512-768px grids), generate when nothing else uses the GPU.
+- **Theatre.js** — available if a complex sequence needs a timeline; code-driven.
+
+What needs a HUMAN in a GUI editor (I can only wire the runtime):
+- **Effekseer** — ADOPTED for combat/win FX (bell, kanabo, foxfire). Max/artist
+  authors .efkefc in the free editor; I integrate the WebGL/WASM runtime + fire
+  effects. Best FX ceiling. → roadmap: wire runtime, Max authors effects.
+- **Live2D / Spine / Rive** — character rigging needs their editors. Parked
+  unless Max wants to author an avatar rig (Live2D = best anime-avatar fit).
+
+After Effects connector: only useful if it exposes ExtendScript automation, and
+even then AE→sakuga is not a reliable autonomous path. NOT the leverage point —
+the ComfyUI→spritesheet pipeline is more controllable by me. Skip for now;
+revisit only for Lottie UI motion-graphics later.
+
+PLAN: rebuild A1-A4 using GSAP (timing/choreography) + sakuga spritesheets
+(the actual FX frames). Effekseer layered in once Max authors effects.
+
+### (superseded) earlier note: animation library
 Procedural PixiJS (Graphics/particles) has a low ceiling — it IS why bell /
 destroy / transition read "programmer-art." Reaching Demon-Slayer/JJK bar
 needs AUTHORED animation. Researched options (report delivered to Max

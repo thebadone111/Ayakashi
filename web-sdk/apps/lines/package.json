@@ -39,6 +39,7 @@
 		"components-ui-pixi": "workspace:*",
 		"constants-shared": "workspace:*",
 		"envs": "workspace:*",
+		"gsap": "^3.15.0",
 		"lodash": "4.17.16",
 		"pixi-filters": "6.1.0",
 		"pixi-svelte": "workspace:*",
