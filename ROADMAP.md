@@ -9,6 +9,51 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
 
 ---
 
+## ROUND 2 — Max review 2026-06-13 (NEW ISSUES, not yet started)
+
+### Bugs (functional)
+- [ ] **B1 MAX-WIN keeps rolling free spins** — after wincap is hit the game
+      should STOP, not continue spinning FS. Wrong end-state. (highest priority)
+- [ ] **B2 winning combos appear OUTSIDE the reel frame** — looks like a win
+      connects to a PADDING-row symbol. Verify payline cell mapping uses the
+      visible board (PADDING_ROW_OFFSET) everywhere; a win line must never
+      touch padding rows.
+- [ ] **B3 FS blue border** — a weird blue border rings the reel frame during
+      free spins (likely the BoardFrame foxfire glow at full alpha, or FS-mode
+      tint). Remove/restyle.
+
+### Art quality (likely needs regen / new assets — see ANIMATION LIBRARY note)
+- [ ] **Q1 reel frame looks horrible** (and FS frame) — regenerate the frame
+      art (img2img on current, or fresh). Current reel_frame.webp reads cheap.
+- [ ] **Q2 loading screen looks horrible** — redesign LoadingScene.
+- [ ] **Q3 symbols still don't sit together** — audit the 14-symbol atlas;
+      regenerate the offenders for consistent scale/lighting/margin.
+- [ ] **Q4 coins barely show during win** — WinCoins emit rate/size/duration
+      too low; boost coin fountain density + on-screen time.
+
+### Animations to REDO from the ground up (procedural Graphics = the problem)
+- [ ] **A1 BELL / scatter animation — CATASTROPHIC, redo fully.**
+- [ ] **A2 symbol DESTROY animation — redo** (current tumble dissolve disliked).
+- [ ] **A3 transition still not good** — redo (mist wipe not landing).
+- [ ] **A4 free-spins intro/outro touch-up** — maybe new assets.
+
+### Console noise (ANSWERED — not the game)
+- ObjectMultiplex / content.js / app-init-liveness / MaxListenersExceeded /
+  releaseNoteVersionReceived = a browser wallet EXTENSION (MetaMask-style),
+  NOT Ayakashi. "deferred DOM Node" = harmless DevTools detached-node notice.
+  No action.
+
+### KEY STRATEGIC DECISION PENDING: animation library
+Procedural PixiJS (Graphics/particles) has a low ceiling — it IS why bell /
+destroy / transition read "programmer-art." Reaching Demon-Slayer/JJK bar
+needs AUTHORED animation. Researched options (report delivered to Max
+2026-06-13): Live2D (avatar), Effekseer (combat FX), Rive (free all-rounder),
+Spine (industry slot standard, paid), GSAP (motion engine, now free),
+sakuga spritesheets (highest ceiling). Awaiting Max's pick before rebuilding
+A1-A4 — the tool choice changes how they're built.
+
+---
+
 ## 0. Board alignment & readability  `[x]`
 Max's screenshot: frame bg, reel frame (and FS frame) and symbols don't line
 up, spill over, hard to see.
