@@ -151,6 +151,7 @@ export class BonusTriggerAnimation {
 					duration: 820,
 					ease: easings.cubicOut,
 					onUpdate: () => {
+						if (ring.destroyed) return; // teardown may destroy the ring mid-tween
 						ring.clear().circle(0, 0, st.r).stroke({ color, width: st.w, alpha: st.a });
 					},
 				})
@@ -177,6 +178,7 @@ export class BonusTriggerAnimation {
 					duration: 900,
 					ease: easings.cubicOut,
 					onUpdate: () => {
+						if (ring.destroyed) return; // teardown may destroy the ring mid-tween
 						ring.clear().circle(0, 0, state.r).stroke({ color, width: state.w, alpha: state.a });
 					},
 				}).then(() => {
@@ -202,6 +204,9 @@ export class BonusTriggerAnimation {
 	}
 
 	private teardownScene() {
+		// Kill any in-flight ring/flash tweens BEFORE destroying their targets, so
+		// no onUpdate fires against a destroyed Graphics next frame.
+		this.tweens.killAll();
 		if (this.root) {
 			this.root.removeChild(this.particles.container);
 			this.root.destroy({ children: true });

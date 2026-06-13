@@ -32,9 +32,16 @@
 		boardWithAnimateSymbols: async ({ symbolPositions }) => {
 			const getPromises = () =>
 				symbolPositions.map(async (position) => {
-					const reelSymbol = context.stateGame.board[position.reel].reelState.symbols[position.row];
+					const reelSymbol = context.stateGame.board[position.reel]?.reelState.symbols[position.row];
+					if (!reelSymbol) return; // guard: never await a missing cell
 					reelSymbol.symbolState = 'win';
-					await waitForResolve((resolve) => (reelSymbol.oncomplete = resolve));
+					// Gate on the symbol's oncomplete, but NEVER let book playback hang
+					// on it — race a hard timeout so a stuck win animation can't freeze
+					// the game (this was the jackpot/freespin freeze).
+					await Promise.race([
+						waitForResolve((resolve) => (reelSymbol.oncomplete = resolve)),
+						new Promise((resolve) => setTimeout(resolve, 1200)),
+					]);
 					reelSymbol.symbolState = 'postWinStatic';
 				});
 

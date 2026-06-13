@@ -32,31 +32,33 @@
 		void yOffset.set(0, { duration: 0 });
 	};
 
+	// oncomplete GATES book playback, so it must NEVER depend on a Tween promise
+	// resolving — Svelte's Tween.set() promise can hang (it did, freezing the
+	// game on scatter/win). Fire the visual tweens and gate oncomplete on a
+	// guaranteed wall-clock timer instead.
+	const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
 	const runWin = async () => {
 		// strike: fast overshoot pop with a slight lift
 		void yOffset.set(-SYMBOL_SIZE * 0.06, { duration: 220, easing: backOut });
-		await Promise.all([
-			scaleX.set(1.22, { duration: 220, easing: backOut }),
-			scaleY.set(1.22, { duration: 220, easing: backOut }),
-		]);
-		// hold the frame — readability beat
-		await new Promise((r) => setTimeout(r, 200));
+		void scaleX.set(1.22, { duration: 220, easing: backOut });
+		void scaleY.set(1.22, { duration: 220, easing: backOut });
+		await wait(420); // pop (220) + readability hold (200)
 		// follow-through settle
 		void yOffset.set(0, { duration: 200, easing: cubicOut });
-		await Promise.all([
-			scaleX.set(1, { duration: 200, easing: cubicOut }),
-			scaleY.set(1, { duration: 200, easing: cubicOut }),
-		]);
+		void scaleX.set(1, { duration: 200, easing: cubicOut });
+		void scaleY.set(1, { duration: 200, easing: cubicOut });
+		await wait(200);
 		props.oncomplete?.();
 	};
 
 	const runLand = async () => {
-		// impact squash…
 		void scaleX.set(1.12, { duration: 70, easing: cubicOut });
-		await scaleY.set(0.84, { duration: 70, easing: cubicOut });
-		// …elastic recovery
+		void scaleY.set(0.84, { duration: 70, easing: cubicOut });
+		await wait(70);
 		void scaleX.set(1, { duration: 300, easing: elasticOut });
-		await scaleY.set(1, { duration: 300, easing: elasticOut });
+		void scaleY.set(1, { duration: 300, easing: elasticOut });
+		await wait(300);
 		props.oncomplete?.();
 	};
 

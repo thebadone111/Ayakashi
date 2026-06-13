@@ -199,22 +199,33 @@ export class TweenRunner {
 				finished.push(tw);
 				continue;
 			}
-			tw.elapsed += deltaMS;
-			const t = Math.min(1, tw.elapsed / tw.duration);
-			const eased = tw.ease(tw.reversed ? 1 - t : t);
-			for (const key of Object.keys(tw.to)) {
-				(tw.target as Record<string, number>)[key] =
-					tw.from[key] + (tw.to[key] - tw.from[key]) * eased;
-			}
-			tw.onUpdate?.(eased);
-			if (t >= 1) {
-				if (tw.repeat !== 0) {
-					if (tw.repeat > 0) tw.repeat -= 1;
-					tw.elapsed = 0;
-					if (tw.yoyo) tw.reversed = !tw.reversed;
-				} else {
-					finished.push(tw);
+			// A throwing tween must NEVER abort the frame: this ticker callback is
+			// one of many in a shared linked list, so an uncaught throw here stops
+			// every FX listener registered after us — that froze the game when a
+			// stale onUpdate touched a destroyed Graphics. Isolate the failure:
+			// kill the offending tween, resolve its promise, keep the rest going.
+			try {
+				tw.elapsed += deltaMS;
+				const t = Math.min(1, tw.elapsed / tw.duration);
+				const eased = tw.ease(tw.reversed ? 1 - t : t);
+				for (const key of Object.keys(tw.to)) {
+					(tw.target as Record<string, number>)[key] =
+						tw.from[key] + (tw.to[key] - tw.from[key]) * eased;
 				}
+				tw.onUpdate?.(eased);
+				if (t >= 1) {
+					if (tw.repeat !== 0) {
+						if (tw.repeat > 0) tw.repeat -= 1;
+						tw.elapsed = 0;
+						if (tw.yoyo) tw.reversed = !tw.reversed;
+					} else {
+						finished.push(tw);
+					}
+				}
+			} catch (error) {
+				console.warn('[TweenRunner] tween update failed, dropping it', error);
+				tw.killed = true;
+				finished.push(tw);
 			}
 		}
 		for (const tw of finished) {

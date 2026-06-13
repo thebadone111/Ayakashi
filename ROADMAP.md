@@ -15,6 +15,24 @@ DESIGN PHILOSOPHY (applies to everything now): generate bespoke ASSETS on
 RunComfy, then ENCHANT them with the animation libs (GSAP + shaders + particles
 + flipbooks). Not procedural-only, not static-asset-only.
 
+- [x] **FREEZE on freespin/jackpot — FIXED (critical regression).** Root cause:
+      the bell `bonusTrigger` left ring tweens running after `teardownScene()`
+      destroyed their Graphics; their `onUpdate` then called `.clear()` on a
+      destroyed object and THREW every frame. Because PixiJS ticker listeners
+      share one linked list, that uncaught throw aborted the whole frame — every
+      FX listener registered AFTER it (the scene `transitionWipe`) never ticked,
+      so its tweens never resolved, so `broadcastAsync({transition})` never
+      returned and book playback hung forever. Three-layer fix: (1) SYSTEMIC —
+      `TweenRunner.update` now wraps each tween in try/catch, so a throwing
+      `onUpdate` is isolated + killed instead of poisoning the ticker for
+      everyone (no single FX bug can ever freeze the game again); (2) ROOT —
+      `bonusTrigger` ring `onUpdate`s bail if `ring.destroyed`, and
+      `teardownScene()` calls `tweens.killAll()` before destroying targets;
+      (3) DEFENSIVE (kept from diagnosis) — `Board.boardWithAnimateSymbols` races
+      the symbol `oncomplete` against a 1200ms timeout, and `SymbolSprite` gates
+      its `oncomplete` on wall-clock timers not Svelte `Tween` promises. Verified:
+      free-spin-trigger book now plays bell → mist transition → FS intro and the
+      story action resolves, with zero ticker errors.
 - [x] **A1b BELL animation — redo FROM SCRATCH.** Rebuilt as clean concentric
       SOUND-WAVE ripples: rings now REDRAW each frame (radius grows, line tapers
       thin + fades) instead of scaling a stroked Graphics (which thickened into a
