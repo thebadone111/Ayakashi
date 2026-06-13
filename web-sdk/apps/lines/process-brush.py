@@ -1,27 +1,28 @@
-"""Convert the generated white-on-black brush strokes into alpha sprites
-(luminance->alpha, auto-polarity, crop). Tinted at runtime by WinCelebration.
+"""Convert the cloud-FLUX white-on-black brush stroke into an alpha sprite for
+the WinCelebration title banner (P4). luminance->alpha, auto-polarity, crop.
+Tinted at runtime by WinCelebration (brushTexture / 'brushWide' asset).
 
-Edit PICKS after reviewing candidates.
-Run: ../../../math-sdk/env/Scripts/python.exe process-brush.py
+Run from web-sdk/apps/lines:
+  ../../../math-sdk/env/Scripts/python.exe process-brush.py
 """
 import os
 import numpy as np
 from PIL import Image
 
-GEN = r"C:\Users\tiger\Desktop\Stake\game-1\Ayakashi\art\generated"
+GEN = r"C:\Users\tiger\Desktop\Stake\game-1\Ayakashi\art\generated\fx"
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "static", "assets", "sprites", "particles")  # shared FX folder
+OUT = os.path.join(HERE, "static", "assets", "sprites", "particles")
 
+# job-dir: (filename, out-name)  — pick filled after review
 PICKS = {
-    "brush-stroke-wide": ("brush-stroke-wide__00001_.png", "brush_wide", 1024),
+    "brush-wide": ("brush-wide_1076474229_1.png", "brush_wide"),
 }
 
 os.makedirs(OUT, exist_ok=True)
-for job, (fn, out_name, max_px) in PICKS.items():
+for job, (fn, out_name) in PICKS.items():
     path = os.path.join(GEN, job, fn)
     if not os.path.exists(path):
-        print(f"SKIP {job}: {fn} missing")
-        continue
+        print(f"SKIP {job}: {fn} missing"); continue
     im = Image.open(path).convert("RGB")
     arr = np.asarray(im).astype(np.float32)
     lum = 0.299 * arr[..., 0] + 0.587 * arr[..., 1] + 0.114 * arr[..., 2]
@@ -37,7 +38,7 @@ for job, (fn, out_name, max_px) in PICKS.items():
     bbox = sprite.getbbox()
     if bbox:
         sprite = sprite.crop(bbox)
-    sprite.thumbnail((max_px, max_px), Image.LANCZOS)
+    sprite.thumbnail((1024, 1024), Image.LANCZOS)
     dest = os.path.join(OUT, f"{out_name}.webp")
     sprite.save(dest, "WEBP", quality=90, method=6)
-    print(f"{job:18s} -> {out_name}.webp  {sprite.size}  {os.path.getsize(dest)//1024}KB")
+    print(f"{job} -> {out_name}.webp  {sprite.size}  {os.path.getsize(dest)//1024}KB")

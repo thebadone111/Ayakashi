@@ -133,6 +133,13 @@ export default {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/particles/smoke.webp', import.meta.url).href,
 	},
+	// sumi-e brush banner (white-on-black alpha) — tinted behind the win-
+	// celebration title/amount. Background-loaded; the celebration falls back to
+	// a procedural plaque until this resolves.
+	brushWide: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/brush_wide.webp', import.meta.url).href,
+	},
 	// audio (placeholder reference set) — NOT preloaded: ~4MB of audio must not
 	// block first paint. It background-loads (phase 2) and is ready before the
 	// loading bar fills, so the first interactive frame appears far sooner.
