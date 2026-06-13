@@ -49,7 +49,7 @@ if __name__ == "__main__":
     for key, subject in SYMBOLS.items():
         d = os.path.join(DEST, key)
         if os.path.isdir(d) and any(f.endswith(".png") for f in os.listdir(d)):
-            print(f"[{key}] already done — skip", flush=True)
+            print(f"[{key}] already done - skip", flush=True)
             continue
         prompt = subject + STYLE
         files = generate(prompt, width=1024, height=1024, batch=2, steps=24,

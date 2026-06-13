@@ -19,8 +19,11 @@ Auth + deployment from env (set before running):
 CONFIG block per run, then: python runcomfy_generate.py
 """
 import json, os, sys, time, uuid
-import urllib.request
 import requests
+
+# RunComfy's CDN 403s the default urllib UA — send a browser UA for downloads.
+DL_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36"}
 
 API = "https://api.runcomfy.net/prod/v2"
 KEY = os.environ.get("RUNCOMFY_API_KEY", "")
@@ -80,7 +83,9 @@ def generate(prompt, width=1024, height=1024, batch=1, steps=24, seed=None,
             if not url:
                 continue
             fn = os.path.join(dest, f"{label}_{seed}_{i}.png")
-            urllib.request.urlretrieve(url, fn)
+            img_bytes = requests.get(url, headers=DL_HEADERS, timeout=120).content
+            with open(fn, "wb") as fh:
+                fh.write(img_bytes)
             saved.append(fn)
             print(f"  saved {fn} ({os.path.getsize(fn)//1024}KB)", flush=True)
     return saved
