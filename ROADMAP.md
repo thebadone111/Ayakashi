@@ -57,7 +57,8 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
 - [x] **A2 symbol destroy** — rebuilt with GSAP: flash -> back-overshoot pop ->
       bursts apart (scale UP + fade + spin) into the ink/ember/paper cloud,
       instead of shrinking to a point. Reads as destruction now.
-- [ ] **A3 transition still not good** — redo (mist wipe not landing).
+- [x] **A3 transition** — mist wipe sped up ~40% in+out (tighter stagger, faster
+      veil) so it feels decisive instead of a slow drift.
 - [ ] **A4 free-spins intro/outro touch-up** — maybe new assets.
 
 ### Console noise (ANSWERED — not the game)

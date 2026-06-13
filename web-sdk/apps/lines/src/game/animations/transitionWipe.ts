@@ -98,22 +98,24 @@ export class TransitionWipe {
 			puffs.push(puff);
 		}
 
-		// ROLL IN — puffs surge toward (and past) the centre, swelling
+		// ROLL IN — puffs surge toward (and past) the centre, swelling. Snappier
+		// than before (~40% faster, tighter stagger) so the transition feels
+		// decisive instead of a slow drift (A3).
 		const inPromises = puffs.map((puff, i) => {
 			const targetX = W * (0.25 + Math.random() * 0.5);
-			const swell = 2.0 + Math.random() * 1.2;
-			void this.tweens.to(puff, { alpha: 0.95 }, { duration: 450 + i * 12, ease: easings.quadOut });
+			const swell = 2.2 + Math.random() * 1.2;
+			void this.tweens.to(puff, { alpha: 0.95 }, { duration: 300 + i * 7, ease: easings.quadOut });
 			void this.tweens.to(puff.scale, { x: puff.scale.x * swell, y: puff.scale.y * swell }, {
-				duration: 700 + i * 14,
+				duration: 460 + i * 8,
 				ease: easings.quadOut,
 			});
 			return this.tweens.to(puff, { x: targetX, y: puff.y + (Math.random() - 0.5) * H * 0.08 }, {
-				duration: 650 + i * 14,
+				duration: 420 + i * 8,
 				ease: easings.cubicOut,
 			});
 		});
-		// veil rises with the fog
-		void this.tweens.to(veil, { alpha: 1 }, { duration: 750, ease: easings.quadIn });
+		// veil rises fast so full coverage is guaranteed early
+		void this.tweens.to(veil, { alpha: 1 }, { duration: 460, ease: easings.quadIn });
 
 		// drifting pale motes inside the fog (kept neutral — no purple)
 		this.particles.emit({
@@ -133,23 +135,23 @@ export class TransitionWipe {
 		opts.onCovered?.();
 		await delay(opts.holdMs ?? 220);
 
-		// DISPERSE — fog thins, drifts up and outward, veil lifts
+		// DISPERSE — fog thins, drifts up and outward, veil lifts (snappier)
 		const outPromises = puffs.map((puff, i) => {
 			const drift = (Math.random() - 0.5) * W * 0.4;
 			void this.tweens.to(puff.scale, { x: puff.scale.x * 1.5, y: puff.scale.y * 1.5 }, {
-				duration: 800 + i * 10,
+				duration: 520 + i * 7,
 				ease: easings.quadOut,
 			});
 			void this.tweens.to(puff, { y: puff.y - H * (0.1 + Math.random() * 0.15) }, {
-				duration: 850 + i * 10,
+				duration: 560 + i * 7,
 				ease: easings.quadOut,
 			});
 			return this.tweens.to(puff, { alpha: 0, x: puff.x + drift }, {
-				duration: 750 + i * 10,
+				duration: 480 + i * 7,
 				ease: easings.quadOut,
 			});
 		});
-		void this.tweens.to(veil, { alpha: 0 }, { duration: 600, ease: easings.quadOut });
+		void this.tweens.to(veil, { alpha: 0 }, { duration: 420, ease: easings.quadOut });
 		await Promise.all(outPromises);
 
 		this.teardownScene();
