@@ -125,6 +125,7 @@ const PARTICLE_ASSET_MAP: Record<ParticleName, string> = {
 	paper: 'particlePaper',
 	ember: 'particleEmber',
 	smoke: 'particleSmoke',
+	foxfire: 'particleFoxfire',
 };
 
 const refreshParticleTextures = () => {
@@ -141,6 +142,10 @@ const needBoardFx = (): Container => {
 
 const needOverlay = (): Container => {
 	if (!overlayLayer) throw new Error('fxManager: overlay layer not registered');
+	// overlay modules (FS intro foxfire, bonus, celebration) use textured
+	// particles too — refresh here so they don't depend on a board-FX having
+	// run first to populate the registry.
+	refreshParticleTextures();
 	return overlayLayer;
 };
 

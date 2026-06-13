@@ -53,8 +53,15 @@ RunComfy, then ENCHANT them with the animation libs (GSAP + shaders + particles
       PostFx filters to bypass an extract+filter darkening artifact — see memory).
       RunComfy also produced a 3x3 foxfire flame SHEET (art/generated/fx/
       foxfire-sheet) ready for the FS-intro flipbook below.
-- [~] **FS intro** — A4 done (snappier gate + petals). Wiring the generated
-      foxfire flipbook as extras around the gate/title still TODO.
+- [x] **FS intro foxfire extras** — DONE. The gate-post "pillars" were generic
+      stretched glow blobs; replaced with REAL bespoke foxfire flames (RunComfy
+      blue-white flame, sliced from the foxfire sheet, alpha-cut → particleFoxfire,
+      preloaded) that sway + breathe on a backing bloom glow. Added ambient
+      foxfire wisps that lick upward near the posts during the idle hold, and the
+      ignite burst now throws flame-shaped wisps instead of dots. Also fixed
+      needOverlay() to refresh the particle registry (overlay FX no longer depend
+      on a board-FX having run first to populate textures). Screenshot-verified:
+      twin foxfire flames flank the FREE SPINS / count.
 - [ ] **Avatar MORE ALIVE** — voice lines via Japanese speech bubbles
       (「やった！」 win, 「いくよ！」 spin), generated bubble asset shown on events.
 
@@ -240,10 +247,16 @@ up, spill over, hard to see.
 - [ ] WinCelebration title: slash-reveal via stroke mask
 - [ ] PaylineHighlight: line drawn as textured brush stroke + ink droplets
 
-## P5. Flipbook FX sheets  `[ ]`  (same gen batch)
-- [ ] Generate 6-8 frame sheets: foxfire flame burst, bell shock glyph, slash arc
-- [ ] Slice/pack with PIL (like build-coin-sheet.py), play at 12fps
-- [ ] Use: scatter land (bell glyph), wild land (foxfire burst), kanabo (slash arc)
+## P5. Flipbook FX sheets  `[x]` (resolved as textured-particle foxfire)
+- FLUX "flipbook" grids came back as 9 DISTINCT flame doodles, not a smooth
+  ignite→dissipate sequence — they won't flipbook cleanly (would jitter). So
+  instead of forcing a bad flipbook, repurposed the bespoke flames the RIGHT way:
+  sliced the clean 3x3 sheet into 9 alpha flame glyphs (process-foxfire.py),
+  promoted one elegant upright flame to `particleFoxfire`, and ENCHANTED it with
+  motion — real swaying flame sprites for the FS-intro gate pillars + drifting
+  foxfire wisp particles (ParticlePool). Bespoke art + procedural motion, which
+  is the design philosophy. The remaining flames are available for future use
+  (wild-land foxfire burst, etc.).
 
 ## P6. Avatar alive  `[x]` motion / `[deferred]` poses
 - [x] Motion pass DONE (ad279a9): weight shift foot-to-foot, head-lean arc on

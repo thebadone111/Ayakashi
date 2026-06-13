@@ -63,6 +63,7 @@ export class FreeSpinsScreen {
 	private fontFamily: string;
 	private root: Container | null = null;
 	private emberTick: ((ticker: Ticker) => void) | null = null;
+	private foxfireTick: ((ticker: Ticker) => void) | null = null;
 	private pressResolve: (() => void) | null = null;
 	private playing = false;
 
@@ -134,16 +135,21 @@ export class FreeSpinsScreen {
 			void this.tweens.to(pillar, { alpha: 1 }, { duration: 300 });
 			void this.tweens.to(pillar.scale, { x: 1, y: 1 }, { duration: 450, ease: easings.backOut });
 		}
+		// rising foxfire spirits — flame-shaped wisps (bespoke texture), tinted
+		// spirit-blue; fall back to glow dots until the texture lands.
 		this.particles.emit({
 			x: cx, y: cy + 40,
 			count: 30,
+			texture: getParticleTexture('foxfire'),
 			speed: [100, 350],
 			angle: [-Math.PI, 0],
 			gravity: -80,
 			drag: 0.5,
 			life: [1000, 2000],
-			scaleStart: [0.6, 1.3],
+			scaleStart: [0.35, 0.8],
+			scaleEnd: 0,
 			tints: [PALETTE.FOXFIRE, PALETTE.SPIRIT, 0xb7fdff],
+			rotationSpeed: [-2, 2],
 		});
 		// drifting petals for atmosphere (cohesive with bell/celebration)
 		this.particles.emit({
@@ -171,6 +177,7 @@ export class FreeSpinsScreen {
 		void this.tweens.to(count.scale, { x: 1.06, y: 1.06 }, { duration: 700, ease: easings.sineInOut, repeat: -1, yoyo: true });
 		void this.tweens.to(hint, { alpha: 1 }, { duration: 400, ease: easings.sineInOut, repeat: -1, yoyo: true });
 		this.startEmberDrift([PALETTE.FOXFIRE, PALETTE.SPIRIT]);
+		this.startFoxfireWisps(cx);
 
 		// hold for press or timeout
 		await this.waitForPress(opts.autoDismissMs ?? 30000);
@@ -296,16 +303,38 @@ export class FreeSpinsScreen {
 
 	private buildPillarFlame(x: number, y: number): Container {
 		const pillar = new Container();
-		const glow = new Sprite(makeGlowTexture(this.app.renderer, 90, PALETTE.FOXFIRE));
+		// soft backing glow (drives the bloom post-pass) — kept subtle so the
+		// flame shape reads on top instead of washing into a column.
+		const glow = new Sprite(makeGlowTexture(this.app.renderer, 64, PALETTE.FOXFIRE));
 		glow.anchor.set(0.5, 0.8);
-		glow.scale.set(1, 1.8); // stretched vertically = flame
+		glow.scale.set(0.9, 1.5);
+		glow.alpha = 0.45;
 		glow.blendMode = 'add';
 		pillar.addChild(glow);
+
+		// bespoke foxfire FLAME on top of the glow — a real licking flame instead
+		// of a featureless blob. Sways + breathes; falls back to glow-only if the
+		// texture hasn't loaded yet.
+		const flameTex = getParticleTexture('foxfire');
+		if (flameTex) {
+			const flame = new Sprite(flameTex);
+			flame.anchor.set(0.5, 0.94); // pivot at the flame base
+			flame.blendMode = 'add';
+			const h = 200;
+			flame.height = h;
+			flame.width = h * (flameTex.width / flameTex.height);
+			flame.tint = 0xddf4ff;
+			flame.rotation = -0.07;
+			pillar.addChild(flame);
+			void this.tweens.to(flame.scale, { y: flame.scale.y * 1.14 }, { duration: 300, ease: easings.sineInOut, repeat: -1, yoyo: true });
+			void this.tweens.to(flame, { rotation: 0.07 }, { duration: 520, ease: easings.sineInOut, repeat: -1, yoyo: true });
+		}
+
 		pillar.position.set(x, y);
 		pillar.alpha = 0;
 		pillar.scale.set(0.3);
-		// flicker loop
-		void this.tweens.to(glow, { alpha: 0.7 }, { duration: 260, ease: easings.sineInOut, repeat: -1, yoyo: true });
+		// glow flicker loop (subtle)
+		void this.tweens.to(glow, { alpha: 0.6 }, { duration: 260, ease: easings.sineInOut, repeat: -1, yoyo: true });
 		return pillar;
 	}
 
@@ -354,6 +383,40 @@ export class FreeSpinsScreen {
 		this.emberTick = null;
 	}
 
+	/** Ambient foxfire flame wisps that lick upward near the gate posts. */
+	private startFoxfireWisps(cx: number) {
+		if (this.foxfireTick) return;
+		let accumulator = 0;
+		this.foxfireTick = (ticker: Ticker) => {
+			accumulator += ticker.deltaMS;
+			if (accumulator < 380) return;
+			accumulator = 0;
+			const side = Math.random() < 0.5 ? -1 : 1;
+			this.particles.emit({
+				x: cx + side * (150 + Math.random() * 60),
+				y: this.height * 0.62,
+				count: 1,
+				texture: getParticleTexture('foxfire'),
+				speed: [40, 110],
+				angle: [-Math.PI * 0.62, -Math.PI * 0.38], // upward
+				drag: 0.4,
+				life: [1400, 2400],
+				scaleStart: [0.3, 0.6],
+				scaleEnd: 0,
+				alphaStart: 0.85,
+				tints: [PALETTE.FOXFIRE, PALETTE.SPIRIT, 0xb7fdff],
+				rotationSpeed: [-1.5, 1.5],
+			});
+		};
+		this.app.ticker.add(this.foxfireTick);
+	}
+
+	private stopFoxfireWisps() {
+		if (!this.foxfireTick) return;
+		this.app.ticker.remove(this.foxfireTick);
+		this.foxfireTick = null;
+	}
+
 	private waitForPress(timeoutMs: number): Promise<void> {
 		return new Promise<void>((resolve) => {
 			let settled = false;
@@ -379,6 +442,7 @@ export class FreeSpinsScreen {
 
 	private async dismiss() {
 		this.stopEmberDrift();
+		this.stopFoxfireWisps();
 		const root = this.root;
 		if (root) {
 			this.tweens.killAll();
@@ -393,6 +457,7 @@ export class FreeSpinsScreen {
 
 	destroy() {
 		this.stopEmberDrift();
+		this.stopFoxfireWisps();
 		this.press();
 		if (this.root) {
 			this.root.removeChild(this.particles.container);

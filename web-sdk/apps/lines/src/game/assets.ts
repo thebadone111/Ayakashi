@@ -153,6 +153,13 @@ export default {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/particles/smoke.webp', import.meta.url).href,
 	},
+	// bespoke blue-white foxfire flame (RunComfy) — FS-intro pillars + drifting
+	// wisps. Tinted spirit-blue by ParticlePool; falls back to the glow dot.
+	particleFoxfire: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/foxfire/foxfire_0.webp', import.meta.url).href,
+		preload: true, // tiny; preloaded so FS-intro pillars never miss the flame
+	},
 	// sumi-e brush banner (white-on-black alpha) — tinted behind the win-
 	// celebration title/amount. Background-loaded; the celebration falls back to
 	// a procedural plaque until this resolves.

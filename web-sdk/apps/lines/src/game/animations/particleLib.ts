@@ -17,7 +17,7 @@
 
 import { Texture } from 'pixi.js';
 
-export type ParticleName = 'ink' | 'petal' | 'paper' | 'ember' | 'smoke';
+export type ParticleName = 'ink' | 'petal' | 'paper' | 'ember' | 'smoke' | 'foxfire';
 
 const registry = new Map<ParticleName, Texture>();
 
