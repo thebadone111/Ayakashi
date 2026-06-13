@@ -31,6 +31,7 @@ import {
 	Sprite,
 	Text,
 	TextStyle,
+	Texture,
 	Ticker,
 } from 'pixi.js';
 
@@ -132,6 +133,9 @@ export interface WinCelebrationOptions {
 	height?: number;
 	/** Local font family — must be hosted in the project (no external fonts). */
 	fontFamily?: string;
+	/** Optional sumi-e brush stroke texture — swept in as a banner behind the
+	 *  title. Without it the title simply slams in (no banner). */
+	brushTexture?: Texture;
 }
 
 export interface PlayOptions {
@@ -156,6 +160,7 @@ export class WinCelebration {
 	private playing = false;
 	private emberTick: ((ticker: Ticker) => void) | null = null;
 	private rayBurst: RayBurst | null = null;
+	private brushTexture: Texture | null;
 
 	constructor(opts: WinCelebrationOptions) {
 		this.app = opts.app;
@@ -163,6 +168,7 @@ export class WinCelebration {
 		this.width = opts.width ?? opts.app.screen.width;
 		this.height = opts.height ?? opts.app.screen.height;
 		this.fontFamily = opts.fontFamily ?? 'Arial';
+		this.brushTexture = opts.brushTexture ?? null;
 		this.tweens = new TweenRunner(opts.app.ticker);
 		this.particles = new ParticlePool(opts.app.ticker, opts.app.renderer, 400);
 		this.shaker = new ScreenShaker(opts.shakeTarget, opts.app.ticker);
@@ -231,6 +237,22 @@ export class WinCelebration {
 			dropShadow: { color: tier.rayColors[0], blur: 18, distance: 0, alpha: 0.9 },
 			letterSpacing: 6,
 		});
+		// sumi-e brush banner behind the title — swept in on the slam so the
+		// title reads as painted onto the screen with one confident stroke
+		let brush: Sprite | null = null;
+		if (this.brushTexture) {
+			brush = new Sprite(this.brushTexture);
+			brush.anchor.set(0.5);
+			brush.position.set(cx, cy - 60);
+			const bw = Math.min(this.width * 0.7, 900);
+			brush.width = bw;
+			brush.height = bw * (this.brushTexture.height / this.brushTexture.width);
+			brush.tint = tier.titleColor;
+			brush.alpha = 0;
+			brush.scale.x = 0; // swept open horizontally on the slam
+			root.addChild(brush);
+		}
+
 		const title = new Text({ text: tier.title, style: titleStyle });
 		title.anchor.set(0.5);
 		title.position.set(cx, cy - 70);
@@ -270,6 +292,12 @@ export class WinCelebration {
 		void this.shaker.shake({ intensity: tier.shake, duration: 700 });
 		this.spawnShockwave(root, cx, cy, tier.rayColors[0]);
 		this.burst(cx, cy, tier);
+
+		// brush banner sweeps open just before the title lands
+		if (brush) {
+			void this.tweens.to(brush, { alpha: 0.92 }, { duration: 160 });
+			void this.tweens.to(brush.scale, { x: 1 }, { duration: 320, ease: easings.quadOut });
+		}
 
 		// title slam — strike accent on the overshoot frame
 		void delay(180).then(() => {

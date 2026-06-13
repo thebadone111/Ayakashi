@@ -275,6 +275,7 @@ const winCelebration = (): WinCelebration => {
 			width: sizes.width,
 			height: sizes.height,
 			fontFamily: FONT_FAMILY,
+			brushTexture: texture('brushWide'),
 		});
 	}
 	return _winCelebration;
