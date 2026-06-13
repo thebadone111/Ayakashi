@@ -472,15 +472,16 @@ export class WinCelebration {
 			blendMode: 'normal',
 			rotationSpeed: [-5, 5],
 		});
-		// spirit flames — light, floaty, additive
+		// spirit flames — light, floaty, additive. Kept modest so the initial
+		// flare frames her rather than columning up over her face.
 		this.particles.emit({
 			x: cx, y: cy,
-			count: Math.round(tier.burstCount * 0.4 * scale),
+			count: Math.round(tier.burstCount * 0.22 * scale),
 			speed: [60, 260],
 			gravity: -120, // drift upward
 			drag: 0.5,
 			life: [1200, 2400],
-			scaleStart: [0.8, 1.6],
+			scaleStart: [0.5, 1.0],
 			scaleEnd: 0,
 			tints: [PALETTE.FOXFIRE, PALETTE.SPIRIT, 0xb7fdff],
 		});
@@ -513,15 +514,19 @@ export class WinCelebration {
 			accumulator += ticker.deltaMS;
 			if (accumulator < 60) return;
 			accumulator = 0;
+			// emit at/just outside her silhouette, around a centre dropped slightly
+			// below the torso, so flames curl up ALONG her edges (a halo) instead
+			// of from her centre over her face
 			const ang = Math.random() * Math.PI * 2;
-			const rx = focus.w * 0.5 * (0.7 + Math.random() * 0.55);
-			const ry = focus.h * 0.5 * (0.7 + Math.random() * 0.55);
+			const jitter = 0.95 + Math.random() * 0.3;
+			const rx = focus.w * 0.55 * jitter;
+			const ry = focus.h * 0.5 * jitter;
 			this.particles.emit({
 				x: focus.cx + Math.cos(ang) * rx,
-				y: focus.torsoY + Math.sin(ang) * ry * 0.7,
+				y: focus.torsoY + focus.h * 0.1 + Math.sin(ang) * ry,
 				count: 1,
-				speed: [20, 90],
-				gravity: -100, // curl upward
+				speed: [20, 80],
+				gravity: -90, // curl upward
 				drag: 0.5,
 				life: [900, 1700],
 				scaleStart: [0.6, 1.3],
