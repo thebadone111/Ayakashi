@@ -68,12 +68,17 @@ up, spill over, hard to see.
 - [ ] Slice/pack with PIL (like build-coin-sheet.py), play at 12fps
 - [ ] Use: scatter land (bell glyph), wild land (foxfire burst), kanabo (slash arc)
 
-## P6. Avatar alive  `[~]`  (same gen batch, img2img)
-- [~] img2img pose variants generating (avatar-cheer denoise 0.5,
-      avatar-wink denoise 0.45) — curate hard on arrival
-- [ ] Crossfade pose swap on bigwin/bonus (mesh idle stays the base)
+## P6. Avatar alive  `[x]` motion / `[deferred]` poses
 - [x] Motion pass DONE (ad279a9): weight shift foot-to-foot, head-lean arc on
       hair band, velocity-coupled hair follow-through with upward phase lag
+- [x] Pose-swap MECHANISM shipped (c4e6456): texture cut hidden at twirl's
+      edge-on frame; setPoses() wired in fxManager (no-op without textures)
+- [DEFERRED] img2img pose variants generated (art/generated/avatar-{cheer,wink}/)
+      but NOT wired: denoise 0.45-0.5 drifted the OUTFIT and barely changed the
+      POSE (still standing, one hand up) — a swap would flicker the costume with
+      no payoff. Needs denoise ~0.3 for identity OR ControlNet pose-transfer for
+      genuinely different poses (arms-up cheer). Revisit WITH Max (he said
+      "curate hard"). Candidates kept for his review.
 
 ---
 
