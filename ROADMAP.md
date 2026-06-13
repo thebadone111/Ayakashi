@@ -47,8 +47,8 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
 - [x] **Q1 reel frame** — regenerated (HQ cloud square-window frame), live.
 - [ ] **Q2 loading screen looks horrible** — redesign LoadingScene.
 - [x] **Q3 symbols** — all 14 regenerated HQ + normalized, cohesive set, live.
-- [ ] **Q4 coins barely show during win** — WinCoins emit rate/size/duration
-      too low; boost coin fountain density + on-screen time.
+- [x] **Q4 coins** — WinCoins boosted: ~2x denser (frequency x0.45), 1.7x scale,
+      2.5x maxParticles, longer life. Reads as a real gold shower now.
 
 ### Animations to REDO from the ground up (procedural Graphics = the problem)
 - [ ] **A1 BELL / scatter animation — CATASTROPHIC, redo fully.**
