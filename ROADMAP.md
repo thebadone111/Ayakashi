@@ -9,6 +9,37 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
 
 ---
 
+## ROUND 3 — Max review 2026-06-13 (design direction + submit prep)
+
+DESIGN PHILOSOPHY (applies to everything now): generate bespoke ASSETS on
+RunComfy, then ENCHANT them with the animation libs (GSAP + shaders + particles
++ flipbooks). Not procedural-only, not static-asset-only.
+
+- [x] **A1b BELL animation — redo FROM SCRATCH.** Rebuilt as clean concentric
+      SOUND-WAVE ripples: rings now REDRAW each frame (radius grows, line tapers
+      thin + fades) instead of scaling a stroked Graphics (which thickened into a
+      donut). No white glow blob — the old centre `core`/`makeGlowTexture` flares
+      are gone, white-out softened to a brief warm flash. Also fixed a latent bug:
+      the climax `toll` rings were never `addChild`-ed (invisible) — now added.
+      Removed dead wisp system + unused imports. Screenshot-verified over the dark
+      board: gold/white ripples radiate cleanly, no blob.
+- [ ] **WIN celebration — replace the spinning ray-fan "carousel".** Wants
+      CHARACTER; use the AVATAR more (she reacts/poses, foxfire around her, win
+      amount in a brush banner near her).
+- [ ] **FS intro — more character + polish.** Wire the generated foxfire
+      flipbook as animated extras around the gate/title.
+- [ ] **Avatar MORE ALIVE** — voice lines via Japanese speech bubbles
+      (「やった！」 win, 「いくよ！」 spin), generated bubble asset shown on events.
+
+PROCESS: don't block-wait on RunComfy — kick off, periodically check, integrate.
+
+LAST PRIORITY (do after all polish above — Max 2026-06-13):
+- [ ] **SUBMIT PREP** — double-check MATH (RTP 0.97, wincap 2000x,
+      payout correctness) + Stake WebSDK SUBMIT REQUIREMENTS (build, asset
+      budget, config, provably-fair, required events/screens).
+
+---
+
 ## ROUND 2 — Max review 2026-06-13 (NEW ISSUES, not yet started)
 
 ### DONE this round (RunComfy cloud FLUX)
