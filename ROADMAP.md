@@ -26,10 +26,12 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
 ### Bugs (functional) — STILL TODO
 - [ ] **B1 MAX-WIN keeps rolling free spins** — after wincap is hit the game
       should STOP, not continue spinning FS. Wrong end-state. (highest priority)
-- [ ] **B2 winning combos appear OUTSIDE the reel frame** — looks like a win
-      connects to a PADDING-row symbol. Verify payline cell mapping uses the
-      visible board (PADDING_ROW_OFFSET) everywhere; a win line must never
-      touch padding rows.
+- [x] **B2 winning combos outside frame / padding** (af… B2 commit) — AUDITED:
+      win data rows are all 1..5 (padded) = visible 0..4, NONE on padding;
+      win-mapping code was already correct (toVisible used; winBurstAt converts
+      internally); mask clips vertical padding (5 rows shown). Added a defensive
+      isVisible() filter in winInfo so a padding-row position can NEVER present
+      even if math emits one. Likely was a pre-frame-rework artifact.
 - [ ] **B3 FS blue border** — a weird blue border rings the reel frame during
       free spins (likely the BoardFrame foxfire glow at full alpha, or FS-mode
       tint). Remove/restyle.

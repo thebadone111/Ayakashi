@@ -8,6 +8,7 @@ import { playBookEvent } from './utils';
 import { winLevelMap, type WinLevel, type WinLevelData } from './winLevelMap';
 import { stateGame, stateGameDerived } from './stateGame.svelte';
 import { fxManager } from './fxManager';
+import { BOARD_DIMENSIONS } from './constants';
 import type { BookEvent, BookEventOfType, BookEventContext } from './typesBookEvent';
 import type { Position } from './types';
 import type { SoundName } from './sound';
@@ -92,10 +93,22 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		// ONE clear presentation cycle for all wins at once (no per-line repeats):
 		// board dims with the winning cells spotlit, all payline traces draw
 		// simultaneously, each cell bursts exactly once.
+		// B2 guard: a win must never present on a padding row. Padded rows
+		// 1..BOARD_DIMENSIONS.y are the visible board; anything outside (the top
+		// padding row 0 or bottom padding row) is dropped so no highlight/line
+		// can ever draw outside the frame / connect to a padding symbol.
+		const isVisible = (p: Position) => {
+			const v = fxManager.toVisible(p).row;
+			return v >= 0 && v < BOARD_DIMENSIONS.y;
+		};
+		const wins = bookEvent.wins
+			.map((win) => ({ ...win, positions: win.positions.filter(isVisible) }))
+			.filter((win) => win.positions.length > 0);
+
 		const uniquePositions: Position[] = [];
 		const seen = new Set<string>();
 		const symbolAt = new Map<string, string>();
-		for (const win of bookEvent.wins) {
+		for (const win of wins) {
 			for (const position of win.positions) {
 				const key = `${position.reel}:${position.row}`;
 				if (!seen.has(key)) {
@@ -109,7 +122,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		await tryFx(() => fxManager.spotlightShow(uniquePositions.map(fxManager.toVisible)));
 		const lineFx = tryFx(() =>
 			Promise.all(
-				bookEvent.wins.map((win) =>
+				wins.map((win) =>
 					fxManager.paylineHighlight().showLine({
 						positions: win.positions.map(fxManager.toVisible),
 						lineIndex: win.meta.lineIndex,
