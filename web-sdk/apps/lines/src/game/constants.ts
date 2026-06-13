@@ -9,7 +9,7 @@ export const REEL_PADDING = 0.53;
 // Board placement as a fraction of the main layout — shared by boardLayout()
 // and fxManager.boardOrigin(). Moved toward centre (0.34 -> 0.43) per Max so
 // the reel frame sits more central; the avatar moves in from the right to match.
-export const BOARD_ANCHOR = { x: 0.43, y: 0.52 };
+export const BOARD_ANCHOR = { x: 0.43, y: 0.47 };
 
 // Frame assembly: frame_bg1 panel behind the reels, reel_frame.webp (new HQ
 // cloud-FLUX ornate red/gold frame) on top. MEASURED (process-reel-frame.py):
