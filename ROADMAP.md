@@ -24,8 +24,8 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
       FS-mode board frame (optional; ties into B3)
 
 ### Bugs (functional) — STILL TODO
-- [ ] **B1 MAX-WIN keeps rolling free spins** — after wincap is hit the game
-      should STOP, not continue spinning FS. Wrong end-state. (highest priority)
+- [x] **B1 MAX-WIN keeps rolling free spins** (af1131c) — winCapped flag in the
+      wincap handler no-ops subsequent spin visuals; round ends on max-win.
 - [x] **B2 winning combos outside frame / padding** (af… B2 commit) — AUDITED:
       win data rows are all 1..5 (padded) = visible 0..4, NONE on padding;
       win-mapping code was already correct (toVisible used; winBurstAt converts
@@ -44,11 +44,9 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
 - [x] **U2 move reel frame + avatar toward center** (this session)
 
 ### Art quality (likely needs regen / new assets — see ANIMATION LIBRARY note)
-- [ ] **Q1 reel frame looks horrible** (and FS frame) — regenerate the frame
-      art (img2img on current, or fresh). Current reel_frame.webp reads cheap.
+- [x] **Q1 reel frame** — regenerated (HQ cloud square-window frame), live.
 - [ ] **Q2 loading screen looks horrible** — redesign LoadingScene.
-- [ ] **Q3 symbols still don't sit together** — audit the 14-symbol atlas;
-      regenerate the offenders for consistent scale/lighting/margin.
+- [x] **Q3 symbols** — all 14 regenerated HQ + normalized, cohesive set, live.
 - [ ] **Q4 coins barely show during win** — WinCoins emit rate/size/duration
       too low; boost coin fountain density + on-screen time.
 
