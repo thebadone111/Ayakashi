@@ -52,7 +52,9 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
 
 ### Animations to REDO from the ground up (procedural Graphics = the problem)
 - [ ] **A1 BELL / scatter animation — CATASTROPHIC, redo fully.**
-- [ ] **A2 symbol DESTROY animation — redo** (current tumble dissolve disliked).
+- [x] **A2 symbol destroy** — rebuilt with GSAP: flash -> back-overshoot pop ->
+      bursts apart (scale UP + fade + spin) into the ink/ember/paper cloud,
+      instead of shrinking to a point. Reads as destruction now.
 - [ ] **A3 transition still not good** — redo (mist wipe not landing).
 - [ ] **A4 free-spins intro/outro touch-up** — maybe new assets.
 

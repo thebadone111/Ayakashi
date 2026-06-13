@@ -25,6 +25,7 @@
 import { Application, Container, Sprite } from 'pixi.js';
 
 import { getParticleTexture } from './particleLib';
+import { gsap } from './motion';
 
 import {
 	PALETTE,
@@ -127,16 +128,24 @@ export class TumbleExplosion {
 			tints: [PALETTE.FOXFIRE, PALETTE.SPIRIT, 0xb7fdff],
 		});
 
-		// symbol dissolve: sharp pop → fast shrink with a half-spin (snappy)
+		// A2 rebuild — the symbol SHATTERS outward (flash → overshoot pop → burst
+		// apart into the particle cloud), instead of meekly shrinking. GSAP gives
+		// the snappy back-overshoot + fast power-in that reads as destruction.
 		if (opts.symbol && !opts.symbol.destroyed) {
 			const sym = opts.symbol;
-			const sx = sym.scale.x;
-			const sy = sym.scale.y;
-			await this.tweens.to(sym.scale, { x: sx * 1.15, y: sy * 1.15 }, { duration: 70, ease: easings.quadOut });
-			await Promise.all([
-				this.tweens.to(sym.scale, { x: 0, y: 0 }, { duration: 200, ease: easings.quadIn }),
-				this.tweens.to(sym, { rotation: sym.rotation + Math.PI * 0.5, alpha: 0 }, { duration: 200, ease: easings.quadIn }),
-			]);
+			const s = sym.scale.x;
+			const tl = gsap.timeline();
+			tl.to(sym, { pixi: { tint: 0xfff2c8 }, duration: 0.04 }) // hot flash
+				.to(sym.scale, { x: s * 1.28, y: s * 1.28, duration: 0.09, ease: 'back.out(3)' }, '<')
+				// burst apart: scale UP while fading + a small random spin — it blows
+				// into the ink/ember cloud rather than vanishing to a point
+				.to(sym.scale, { x: s * 1.55, y: s * 1.55, duration: 0.2, ease: 'power3.in' })
+				.to(
+					sym,
+					{ pixi: { alpha: 0 }, rotation: sym.rotation + (Math.random() - 0.5) * 0.7, duration: 0.2, ease: 'power3.in' },
+					'<',
+				);
+			await tl;
 		} else {
 			await delay(280);
 		}
