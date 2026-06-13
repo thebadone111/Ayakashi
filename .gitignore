@@ -34,3 +34,5 @@ _shot_server.py
 # scraping scratch
 pixabay_*
 test_dl.*
+rc_resp.json
+rc_deploy.json
