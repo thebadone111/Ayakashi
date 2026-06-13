@@ -32,6 +32,7 @@ import {
 	delay,
 	fxBus,
 } from './fx';
+import { getParticleTexture } from './particleLib';
 
 export interface BonusTriggerOptions {
 	app: Application;
@@ -105,6 +106,7 @@ export class BonusTriggerAnimation {
 				if (!this.root) return;
 				void this.tweens.to(flare, { alpha: 1 }, { duration: 180 });
 				void this.tweens.to(flare.scale, { x: 1.2, y: 1.2 }, { duration: 350, ease: easings.backOut });
+				// foxfire sparks + drifting petals stirred up as each bell ignites
 				this.particles.emit({
 					x: pos.x, y: pos.y,
 					count: 14,
@@ -112,6 +114,20 @@ export class BonusTriggerAnimation {
 					life: [400, 900],
 					scaleStart: [0.4, 0.9],
 					tints: [PALETTE.FOXFIRE, 0xb7fdff, PALETTE.SPIRIT],
+				});
+				this.particles.emit({
+					x: pos.x, y: pos.y,
+					count: 5,
+					texture: getParticleTexture('petal'),
+					speed: [40, 130],
+					gravity: 60,
+					drag: 0.5,
+					life: [900, 1600],
+					scaleStart: [0.22, 0.4],
+					alphaStart: 0.9,
+					tints: [0xffd9e8, 0xfff0f6, 0xffc4dd],
+					blendMode: 'normal',
+					rotationSpeed: [-3, 3],
 				});
 			});
 		}
@@ -176,15 +192,21 @@ export class BonusTriggerAnimation {
 				}).then(() => ring.destroy());
 			});
 		}
+		// textured ember debris on each toll (bigger/brighter as it escalates)
 		this.particles.emit({
 			x: cx, y: cy,
-			count: 24 + index * 10,
+			count: 18 + index * 8,
+			texture: getParticleTexture('ember'),
 			speed: [200, 600],
+			gravity: 200,
 			life: [500, 1100],
-			scaleStart: [0.5, 1],
-			tints: [color, PALETTE.EMBER_HI],
+			scaleStart: [0.3, 0.6],
+			tints: [color, PALETTE.EMBER_HI, PALETTE.GOLD],
+			rotationSpeed: [-4, 4],
 		});
 		void this.shaker.shake({ intensity: 10 + index * 6, duration: 350 });
+		// real screen-ripple on the final, biggest toll
+		if (index === 2) fxBus.emit('smash', { x: cx, y: cy });
 	}
 
 	private startWisps(sources: { x: number; y: number }[], cx: number, cy: number) {

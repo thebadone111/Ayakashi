@@ -51,7 +51,9 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
       2.5x maxParticles, longer life. Reads as a real gold shower now.
 
 ### Animations to REDO from the ground up (procedural Graphics = the problem)
-- [ ] **A1 BELL / scatter animation — CATASTROPHIC, redo fully.**
+- [x] **A1 bell/scatter** — bonus-trigger toll rebuilt: textured ember debris +
+      drifting petals on each bell ignite (P3 assets), and the final toll fires a
+      real screen-ripple/camera-dip (fxBus smash) for genuine impact. Was glow-dots.
 - [x] **A2 symbol destroy** — rebuilt with GSAP: flash -> back-overshoot pop ->
       bursts apart (scale UP + fade + spin) into the ink/ember/paper cloud,
       instead of shrinking to a point. Reads as destruction now.
