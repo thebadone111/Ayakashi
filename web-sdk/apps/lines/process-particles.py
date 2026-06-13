@@ -16,13 +16,13 @@ GEN = r"C:\Users\tiger\Desktop\Stake\game-1\Ayakashi\art\generated"
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "static", "assets", "sprites", "particles")
 
-# job-dir: (filename, out-name, max-px)  — filename edited after review
+# job-dir: (filename, out-name, max-px)  — filename chosen after visual review
 PICKS = {
-    "ink-splatter":  ("PICK_ME.png", "ink_splat", 256),
-    "sakura-petal":  ("PICK_ME.png", "petal", 128),
-    "paper-shred":   ("PICK_ME.png", "paper", 128),
-    "ember-flake":   ("PICK_ME.png", "ember", 128),
-    "smoke-wisp":    ("PICK_ME.png", "smoke", 192),
+    "ink-splatter":  ("ink-splatter__00004_.png", "ink_splat", 256),  # most radial energy
+    "sakura-petal":  ("sakura-petal__00001_.png", "petal", 128),
+    "paper-shred":   ("paper-shred__00001_.png", "paper", 128),
+    "ember-flake":   ("ember-flake__00001_.png", "ember", 128),
+    "smoke-wisp":    ("smoke-wisp__00001_.png", "smoke", 192),
 }
 
 os.makedirs(OUT, exist_ok=True)

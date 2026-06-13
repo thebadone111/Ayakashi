@@ -227,6 +227,12 @@ const registerAvatar = (container: Container) => {
 			y: main.height * 0.86,
 			height: 560,
 		});
+		// reaction poses (img2img variants) — registered if present; the
+		// avatar no-ops the pose swap when a variant is missing
+		_avatar.setPoses({
+			cheer: texture('avatarCheer'),
+			wink: texture('avatarWink'),
+		});
 	}
 	return () => {
 		_avatar?.destroy();
