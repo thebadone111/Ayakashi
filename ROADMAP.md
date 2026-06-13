@@ -95,10 +95,26 @@ LAST PRIORITY (do after all polish above — Max 2026-06-13):
       lowered alpha + slower pulse so it reads as the frame lighting up.
 
 ### Betting UI (Max 2026-06-13)
-- [ ] **U1 betting UI redesign + custom assets** — current UI bar overlaps/covers
-      the reel frame bottom. Needs a proper Ayakashi-themed control bar (spin,
-      bet +/-, auto, turbo, menu, buy bonus, balance/win/bet panels) as custom
-      generated assets, positioned so it never covers the frame.
+- [x] **U1 betting UI redesign + custom assets** — DONE. Reskinned the core
+      components-ui-pixi bar into the Ayakashi lacquer aesthetic with BESPOKE
+      RunComfy art (full-precision FLUX, cloud), processed to alpha (rembg):
+        • `spin_medallion.webp` (key `bet`) — ornate red/black urushi disc with a
+          gold foxfire-filigree rim + spiral mon; the hero spin button.
+        • `base_button.webp` (key `base_button`) — glossy gold-rimmed red/black
+          ink-cloud plate; drives every standard button (menu, auto, turbo,
+          +/−, buy-bonus) via the UiButton dark variant.
+        • `base_ticker.webp` (key `base_ticker`) — dark lacquer plaque w/ gold
+          hairline + corner ornaments behind balance/win/bet readouts.
+      Wiring: UiSprite now renders the keyed Sprite when its texture is loaded
+      and FALLS BACK to the procedural rounded plate otherwise (other apps in the
+      monorepo keep working). Per-state colouring via sprite tint (white / warm
+      hover / gold active / dimmed-lacquer disabled). Text shifted white→warm
+      parchment (value gold) for the lacquer look. Buy-bonus repointed off its
+      missing `buyBonus` key onto the shared plate with a gold tint.
+      Screenshot-verified in components-game--pre-spin: medallion + plates +
+      ticker plaques all render, zero asset-key errors. Generation script
+      art/gen-ui-cloud.py + processor process-ui.py; RunComfy deployment disabled
+      after use (scale-to-zero, no idle cost).
 - [x] **U2 move reel frame + avatar toward center** (this session)
 
 ### Art quality (likely needs regen / new assets — see ANIMATION LIBRARY note)

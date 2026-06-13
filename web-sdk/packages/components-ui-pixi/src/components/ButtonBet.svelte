@@ -25,6 +25,11 @@
 						width={sizes.width}
 						height={sizes.height}
 						anchor={0.5}
+						tint={disabled || ['spin_disabled', 'stop_disabled'].includes(key)
+							? 0x9a8f82
+							: hovered
+								? 0xfff2d6
+								: 0xffffff}
 						{...disabled || ['spin_disabled', 'stop_disabled'].includes(key)
 							? {
 									backgroundColor: 0xaaaaaa,
@@ -41,9 +46,9 @@
 							wordWrap: true,
 							wordWrapWidth: 200,
 							fontFamily: 'proxima-nova',
-							fontWeight: '600',
+							fontWeight: '700',
 							fontSize: UI_BASE_FONT_SIZE * 0.9,
-							fill: 0xffffff,
+							fill: 0xfff4d6,
 						}}
 					/>
 				</Container>

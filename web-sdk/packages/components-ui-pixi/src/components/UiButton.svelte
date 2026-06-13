@@ -32,6 +32,14 @@
 			anchor={0.5}
 			width={buttonProps.sizes.width}
 			height={buttonProps.sizes.height}
+			key={variant === 'dark' ? 'base_button' : undefined}
+			tint={buttonProps.disabled
+				? 0x9a8f82
+				: active
+					? 0xffd98a
+					: hovered || pressed
+						? 0xfff0cf
+						: 0xffffff}
 			backgroundColor={variant === 'dark' ? 0x000000 : 0xffffff}
 			{...buttonProps.disabled
 				? {
@@ -57,7 +65,11 @@
 				fontFamily: 'proxima-nova',
 				fontWeight: '600',
 				fontSize: UI_BASE_FONT_SIZE * 0.9,
-				fill: variant === 'dark' ? 0xffffff : 0x000000,
+				fill: variant === 'dark'
+					? buttonProps.disabled
+						? 0xcabfa6
+						: 0xfff4d6
+					: 0x000000,
 			}}
 		/>
 

@@ -92,6 +92,26 @@ export default {
 		type: 'font',
 		src: new URL('../../assets/fonts/purpleFont/mm_purple.xml', import.meta.url).href,
 	},
+	// ── Betting-UI lacquer set (U1) — bespoke RunComfy art, cut to alpha ──
+	// Consumed by the core components-ui-pixi components via UiSprite key lookup:
+	//   bet         → ornate spin-button medallion (ButtonBet)
+	//   base_button → standard lacquer button plate (UiButton dark variant)
+	//   base_ticker → balance/win/bet readout plaque (UiLabel)
+	bet: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/spin_medallion.webp', import.meta.url).href,
+		preload: true,
+	},
+	base_button: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/base_button.webp', import.meta.url).href,
+		preload: true,
+	},
+	base_ticker: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/base_ticker.webp', import.meta.url).href,
+		preload: true,
+	},
 	// loading + ui sprites
 	progressBar: {
 		type: 'sprites',
