@@ -55,7 +55,10 @@ up, spill over, hard to see.
       swaps (tumble=ink+paper, dust=smoke, scatter=petals, kanabo=ember/ink/
       smoke, celebration=ember+gold petals). Falls back to glow dot until
       textures land — game safe either way
-- [ ] Fill PICKS, run processing, add 5 entries to assets.ts, verify visually
+- [x] PICKS filled, processed, 5 assets.ts entries added, all serve 200,
+      registry confirms ink/ember/petal loaded + render. Base-game composite
+      screenshot-verified CLEAN: 5 columns inside the frame, no spill/red lines,
+      symbols read, bloom on lanterns+foxfire. DONE (25b74fa)
 
 ## P4. Brush-stroke reveals  `[ ]`  (same gen batch)
 - [ ] Generate 4-6 wide brush strokes (white on black)
