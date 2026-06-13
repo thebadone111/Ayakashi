@@ -34,6 +34,13 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
       free spins (likely the BoardFrame foxfire glow at full alpha, or FS-mode
       tint). Remove/restyle.
 
+### Betting UI (Max 2026-06-13)
+- [ ] **U1 betting UI redesign + custom assets** — current UI bar overlaps/covers
+      the reel frame bottom. Needs a proper Ayakashi-themed control bar (spin,
+      bet +/-, auto, turbo, menu, buy bonus, balance/win/bet panels) as custom
+      generated assets, positioned so it never covers the frame.
+- [x] **U2 move reel frame + avatar toward center** (this session)
+
 ### Art quality (likely needs regen / new assets — see ANIMATION LIBRARY note)
 - [ ] **Q1 reel frame looks horrible** (and FS frame) — regenerate the frame
       art (img2img on current, or fresh). Current reel_frame.webp reads cheap.

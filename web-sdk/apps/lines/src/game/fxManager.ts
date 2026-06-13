@@ -223,7 +223,7 @@ const registerAvatar = (container: Container) => {
 			app: app(),
 			parent: container,
 			texture: avatarTexture,
-			x: main.width * 0.84,
+			x: main.width * 0.76, // moved in from the right (0.84) toward centre per Max
 			y: main.height * 0.86,
 			height: 560,
 		});

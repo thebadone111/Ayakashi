@@ -6,9 +6,10 @@ export const SYMBOL_SIZE = 80; // 5x5 board at 400x400 (-20% per Max's feedback)
 
 export const REEL_PADDING = 0.53;
 
-// Board placement as a fraction of the main layout (left of screen, slightly
-// below centre) — shared by boardLayout() and fxManager.boardOrigin().
-export const BOARD_ANCHOR = { x: 0.34, y: 0.52 };
+// Board placement as a fraction of the main layout — shared by boardLayout()
+// and fxManager.boardOrigin(). Moved toward centre (0.34 -> 0.43) per Max so
+// the reel frame sits more central; the avatar moves in from the right to match.
+export const BOARD_ANCHOR = { x: 0.43, y: 0.52 };
 
 // Frame assembly: frame_bg1 panel behind the reels, reel_frame.webp (new HQ
 // cloud-FLUX ornate red/gold frame) on top. MEASURED (process-reel-frame.py):

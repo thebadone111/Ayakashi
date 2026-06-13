@@ -57,8 +57,20 @@ const tryFx = async (run: () => Promise<unknown> | unknown) => {
 // Escalating koto pluck per consecutive tumble win — resets each new spin.
 let tumbleWinStep = 0;
 
+// Once the 2000x cap is hit, the math book STILL contains the remaining free
+// spins (it keeps simulating). That's not the intended experience — the round
+// should end at max win. This flag makes every subsequent spin-visual event a
+// no-op so the game stops "rolling" after wincap; the final total + outro still
+// resolve. Reset per book in playBet via resetRoundFlags().
+let winCapped = false;
+export const resetRoundFlags = () => {
+	winCapped = false;
+	tumbleWinStep = 0;
+};
+
 export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContext> = {
 	reveal: async (bookEvent: BookEventOfType<'reveal'>, { bookEvents }: BookEventContext) => {
+		if (winCapped) return; // max win reached — stop spinning
 		tumbleWinStep = 0;
 		const isBonusGame = checkIsMultipleRevealEvents({ bookEvents });
 		if (isBonusGame) {
@@ -74,6 +86,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		eventEmitter.broadcast({ type: 'soundScatterCounterClear' });
 	},
 	winInfo: async (bookEvent: BookEventOfType<'winInfo'>) => {
+		if (winCapped) return;
 		eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_winlevel_small' });
 
 		// ONE clear presentation cycle for all wins at once (no per-line repeats):
@@ -119,6 +132,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	},
 	// Ayakashi: tumble — winning symbols (and X 3x3 areas) explode, board cascades
 	tumbleBoard: async (bookEvent: BookEventOfType<'tumbleBoard'>) => {
+		if (winCapped) return;
 		// Oni Kanabo: if an X is among the exploding cells, play the club smash first
 		const rawBoard = stateGameDerived.boardRaw();
 		const exploderPositions = bookEvent.explodingSymbols.filter(
@@ -156,6 +170,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		eventEmitter.broadcast({ type: 'boardShow' });
 	},
 	updateTumbleWin: async (bookEvent: BookEventOfType<'updateTumbleWin'>) => {
+		if (winCapped) return;
 		// escalating koto pluck — each consecutive tumble win climbs a step
 		tumbleWinStep = Math.min(tumbleWinStep + 1, 5);
 		eventEmitter.broadcast({
@@ -204,6 +219,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 	},
 	// Ayakashi: scatters during free spins add more spins
 	freeSpinRetrigger: async (bookEvent: BookEventOfType<'freeSpinRetrigger'>) => {
+		if (winCapped) return;
 		eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_scatter_win_v2' });
 		await animateSymbols({ positions: bookEvent.positions });
 		eventEmitter.broadcast({ type: 'freeSpinCounterShow' });
@@ -233,6 +249,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		stateUi.freeSpinCounterTotal = bookEvent.totalFs;
 	},
 	updateFreeSpin: async (bookEvent: BookEventOfType<'updateFreeSpin'>) => {
+		if (winCapped) return; // freeze the FS counter after max win
 		eventEmitter.broadcast({ type: 'freeSpinCounterShow' });
 		stateUi.freeSpinCounterShow = true;
 		eventEmitter.broadcast({
@@ -280,7 +297,9 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		winLevelSoundsStop();
 		eventEmitter.broadcast({ type: 'winHide' });
 	},
-	// Ayakashi: max win (2000x) reached — spin actions end here
+	// Ayakashi: max win (2000x) reached — spin actions end here. The math book
+	// still contains the remaining free spins after this; winCapped suppresses
+	// their visuals so the round ends on the max-win celebration.
 	wincap: async (bookEvent: BookEventOfType<'wincap'>) => {
 		const winLevelData = winLevelMap[10]; // 'max'
 
@@ -293,6 +312,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		});
 		winLevelSoundsStop();
 		eventEmitter.broadcast({ type: 'winHide' });
+		winCapped = true; // stop all subsequent spin visuals this round
 	},
 	finalWin: async (bookEvent: BookEventOfType<'finalWin'>) => {
 		// Do nothing

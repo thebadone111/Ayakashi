@@ -6,13 +6,14 @@ import { createGetEmptyPaddedBoard } from 'utils-slots';
 import { SYMBOL_SIZE, REEL_PADDING, SYMBOL_INFO_MAP, BOARD_DIMENSIONS } from './constants';
 import { eventEmitter } from './eventEmitter';
 import type { Bet, BookEventOfType } from './typesBookEvent';
-import { bookEventHandlerMap } from './bookEventHandlerMap';
+import { bookEventHandlerMap, resetRoundFlags } from './bookEventHandlerMap';
 import type { RawSymbol, SymbolState } from './types';
 
 // general utils
 export const { getEmptyBoard } = createGetEmptyPaddedBoard({ reelsDimensions: BOARD_DIMENSIONS });
 export const { playBookEvent, playBookEvents } = createPlayBookUtils({ bookEventHandlerMap });
 export const playBet = async (bet: Bet) => {
+	resetRoundFlags(); // clear winCapped/tumble state from the previous round
 	stateBet.winBookEventAmount = 0;
 	// fade the betting UI out while the round plays — spacebar (EnableSpaceHold)
 	// still works for stop/skip since it lives outside the fade container
