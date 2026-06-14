@@ -58,22 +58,22 @@
 			{@render props.amountBet({ stacked: true })}
 		</Container>
 
-		<!-- under Balance: menu + buy bonus -->
-		<Container y={ROW_BTM} x={COL_BAL - 80} scale={0.8}>
+		<!-- under Balance: menu + buy bonus (wide pills, ±100 centers) -->
+		<Container y={ROW_BTM} x={COL_BAL - 100} scale={0.8}>
 			{@render props.buttonMenu({ anchor: 0.5 })}
 		</Container>
-		<Container y={ROW_BTM} x={COL_BAL + 80} scale={0.8}>
+		<Container y={ROW_BTM} x={COL_BAL + 100} scale={0.8}>
 			{@render props.buttonBuyBonus({ anchor: 0.5 })}
 		</Container>
 
-		<!-- under Win: auto · SPIN (hero) · turbo -->
-		<Container y={ROW_BTM} x={COL_WIN - 170} scale={0.8}>
+		<!-- under Win: auto · SPIN (hero) · turbo (wider pills, ±195 centers) -->
+		<Container y={ROW_BTM} x={COL_WIN - 195} scale={0.8}>
 			{@render props.buttonAutoSpin({ anchor: 0.5 })}
 		</Container>
 		<Container y={ROW_BTM} x={COL_WIN} scale={0.96}>
 			{@render props.buttonBet({ anchor: 0.5 })}
 		</Container>
-		<Container y={ROW_BTM} x={COL_WIN + 170} scale={0.8}>
+		<Container y={ROW_BTM} x={COL_WIN + 195} scale={0.8}>
 			{@render props.buttonTurbo({ anchor: 0.5 })}
 		</Container>
 

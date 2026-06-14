@@ -142,6 +142,12 @@
 
 	.ayakashi-buy-bonus {
 		position: relative;
+		// The SDK Popup wraps content in a full-screen `.click-to-close-layer`
+		// at z-index 2 to catch outside-clicks. Without an explicit stacking
+		// context above it, every PLAY / BUY BONUS click hit the close layer
+		// instead of our buttons. Matches the SDK convention (BaseContent uses
+		// z-index 100).
+		z-index: 100;
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;

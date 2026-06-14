@@ -99,14 +99,14 @@
 		</Container>
 
 		<Container
-			x={context.stateLayoutDerived.mainLayoutStandard().width * 0.5 - 180}
+			x={context.stateLayoutDerived.mainLayoutStandard().width * 0.5 - 250}
 			y={context.stateLayoutDerived.mainLayoutStandard().height - 400}
 		>
 			{@render props.buttonAutoSpin({ anchor: 0.5 })}
 		</Container>
 
 		<Container
-			x={context.stateLayoutDerived.mainLayoutStandard().width * 0.5 + 180}
+			x={context.stateLayoutDerived.mainLayoutStandard().width * 0.5 + 250}
 			y={context.stateLayoutDerived.mainLayoutStandard().height - 400}
 		>
 			{@render props.buttonTurbo({ anchor: 0.5 })}

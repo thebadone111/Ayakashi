@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { Text } from 'pixi-svelte';
+	import { Text, Rectangle } from 'pixi-svelte';
 	import { Button, type ButtonProps } from 'components-pixi';
 
-	import UiSprite from './UiSprite.svelte';
 	import type { ButtonIcon } from '../types';
 	import type { Snippet } from 'svelte';
 	import { i18nDerived } from '../i18n/i18nDerived';
@@ -14,8 +13,6 @@
 		active?: boolean;
 		children?: Snippet;
 		variant?: 'dark' | 'light';
-		/** Label/icon size as a multiple of UI_BASE_FONT_SIZE (default 0.8). Bump
-		 *  it for single-glyph buttons like + / − that should read large. */
 		labelScale?: number;
 	};
 
@@ -23,7 +20,7 @@
 		icon,
 		active,
 		variant = 'dark',
-		labelScale = 0.8,
+		labelScale = 1.05,
 		children: childrenFromParent,
 		...buttonProps
 	}: Props = $props();
@@ -31,31 +28,38 @@
 
 <Button {...buttonProps}>
 	{#snippet children({ center, hovered, pressed })}
-		<UiSprite
+		{@const w = buttonProps.sizes.width}
+		{@const h = buttonProps.sizes.height}
+		{@const radius = Math.min(w, h) * 0.28}
+		{@const isDark = variant === 'dark'}
+		{@const baseBg = isDark ? 0x140709 : 0xffffff}
+		{@const hoverBg = isDark ? 0x2a1118 : 0xfff0cf}
+		{@const activeBg = isDark ? 0x4a1a26 : 0xffd98a}
+		{@const disabledBg = isDark ? 0x3a322c : 0xaaaaaa}
+		{@const goldBorder = buttonProps.disabled
+			? 0x8c7c5c
+			: active
+				? 0xffe9a8
+				: hovered || pressed
+					? 0xe0b56a
+					: 0xb88a3f}
+		{@const bg = buttonProps.disabled
+			? disabledBg
+			: active
+				? activeBg
+				: hovered || pressed
+					? hoverBg
+					: baseBg}
+
+		<Rectangle
 			{...center}
 			anchor={0.5}
-			width={buttonProps.sizes.width}
-			height={buttonProps.sizes.height}
-			key={variant === 'dark' ? 'base_button' : undefined}
-			tint={buttonProps.disabled
-				? 0x9a8f82
-				: active
-					? 0xffd98a
-					: hovered || pressed
-						? 0xfff0cf
-						: 0xffffff}
-			backgroundColor={variant === 'dark' ? 0x000000 : 0xffffff}
-			{...buttonProps.disabled
-				? {
-						backgroundColor: 0xaaaaaa,
-					}
-				: {}}
-			{...active
-				? {
-						borderWidth: 10,
-						borderColor: variant === 'dark' ? 0xffffff : 0x000000,
-					}
-				: {}}
+			width={w}
+			height={h}
+			borderRadius={radius}
+			borderColor={isDark ? goldBorder : 0x000000}
+			borderWidth={active ? 6 : 4}
+			backgroundColor={bg}
 		/>
 
 		<Text
@@ -65,19 +69,17 @@
 			style={{
 				align: 'center',
 				wordWrap: true,
-				// keep multi-word labels (AUTO SPIN, BUY BONUS) INSIDE the round
-				// medallion: wrap to the button's own width instead of a fixed 200
-				// (which was wider than the 150 disc, so they spilled the circle).
-				wordWrapWidth: buttonProps.sizes.width * 0.8,
+				wordWrapWidth: w * 0.88,
 				lineHeight: UI_BASE_FONT_SIZE * labelScale * 0.95,
 				fontFamily: 'Yuji Syuku',
-				fontWeight: '600',
+				fontWeight: '700',
 				fontSize: UI_BASE_FONT_SIZE * labelScale,
-				fill: variant === 'dark'
+				fill: isDark
 					? buttonProps.disabled
 						? 0xcabfa6
 						: 0xfff4d6
 					: 0x000000,
+				stroke: isDark ? { color: 0x000000, width: 3 } : undefined,
 			}}
 		/>
 

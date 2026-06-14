@@ -49,11 +49,11 @@
 			{@render props.buttonMenu({ anchor: 0.5 })}
 		</Container>
 
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={20 + 180}>
+		<Container y={DESKTOP_BASE_SIZE * 0.5} x={20 + 260}>
 			{@render props.buttonBuyBonus({ anchor: 0.5 })}
 		</Container>
 
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={-10 + 180 * 4}>
+		<Container y={DESKTOP_BASE_SIZE * 0.5} x={-10 + 180 * 5 - 230}>
 			{@render props.buttonAutoSpin({ anchor: 0.5 })}
 		</Container>
 
@@ -61,7 +61,7 @@
 			{@render props.buttonBet({ anchor: 0.5 })}
 		</Container>
 
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={-10 + 180 * 6}>
+		<Container y={DESKTOP_BASE_SIZE * 0.5} x={-10 + 180 * 5 + 230}>
 			{@render props.buttonTurbo({ anchor: 0.5 })}
 		</Container>
 

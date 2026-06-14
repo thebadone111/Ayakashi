@@ -32,11 +32,11 @@
 			},
 		})}
 	>
-		<Container y={LANDSCAPE_BASE_SIZE * 0.5 - 90} x={85 + 20} scale={0.8}>
+		<Container y={LANDSCAPE_BASE_SIZE * 0.5 - 90} x={105} scale={0.8}>
 			{@render props.buttonMenu({ anchor: 0.5 })}
 		</Container>
 
-		<Container y={LANDSCAPE_BASE_SIZE * 0.5 - 90} x={220 + 20} scale={0.8}>
+		<Container y={LANDSCAPE_BASE_SIZE * 0.5 - 90} x={300} scale={0.8}>
 			{@render props.buttonBuyBonus({ anchor: 0.5 })}
 		</Container>
 

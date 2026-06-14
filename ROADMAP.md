@@ -76,6 +76,37 @@ Developer → Start session → Launch).
 - **P4 — Powered by Stake Engine splash kept** (Max OK'd leaving it). It's
   `LoaderStakeEngine` from the SDK; safer to keep until after first approval.
 
+### Follow-up fixes (same session, after Max retest)
+- [x] **Bespoke modal PLAY / BUY BONUS buttons did nothing** — Popup's full-
+      screen `.click-to-close-layer` sits at `z-index: 2`; my modal content was
+      at the default (auto = 0), so every button click hit the close layer
+      instead. Added `z-index: 100` on `.ayakashi-buy-bonus` to match the SDK's
+      `BaseContent` convention. Buttons now register clicks.
+- [x] **Bet bar buttons too small to read** — R5 had dropped UiButton's default
+      `labelScale` 0.9 → 0.8 as belt-and-braces against the BUY BONUS overflow,
+      but the same round's wrap-to-button-width fix already solved that. Bumped
+      defaults: `UiButton.labelScale` 0.8 → 0.95 and `ButtonBuyBonus` font size
+      multiplier 0.8 → 0.95 to match. Pill labels (AUTO SPIN, BUY BONUS, TURBO,
+      PAY TABLE, GAME RULES, SETTINGS, sound, menu, +/−) all read +19%.
+
+### Localisation — answer for Max
+- **Stake supports 16 languages** (`ar de en es fi fr hi id ja ko pl pt ru tr vi
+  zh`, per `math-sdk/docs/rgs_docs/RGS.md`); the RGS sends one of these as the
+  `lang` URL param when launching.
+- **English is the only hard requirement.** The SDK i18n layer falls back to
+  the registered locale when a translation is missing, so games typically ship
+  English plus whatever extras they have time for.
+- **Today we ship `en` + `zh`** (both the lines app maps and the SDK packages).
+  Reviewers testing `lang=zh` will see Chinese for SDK strings + English for
+  our two game-specific strings (`HOME`, `NOT TRANSLATED`).
+- **Our bespoke modal bypasses i18n** for now (hardcoded "CHOOSE YOUR PATH",
+  "YOKAI BONUS", "PLAY", etc.). Not a hard blocker — we can route through
+  `stateI18nDerived.translate(...)` in a patch after approval if reviewers
+  flag it.
+- **Recommendation:** ship as-is for the first submission. Stake's approval
+  guidelines explicitly allow minor visual updates without re-review, which
+  covers adding translations later.
+
 ### Notes for next session
 - TypeScript checks run cleanly on the new files; runtime click-through still
   needs a live RGS session (`/wallet/authenticate` 400 in dev without one).
