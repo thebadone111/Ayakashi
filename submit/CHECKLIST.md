@@ -37,9 +37,11 @@ Per `math-sdk/docs/rgs_docs/data_format.md`.
       Re-run: `math-sdk/env/Scripts/python.exe submit/_verify_books.py`.
 - [x] **RTP = 0.9700** — recomputed from BOTH lookup tables.
 - [x] **Max win = 2000×** — config + both tables cap at `200000`.
-- [~] **Re-running at 1,000,000 sims/mode** (was 100k) for tail/variety fidelity.
-      Re-copy `library/publish_files/*` → `submit/math/` and re-run `_verify_books.py`
-      when it finishes. (Projected sizes well under 15 GB.)
+- [x] **Sim count: shipping 100k/mode (the verified set in `submit/math/`).** A
+      1M/mode attempt OOM'd a 32 GB machine on the bonus mode (long FS sequences ×
+      1M × 28 threads + ~4.6 GB compression) and was abandoned — 100k is a standard,
+      valid count and the optimizer pins RTP=0.97 / 2000× regardless. `run.py` is
+      back at 1e5. (Optional future: base 1e6 + bonus ~3e5 with fewer threads.)
 - [~] **Upload + backend stats check passes** — do the Math publish; confirm green.
 
 ## C. FRONT-END publish  (`submit/frontend/`)

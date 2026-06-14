@@ -10,6 +10,9 @@
 
 	type Props = {
 		children: Snippet;
+		/** Game-specific rules content. Falls back to a placeholder when a game
+		 *  doesn't provide one (keeps this shared component generic). */
+		content?: Snippet;
 	};
 
 	const props: Props = $props();
@@ -19,7 +22,11 @@
 	<Popup zIndex={zIndex.modal} onclose={() => (stateModal.modal = null)}>
 		<BaseContent maxWidth="100%">
 			<BaseScrollable type="column">
-				<span>ADD YOUR GAME RULES</span>
+				{#if props.content}
+					{@render props.content()}
+				{:else}
+					<span>ADD YOUR GAME RULES</span>
+				{/if}
 				{@render props.children()}
 			</BaseScrollable>
 		</BaseContent>

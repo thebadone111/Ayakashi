@@ -28,6 +28,8 @@
 	import FreeSpinOutro from './FreeSpinOutro.svelte';
 	import Transition from './Transition.svelte';
 	import FxHost from './FxHost.svelte';
+	import PayTableContent from './paytable/PayTableContent.svelte';
+	import GameRulesContent from './paytable/GameRulesContent.svelte';
 
 	const context = getContext();
 
@@ -133,6 +135,12 @@
 
 <Modals>
 	{#snippet version()}
-		<GameVersion version="0.0.0" />
+		<GameVersion version="1.0.0" />
+	{/snippet}
+	{#snippet payTable()}
+		<PayTableContent />
+	{/snippet}
+	{#snippet gameRules()}
+		<GameRulesContent />
 	{/snippet}
 </Modals>

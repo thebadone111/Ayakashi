@@ -59,7 +59,9 @@ what we already have. Everything not listed under "polish" below is **frozen as
       jackpot/gamble/continuation ✓, math format ✓, no hardcoded rgs_url ✓,
       resume/auth/currency handled by SDK ✓. Limits 15 GB math / 15 GB FE.
 - [x] Math RTP 0.9700 + 2000× re-verified from lookup tables; CSV↔jsonl hashes match.
-- [~] Re-running math at 1,000,000 sims/mode (was 100k) for tail/variety fidelity.
+- [x] Math sim count: SHIPPING 100k/mode (verified set in submit/math/). The 1M/mode
+      attempt OOM'd a 32GB machine on bonus mode and was abandoned; 100k is valid and
+      the optimizer pins RTP=0.97/2000x regardless. run.py reverted to 1e5.
 - [x] Front-end font bloat fixed — 24 MB of unused/personal-use demo fonts pulled
       out of `static/` → `art/fonts/`; bake-logo.py repointed. Bundle 46→21 MB.
 - [ ] **🚩 BLOCKER — Pay Table & Game Rules modals are SDK placeholders**

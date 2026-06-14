@@ -1,8 +1,8 @@
 // AUTO-GENERATED from math-sdk config_fe_0_0_lines.json by sync-config.py.
 // Do not edit by hand; re-run `python sync-config.py` after changing the math.
 export default {
-  "providerName": "sample_provider",
-  "gameName": "sample_lines",
+  "providerName": "Ayakashi",
+  "gameName": "Ayakashi",
   "gameID": "0_0_lines",
   "rtp": 0.97,
   "numReels": 5,
