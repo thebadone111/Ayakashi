@@ -16,6 +16,7 @@
 	} from 'state-shared';
 	import { getContextEventEmitter } from 'utils-event-emitter';
 	import { numberToCurrencyString } from 'utils-shared/amount';
+	import { stateBonus } from 'components-ui-html/src/stateBonus.svelte';
 	import type { EmitterEventModal } from 'components-ui-html/src/types';
 
 	import toriiUrl from '../../static/assets/sprites/uiSlotsAssetsBespoke/torii.webp';
@@ -47,6 +48,11 @@
 	function buyBonus() {
 		if (!canAffordBonus) return;
 		stateBet.activeBetModeKey = 'bonus';
+		// Sync the SDK's bonus picker so ModalBuyBonusConfirm can resolve the
+		// mode meta (`betModeMeta[selectedBetModeKey]`). Our meta is keyed
+		// lowercase, but stateBonus defaults to 'BASE' (uppercase) — without
+		// this, the confirm dialog renders blank and the bet broadcast no-ops.
+		stateBonus.selectedBetModeKey = 'bonus';
 		eventEmitter.broadcast({ type: 'soundPressGeneral' });
 		// Defer to SDK confirm dialog — second tap required (no accidental spend).
 		eventEmitter.broadcast({ type: 'buyBonusConfirm' });
