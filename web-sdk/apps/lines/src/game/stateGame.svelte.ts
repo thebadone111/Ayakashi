@@ -9,6 +9,7 @@ import type { GameType, RawSymbol, SymbolState } from './types';
 import { stateLayoutDerived } from './stateLayout';
 import { winLevelMap } from './winLevelMap';
 import { eventEmitter } from './eventEmitter';
+import type { SoundEffectName } from './sound';
 import {
 	SYMBOL_SIZE,
 	BOARD_SIZES,
@@ -53,9 +54,11 @@ const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
 		initialSymbols: INITIAL_BOARD[reelIndex],
 		initialSymbolState: INITIAL_SYMBOL_STATE,
 		onReelStopping: () => {
+			// Cycle the 5 wood-block variants (one per reel) so the stops form a
+			// descending kokiriko run instead of the same click five times.
 			eventEmitter.broadcast({
 				type: 'soundOnce',
-				name: 'sfx_reel_stop_1',
+				name: `sfx_reel_stop_${(reelIndex % 5) + 1}` as SoundEffectName,
 				forcePlay: !stateBet.isTurbo,
 			});
 			// reel-stop thud + dust (no-op until the FX layer is mounted)

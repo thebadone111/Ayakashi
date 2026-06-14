@@ -49,9 +49,17 @@ import { stateLayoutDerived } from './stateLayout';
 import type { Position } from './types';
 
 const PADDING_ROW_OFFSET = 1; // board reels carry 1 padding symbol on top
-// Locally-hosted brush face (see app.html @font-face) — used by every
-// procedural Text the FX modules draw (BIG WIN title, count-ups, badges).
-const FONT_FAMILY = 'Yuji Syuku';
+// Two locally-hosted brush faces (see app.html @font-face).
+//
+// IMPORTANT: 'Ninja Kage' is a DEMO face whose digit/$/. glyphs are EMPTY
+// (zero outlines) — letters render, NUMBERS render INVISIBLE. So it may only be
+// used for LETTER-ONLY titles (FREE SPINS, MEGA WIN, TOTAL WIN). Anything that
+// contains a number (win amount, FS count, x-multiplier badges, payline tags)
+// MUST use 'Yuji Syuku', which renders the full set. (Also: NinjaKage is a demo
+// font — confirm a commercial licence before submit, or switch DISPLAY_FONT to
+// TEXT_FONT.)
+const DISPLAY_FONT = 'Ninja Kage'; // dramatic brush — letter titles ONLY
+const TEXT_FONT = 'Yuji Syuku'; // legible brush — anything with numbers
 
 // --- registered containers (set by FxHost callbacks) -------------------------
 
@@ -80,9 +88,22 @@ let _camera: CameraGrammar | null = null;
 
 // --- helpers -------------------------------------------------------------------
 
+let _textureGcDisabled = false;
+
 const app = (): Application => {
 	const pixiApp = stateApp.pixiApplication;
 	if (!pixiApp) throw new Error('fxManager: PIXI application not ready');
+	if (!_textureGcDisabled) {
+		// PIXI v8.8 (WebGPU) bug: TextureGCSystem unloads an idle texture whose
+		// source a live BindGroup still references, then BindGroup._updateKey reads
+		// `_resourceId` on the now-null resource and throws EVERY FRAME. We hit this
+		// at free-spin end (FX teardown leaves a just-idled texture briefly bound).
+		// Our generated/loaded textures are a bounded, long-lived set (glow cache,
+		// atlas, particle webps) we want resident anyway — so turn the GC off.
+		const renderer = pixiApp.renderer as unknown as { textureGC?: { active: boolean } };
+		if (renderer.textureGC) renderer.textureGC.active = false;
+		_textureGcDisabled = true;
+	}
 	return pixiApp;
 };
 
@@ -228,8 +249,8 @@ const registerAvatar = (container: Container) => {
 			app: app(),
 			parent: container,
 			texture: avatarTexture,
-			x: main.width * 0.76, // moved in from the right (0.84) toward centre per Max
-			y: main.height * 0.86,
+			x: main.width * 0.79, // Round 4c (Max): right to 0.81, then a touch back left to 0.79
+			y: main.height * 0.84, // Round 4c (Max): nudged up a touch (0.86 -> 0.84)
 			height: 560,
 		});
 		// reaction poses (img2img variants) — registered if present; the
@@ -279,7 +300,8 @@ const winCelebration = (): WinCelebration => {
 			shakeTarget: needShakeTarget(),
 			width: sizes.width,
 			height: sizes.height,
-			fontFamily: FONT_FAMILY,
+			fontFamily: DISPLAY_FONT, // tier title (letters)
+			numberFontFamily: TEXT_FONT, // win amount (digits) — NinjaKage has none
 			brushTexture: texture('brushWide'),
 			// the celebration anchors foxfire + the win banner to the live avatar
 			getAvatarFocus: () => _avatar?.getScreenBounds() ?? null,
@@ -310,7 +332,9 @@ const freeSpins = (): FreeSpinsScreen => {
 			parent: needOverlay(),
 			width: sizes.width,
 			height: sizes.height,
-			fontFamily: FONT_FAMILY,
+			fontFamily: DISPLAY_FONT, // FREE SPINS / TOTAL WIN titles (letters)
+			numberFontFamily: TEXT_FONT, // FS count + total amount (digits)
+			toriiTexture: texture('torii'),
 		});
 	}
 	return _freeSpins;
@@ -351,7 +375,7 @@ const ofuda = (): OfudaCharm => {
 			effectsLayer: needBoardFx(),
 			boardOrigin: boardOrigin(),
 			symbolSize: SYMBOL_SIZE,
-			fontFamily: FONT_FAMILY,
+			fontFamily: TEXT_FONT, // x-multiplier / amount (digits) — NinjaKage has none
 		});
 	}
 	return _ofuda;
@@ -401,7 +425,7 @@ const paylineHighlight = (): PaylineHighlight => {
 			effectsLayer: needBoardFx(),
 			boardOrigin: boardOrigin(),
 			symbolSize: SYMBOL_SIZE,
-			fontFamily: FONT_FAMILY,
+			fontFamily: TEXT_FONT, // x-multiplier / amount (digits) — NinjaKage has none
 		});
 	}
 	return _paylineHighlight;
@@ -413,7 +437,7 @@ const wildLanding = (): WildLandingAnimation => {
 			app: app(),
 			effectsLayer: needBoardFx(),
 			symbolSize: SYMBOL_SIZE,
-			fontFamily: FONT_FAMILY,
+			fontFamily: TEXT_FONT, // x-multiplier / amount (digits) — NinjaKage has none
 		});
 	}
 	return _wildLanding;

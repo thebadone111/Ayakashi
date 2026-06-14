@@ -16,13 +16,13 @@
 	// warm parchment label, brighter gold value — readable on the dark lacquer
 	// ticker plate and cohesive with the Ayakashi palette.
 	const labelStyle = {
-		fontFamily: 'proxima-nova',
+		fontFamily: 'Yuji Syuku',
 		fontSize: UI_BASE_FONT_SIZE,
 		fill: 0xcbbfa6,
 	} as const;
 
 	const valueStyle = {
-		fontFamily: 'proxima-nova',
+		fontFamily: 'Yuji Syuku',
 		fontWeight: '600',
 		fontSize: UI_BASE_FONT_SIZE,
 		fill: 0xffe9b0,

@@ -27,6 +27,7 @@ export type SoundEffectName =
 	| 'sfx_multiplier_up'
 	| 'sfx_multiplier_update'
 	| 'sfx_multiplier_win'
+	| 'sfx_reel_spin'
 	| 'sfx_reel_stop_1'
 	| 'sfx_reel_stop_2'
 	| 'sfx_reel_stop_3'

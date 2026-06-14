@@ -19,7 +19,7 @@
 	);
 	const textProps = {
 		style: {
-			fontFamily: 'proxima-nova',
+			fontFamily: 'Yuji Syuku',
 			fontSize: REM * 1.5,
 			fontWeight: '600',
 			lineHeight: REM * 2,

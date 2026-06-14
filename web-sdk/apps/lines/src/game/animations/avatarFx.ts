@@ -93,6 +93,7 @@ export class AvatarActor {
 	private root: Container;
 	private mesh: MeshPlane;
 	private aura: Sprite;
+	private groundShadow: Sprite;
 	private basePositions: Float32Array;
 	private texW: number;
 	private texH: number;
@@ -106,6 +107,10 @@ export class AvatarActor {
 	private sway = makeSpring(13, 7); // lean / horizontal shear
 	private hop = makeSpring(30, 8.5); // vertical hop offset
 	private excite = 0; // 0..~2.5, decays
+	// global amplitude trim — scales every visible motion (breath, squash, sway,
+	// hop, bob, weight-shift, mesh flow). Round 4c (Max): another ~8% calmer
+	// because she still read a touch jumpy.
+	private motionScale = 0.92;
 	private time = Math.random() * 100;
 	private lastMicroImpulse = 0; // cooldown so 5 reel stops don't machine-gun her
 	// twirl — a single happy pirouette: scale.x sweeps cos(2π·turns) so she
@@ -122,7 +127,16 @@ export class AvatarActor {
 	private poseRevertTimer: ReturnType<typeof setTimeout> | null = null;
 
 	private busHandlers: Partial<Record<FxEvent, (data?: unknown) => void>> = {};
-	private tick = (ticker: Ticker) => this.update(ticker.deltaMS);
+	// A throw here would abort the shared ticker frame and starve every FX
+	// listener registered after the avatar (it froze the win celebration once).
+	// Isolate it so the avatar can never poison the ticker.
+	private tick = (ticker: Ticker) => {
+		try {
+			this.update(ticker.deltaMS);
+		} catch (error) {
+			console.warn('[AvatarActor] update failed', error);
+		}
+	};
 	private destroyed = false;
 
 	constructor(opts: AvatarActorOptions) {
@@ -138,6 +152,15 @@ export class AvatarActor {
 		this.root = new Container();
 		this.root.position.set(opts.x, opts.y);
 		opts.parent.addChild(this.root);
+
+		// ground contact shadow — a soft dark ellipse pooled at her feet so she
+		// reads as standing ON the scene rather than pasted onto it.
+		this.groundShadow = new Sprite(makeGlowTexture(this.app.renderer, 160, 0x000000));
+		this.groundShadow.anchor.set(0.5, 0.5);
+		this.groundShadow.alpha = 0.45;
+		this.groundShadow.scale.set((height / 220) * 1.7, (height / 220) * 0.34); // wide, flat
+		this.groundShadow.position.set(0, -height * 0.012);
+		this.root.addChild(this.groundShadow);
 
 		// aura behind the character — breathes with excitement
 		this.aura = new Sprite(makeGlowTexture(this.app.renderer, 150, PALETTE.SPIRIT));
@@ -155,6 +178,11 @@ export class AvatarActor {
 		});
 		this.mesh.pivot.set(this.texW / 2, this.texH);
 		this.mesh.scale.set(this.scaleFit);
+		// NOTE: a DropShadowFilter on this mesh broke the big-win twirl — the
+		// pirouette flips scale.x through 0/negative and the filter on a
+		// per-frame-deforming mesh stalled the render/ticker. Depth now comes
+		// from the ground contact shadow above (which Max approved); no mesh
+		// filter.
 		this.root.addChild(this.mesh);
 
 		const buffer = this.mesh.geometry.getBuffer('aPosition');
@@ -314,30 +342,31 @@ export class AvatarActor {
 		}
 
 		// --- whole-body transforms --------------------------------------------
+		const m = this.motionScale; // global amplitude trim
 		// breathing + jelly squash (bottom anchored: scale up = grows upward)
-		const breath = Math.sin(t * tempo) * 0.011;
-		const squashAmt = Math.tanh(this.squash.value * 0.7) * 0.05; // soft-saturating
+		const breath = Math.sin(t * tempo) * 0.011 * m;
+		const squashAmt = Math.tanh(this.squash.value * 0.7) * 0.05 * m; // soft-saturating
 		this.mesh.scale.set(
 			this.scaleFit * (1 - breath * 0.6 - squashAmt * 0.55) * facing,
 			this.scaleFit * (1 + breath + squashAmt),
 		);
 		// lean — soft-limited so she sways, never tips
-		this.mesh.rotation = Math.tanh(this.sway.value * 0.5) * 0.05 + Math.sin(t * 0.45) * 0.01;
+		this.mesh.rotation = (Math.tanh(this.sway.value * 0.5) * 0.05 + Math.sin(t * 0.45) * 0.01) * m;
 		// hop — tanh gives a smooth arc with a tiny natural dip on landing,
 		// plus a gentle idle bob so she's never frozen to the floor
-		this.root.y = this.baseY - Math.tanh(this.hop.value * 0.6) * 30 + Math.sin(t * 0.9) * 2.5;
+		this.root.y = this.baseY - Math.tanh(this.hop.value * 0.6) * 30 * m + Math.sin(t * 0.9) * 2.5 * m;
 		// weight shift — she slowly rocks foot to foot, never statue-still
-		this.root.x = this.baseX + Math.sin(t * 0.22) * 3;
+		this.root.x = this.baseX + Math.sin(t * 0.22) * 3 * m;
 
 		// --- mesh flow waves -----------------------------------------------------
 		const buffer = this.mesh.geometry.getBuffer('aPosition');
 		const data = buffer.data as Float32Array;
 		const base = this.basePositions;
-		const waveAmp = this.texH * 0.0042 * excitement;
-		const swayShear = Math.tanh(this.sway.value * 0.5) * this.texW * 0.04;
+		const waveAmp = this.texH * 0.0042 * excitement * m;
+		const swayShear = Math.tanh(this.sway.value * 0.5) * this.texW * 0.04 * m;
 		// follow-through: hair/cloth lag behind body motion — proportional to
 		// sway VELOCITY (not position), so a stop produces a whip-and-settle
-		const followThrough = this.sway.velocity * this.texW * 0.012;
+		const followThrough = this.sway.velocity * this.texW * 0.012 * m;
 		for (let i = 0; i < base.length; i += 2) {
 			const x0 = base[i];
 			const y0 = base[i + 1];
@@ -350,7 +379,7 @@ export class AvatarActor {
 				// so hair arrives late — classic follow-through read
 				Math.sin(t * 2.6 + ny * 6.0 - topWeight * 0.9 + x0 * 0.01) * waveAmp * 0.35;
 			// slow head-lean arc, hair band only — she looks around, dreamily
-			const headLean = Math.sin(t * 0.35) * this.texW * 0.009 * hairWeight;
+			const headLean = Math.sin(t * 0.35) * this.texW * 0.009 * hairWeight * m;
 			data[i] = x0 + (flow + swayShear) * topWeight + headLean - followThrough * hairWeight;
 			// slight vertical ripple so fabric/hair feels loose
 			data[i + 1] = y0 + Math.sin(t * 2.6 + ny * 5.5 + x0 * 0.013) * waveAmp * 0.3 * topWeight;

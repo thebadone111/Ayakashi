@@ -31,7 +31,29 @@
 
 	const context = getContext();
 
-	onMount(() => (context.stateLayout.showLoadingScreen = true));
+	// PIXI rasterizes canvas text ONCE on creation and never observes async
+	// @font-face loads. Our brush faces are only ever used in PIXI canvas text,
+	// so nothing in the DOM triggers their load — especially 'Ninja Kage'
+	// (big-win amount/title, FS intro title+count), which was rendering INVISIBLE
+	// (font-display) → "win screen has no amount", "FS text weird/cut off".
+	// Force-load them during the loading screen, before any game/FX text exists.
+	// (font-display is also set to swap as a failsafe so text is never blank.)
+	function loadBrushFonts() {
+		// The @font-face rules live in <head> (app.html / preview-head), so the
+		// faces are already registered by the time onMount runs — a direct load()
+		// finds them. Fire-and-forget (no fonts.ready gate, which can hang).
+		if (typeof document === 'undefined' || !document.fonts) return;
+		for (const family of ['Ninja Kage', 'Yuji Syuku']) {
+			document.fonts.load(`1em "${family}"`).catch(() => {
+				/* ignore — font-display:swap fallback keeps text visible */
+			});
+		}
+	}
+
+	onMount(() => {
+		context.stateLayout.showLoadingScreen = true;
+		loadBrushFonts();
+	});
 
 	context.eventEmitter.subscribeOnMount({
 		buyBonusConfirm: () => {

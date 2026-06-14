@@ -141,8 +141,11 @@ export interface WinCelebrationOptions {
 	/** Canvas logical size; defaults to app.screen. */
 	width?: number;
 	height?: number;
-	/** Local font family — must be hosted in the project (no external fonts). */
+	/** Local font family for the tier TITLE (letters) — no external fonts. */
 	fontFamily?: string;
+	/** Font for the AMOUNT (digits). The display face may lack digit glyphs, so
+	 *  numbers get their own legible face. Defaults to `fontFamily`. */
+	numberFontFamily?: string;
 	/** Optional sumi-e brush stroke texture for the banner. Without it a clean
 	 *  procedural lacquer plaque is drawn instead. */
 	brushTexture?: Texture;
@@ -174,6 +177,7 @@ export class WinCelebration {
 	private particles: ParticlePool;
 	private shaker: ScreenShaker;
 	private fontFamily: string;
+	private numberFontFamily: string;
 	private width: number;
 	private height: number;
 	private skipRequested = false;
@@ -190,6 +194,7 @@ export class WinCelebration {
 		this.width = opts.width ?? opts.app.screen.width;
 		this.height = opts.height ?? opts.app.screen.height;
 		this.fontFamily = opts.fontFamily ?? 'Arial';
+		this.numberFontFamily = opts.numberFontFamily ?? this.fontFamily;
 		this.brushTexture = opts.brushTexture ?? null;
 		this.getAvatarFocus = opts.getAvatarFocus ?? null;
 		this.tweens = new TweenRunner(opts.app.ticker);
@@ -229,17 +234,10 @@ export class WinCelebration {
 		vignette.alpha = 0;
 		root.addChild(vignette);
 
-		// warm foxfire glow rising from around her feet — additive, kept LOW so it
-		// haloes her without washing out her face
-		const bloom = new Sprite(makeGlowTexture(this.app.renderer, 220, tier.palette[0]));
-		bloom.anchor.set(0.5);
-		bloom.position.set(focus.cx, focus.torsoY + focus.h * 0.34);
-		bloom.blendMode = 'add';
-		bloom.alpha = 0;
-		bloom.scale.set(0.5);
-		root.addChild(bloom);
+		// (Max 2026-06-14) No coloured glow blob behind her — the celebration is
+		// just the dim + brush banner + amount, so the avatar reads cleanly.
 
-		// particle layer (above bloom, below banner/text)
+		// particle layer (below banner/text)
 		root.addChild(this.particles.container);
 
 		// --- brush banner beside her (toward centre so it never goes off-screen)
@@ -272,7 +270,7 @@ export class WinCelebration {
 
 		// amount counter — the hero number, bigger than the title
 		const amountStyle = new TextStyle({
-			fontFamily: this.fontFamily,
+			fontFamily: this.numberFontFamily,
 			fontSize: 88,
 			fontWeight: '700',
 			fill: PALETTE.GOLD,
@@ -285,22 +283,14 @@ export class WinCelebration {
 		amountText.alpha = 0;
 		root.addChild(amountText);
 
-		// --- intro: anticipation inhale --------------------------------------
-		// The world dims while spirit energy converges into her — a held breath
-		// before the slam. The beat of nothing is what makes the impact read heavy.
-		bloom.scale.set(1.6);
-		void this.tweens.to(vignette, { alpha: 1 }, { duration: 300 });
-		void this.tweens.to(bloom.scale, { x: 0.6, y: 0.6 }, { duration: 240, ease: easings.quadIn });
-		await this.tweens.to(bloom, { alpha: 0.4 }, { duration: 240 });
+		// --- intro: the world dims (held beat before the slam) ---------------
+		await this.tweens.to(vignette, { alpha: 1 }, { duration: 320 });
 
 		// --- the slam --------------------------------------------------------
-		void flash(root, this.tweens, { width: this.width, height: this.height, duration: 300 });
-		void this.tweens.to(bloom, { alpha: 0.6 }, { duration: 250 });
-		void this.tweens.to(bloom.scale, { x: 1.4, y: 1.4 }, { duration: 520, ease: easings.backOut });
+		void flash(root, this.tweens, { width: this.width, height: this.height, duration: 280, peakAlpha: 0.5 });
 		void this.shaker.shake({ intensity: tier.shake, duration: 700 });
 		this.spawnShockwave(root, focus.cx, focus.torsoY, tier.palette[0]);
 		this.burst(focus.cx, focus.torsoY, tier);
-		this.startFoxfireSwirl(focus);
 
 		// banner sweeps open just before the title lands
 		void this.tweens.to(banner, { alpha: 1 }, { duration: 180 });
@@ -400,12 +390,16 @@ export class WinCelebration {
 		cnv.height = h;
 		const ctx = cnv.getContext('2d');
 		if (!ctx) return new Sprite();
-		// the clear zone must cover her WHOLE body: a front overlay can only
-		// darken, so she only reads as "spotlit" if her full silhouette stays at
-		// scene brightness while the surroundings fall off to dark.
-		const inner = Math.max(focus.w, focus.h) * 0.62;
+		// the clear zone must cover her WHOLE body AND the lit ground at her feet:
+		// a front overlay can only darken, so she only reads as "spotlit" if her
+		// full silhouette — plus the bright ground her dark contact shadow sits on
+		// — stays at scene brightness. (0.62 cropped the feet, so the ground
+		// shadow fell into the dim and vanished during the win — Round 4c.) Centre
+		// dropped toward the feet so the larger clear zone doesn't lift off her head.
+		const inner = Math.max(focus.w, focus.h) * 0.72;
 		const outer = Math.hypot(w, h) * 0.66;
-		const g = ctx.createRadialGradient(focus.cx, focus.torsoY, inner, focus.cx, focus.torsoY, outer);
+		const cy2 = focus.torsoY + focus.h * 0.12;
+		const g = ctx.createRadialGradient(focus.cx, cy2, inner, focus.cx, cy2, outer);
 		g.addColorStop(0, 'rgba(9,6,13,0)');
 		g.addColorStop(0.55, 'rgba(9,6,13,0.3)');
 		g.addColorStop(1, 'rgba(9,6,13,0.82)');

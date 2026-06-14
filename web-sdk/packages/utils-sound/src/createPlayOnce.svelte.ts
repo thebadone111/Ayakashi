@@ -20,12 +20,17 @@ export function createPlayOnce<TSoundName extends string>(options: {
 
 		options.initSoundVolume(sound.soundName);
 
-		options.howl.on('end', (soundIdOnEnd) => {
-			if (soundIdOnEnd === soundId) {
+		// id-scoped `once`: fires only when THIS soundId ends and then removes
+		// itself. Using `on` here leaked a listener per one-shot (hundreds over a
+		// free-spin session) — every play stacked another permanent 'end' handler.
+		options.howl.once(
+			'end',
+			() => {
 				options.howl.stop(soundId);
 				delete options.getSoundMap()[sound.soundName];
-			}
-		});
+			},
+			soundId,
+		);
 	};
 
 	const soundPlayMap = {

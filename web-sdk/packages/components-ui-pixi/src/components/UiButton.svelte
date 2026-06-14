@@ -14,12 +14,16 @@
 		active?: boolean;
 		children?: Snippet;
 		variant?: 'dark' | 'light';
+		/** Label/icon size as a multiple of UI_BASE_FONT_SIZE (default 0.8). Bump
+		 *  it for single-glyph buttons like + / − that should read large. */
+		labelScale?: number;
 	};
 
 	const {
 		icon,
 		active,
 		variant = 'dark',
+		labelScale = 0.8,
 		children: childrenFromParent,
 		...buttonProps
 	}: Props = $props();
@@ -61,10 +65,14 @@
 			style={{
 				align: 'center',
 				wordWrap: true,
-				wordWrapWidth: 200,
-				fontFamily: 'proxima-nova',
+				// keep multi-word labels (AUTO SPIN, BUY BONUS) INSIDE the round
+				// medallion: wrap to the button's own width instead of a fixed 200
+				// (which was wider than the 150 disc, so they spilled the circle).
+				wordWrapWidth: buttonProps.sizes.width * 0.8,
+				lineHeight: UI_BASE_FONT_SIZE * labelScale * 0.95,
+				fontFamily: 'Yuji Syuku',
 				fontWeight: '600',
-				fontSize: UI_BASE_FONT_SIZE * 0.9,
+				fontSize: UI_BASE_FONT_SIZE * labelScale,
 				fill: variant === 'dark'
 					? buttonProps.disabled
 						? 0xcabfa6

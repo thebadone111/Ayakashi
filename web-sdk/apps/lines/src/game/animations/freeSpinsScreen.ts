@@ -30,6 +30,7 @@ import {
 	Sprite,
 	Text,
 	TextStyle,
+	Texture,
 	Ticker,
 } from 'pixi.js';
 
@@ -50,7 +51,13 @@ export interface FreeSpinsScreenOptions {
 	parent: Container;
 	width?: number;
 	height?: number;
+	/** Font for the TITLES (letters): FREE SPINS / TOTAL WIN. */
 	fontFamily?: string;
+	/** Font for NUMBERS (FS count, total amount). The display face may lack digit
+	 *  glyphs, so numbers get a legible face. Defaults to `fontFamily`. */
+	numberFontFamily?: string;
+	/** Bespoke torii gate texture; falls back to the procedural silhouette. */
+	toriiTexture?: Texture | null;
 }
 
 export class FreeSpinsScreen {
@@ -61,6 +68,8 @@ export class FreeSpinsScreen {
 	private width: number;
 	private height: number;
 	private fontFamily: string;
+	private numberFontFamily: string;
+	private toriiTex: Texture | null = null;
 	private root: Container | null = null;
 	private emberTick: ((ticker: Ticker) => void) | null = null;
 	private foxfireTick: ((ticker: Ticker) => void) | null = null;
@@ -73,6 +82,8 @@ export class FreeSpinsScreen {
 		this.width = opts.width ?? opts.app.screen.width;
 		this.height = opts.height ?? opts.app.screen.height;
 		this.fontFamily = opts.fontFamily ?? 'Arial';
+		this.numberFontFamily = opts.numberFontFamily ?? this.fontFamily;
+		this.toriiTex = opts.toriiTexture ?? null;
 		this.tweens = new TweenRunner(opts.app.ticker);
 		this.particles = new ParticlePool(opts.app.ticker, opts.app.renderer, 250);
 	}
@@ -102,20 +113,22 @@ export class FreeSpinsScreen {
 		gate.alpha = 0;
 		root.addChild(gate);
 
-		// foxfire pillars at the gate posts
-		const pillarL = this.buildPillarFlame(-170, 40);
-		const pillarR = this.buildPillarFlame(170, 40);
+		// foxfire braziers flanking the gate posts (at the post bases)
+		const pillarL = this.buildPillarFlame(-185, 120);
+		const pillarR = this.buildPillarFlame(185, 120);
 		gate.addChild(pillarL, pillarR);
 
 		root.addChild(this.particles.container);
 
-		// titles
-		const title = this.makeTitle('FREE SPINS', PALETTE.FOXFIRE, 96);
-		title.position.set(cx, cy - 130);
+		// titles — sized + placed so the tall NinjaKage brush strokes never clip
+		// the top of the screen.
+		const title = this.makeTitle('FREE SPINS', PALETTE.FOXFIRE, 84);
+		title.position.set(cx, cy - 150);
 		title.scale.set(0);
 		root.addChild(title);
 
-		const count = this.makeTitle(`${opts.totalFreeSpins}`, PALETTE.GOLD, 150);
+		// count is a NUMBER → number font (the display face has no digit glyphs)
+		const count = this.makeTitle(`${opts.totalFreeSpins}`, PALETTE.GOLD, 150, this.numberFontFamily);
 		count.position.set(cx, cy + 10);
 		count.scale.set(0);
 		root.addChild(count);
@@ -126,14 +139,14 @@ export class FreeSpinsScreen {
 		root.addChild(hint);
 
 		// --- choreography ------------------------------------------------------
-		// gate rises through the mist (A4: snappier — was 1100ms, felt sluggish)
-		void this.tweens.to(gate, { alpha: 1 }, { duration: 450 });
-		await this.tweens.to(gate.position, { y: cy + 40 }, { duration: 750, ease: easings.cubicOut });
+		// gate rises through the mist (Max 2026-06-14: ~18% slower, was too fast)
+		void this.tweens.to(gate, { alpha: 1 }, { duration: 530 });
+		await this.tweens.to(gate.position, { y: cy + 40 }, { duration: 885, ease: easings.cubicOut });
 
 		// pillars ignite
 		for (const pillar of [pillarL, pillarR]) {
-			void this.tweens.to(pillar, { alpha: 1 }, { duration: 300 });
-			void this.tweens.to(pillar.scale, { x: 1, y: 1 }, { duration: 450, ease: easings.backOut });
+			void this.tweens.to(pillar, { alpha: 1 }, { duration: 355 });
+			void this.tweens.to(pillar.scale, { x: 1, y: 1 }, { duration: 530, ease: easings.backOut });
 		}
 		// rising foxfire spirits — flame-shaped wisps (bespoke texture), tinted
 		// spirit-blue; fall back to glow dots until the texture lands.
@@ -168,10 +181,10 @@ export class FreeSpinsScreen {
 			rotationSpeed: [-3, 3],
 		});
 
-		// title + count slam
-		await this.tweens.to(title.scale, { x: 1, y: 1 }, { duration: 600, ease: easings.elasticOut });
-		void flash(root, this.tweens, { width: this.width, height: this.height, color: PALETTE.FOXFIRE, peakAlpha: 0.35, duration: 300 });
-		await this.tweens.to(count.scale, { x: 1, y: 1 }, { duration: 700, ease: easings.elasticOut });
+		// title + count slam (~18% slower)
+		await this.tweens.to(title.scale, { x: 1, y: 1 }, { duration: 710, ease: easings.elasticOut });
+		void flash(root, this.tweens, { width: this.width, height: this.height, color: PALETTE.FOXFIRE, peakAlpha: 0.35, duration: 350 });
+		await this.tweens.to(count.scale, { x: 1, y: 1 }, { duration: 825, ease: easings.elasticOut });
 
 		// idle loop: count pulse + ember drift + hint blink
 		void this.tweens.to(count.scale, { x: 1.06, y: 1.06 }, { duration: 700, ease: easings.sineInOut, repeat: -1, yoyo: true });
@@ -218,7 +231,8 @@ export class FreeSpinsScreen {
 		title.scale.set(0);
 		root.addChild(title);
 
-		const amountText = this.makeTitle(fmt(0), PALETTE.EMBER_HI, 110);
+		// amount is a NUMBER → number font (the display face has no digit glyphs)
+		const amountText = this.makeTitle(fmt(0), PALETTE.EMBER_HI, 110, this.numberFontFamily);
 		amountText.position.set(cx, cy + 30);
 		amountText.alpha = 0;
 		root.addChild(amountText);
@@ -228,17 +242,17 @@ export class FreeSpinsScreen {
 		hint.alpha = 0;
 		root.addChild(hint);
 
-		// choreography
-		void this.tweens.to(halo, { alpha: 0.9 }, { duration: 500 });
-		void this.tweens.to(halo.scale, { x: 1.2, y: 1.2 }, { duration: 700, ease: easings.backOut });
-		await this.tweens.to(title.scale, { x: 1, y: 1 }, { duration: 600, ease: easings.elasticOut });
+		// choreography (~18% slower per Max)
+		void this.tweens.to(halo, { alpha: 0.9 }, { duration: 590 });
+		void this.tweens.to(halo.scale, { x: 1.2, y: 1.2 }, { duration: 825, ease: easings.backOut });
+		await this.tweens.to(title.scale, { x: 1, y: 1 }, { duration: 710, ease: easings.elasticOut });
 
 		// coin fountain while counting
 		this.startEmberDrift([PALETTE.GOLD, PALETTE.EMBER_HI, PALETTE.EMBER]);
 		void this.tweens.to(amountText, { alpha: 1 }, { duration: 200 });
 		const counter = { value: 0 };
 		await this.tweens.to(counter, { value: opts.amount }, {
-			duration: 2400,
+			duration: 2820,
 			ease: easings.cubicOut,
 			onUpdate: () => {
 				amountText.text = fmt(counter.value);
@@ -281,9 +295,23 @@ export class FreeSpinsScreen {
 		return root;
 	}
 
-	/** Stylised torii gate silhouette with a faint blood-red rim light. */
+	/** Torii gate — bespoke RunComfy sprite when loaded, else the procedural
+	 *  silhouette below. The pillar flames are added by the caller as children. */
 	private buildToriiGate(): Container {
 		const gate = new Container();
+
+		if (this.toriiTex) {
+			const sprite = new Sprite(this.toriiTex);
+			sprite.anchor.set(0.5, 0.5);
+			const w = 600; // display width; height follows aspect
+			sprite.width = w;
+			sprite.height = w * (this.toriiTex.height / this.toriiTex.width);
+			// nudge up so the gate opening frames the titles, posts reach the flames
+			sprite.position.set(0, -40);
+			gate.addChild(sprite);
+			return gate;
+		}
+
 		const g = new Graphics();
 		const ink = 0x14101c;
 		// posts
@@ -305,10 +333,10 @@ export class FreeSpinsScreen {
 		const pillar = new Container();
 		// soft backing glow (drives the bloom post-pass) — kept subtle so the
 		// flame shape reads on top instead of washing into a column.
-		const glow = new Sprite(makeGlowTexture(this.app.renderer, 64, PALETTE.FOXFIRE));
+		const glow = new Sprite(makeGlowTexture(this.app.renderer, 48, PALETTE.FOXFIRE));
 		glow.anchor.set(0.5, 0.8);
-		glow.scale.set(0.9, 1.5);
-		glow.alpha = 0.45;
+		glow.scale.set(0.8, 1.3);
+		glow.alpha = 0.4;
 		glow.blendMode = 'add';
 		pillar.addChild(glow);
 
@@ -320,7 +348,7 @@ export class FreeSpinsScreen {
 			const flame = new Sprite(flameTex);
 			flame.anchor.set(0.5, 0.94); // pivot at the flame base
 			flame.blendMode = 'add';
-			const h = 200;
+			const h = 120; // smaller foxfire per Max — a tidy licking flame, not a column
 			flame.height = h;
 			flame.width = h * (flameTex.width / flameTex.height);
 			flame.tint = 0xddf4ff;
@@ -338,16 +366,19 @@ export class FreeSpinsScreen {
 		return pillar;
 	}
 
-	private makeTitle(text: string, fill: number, fontSize: number): Text {
+	private makeTitle(text: string, fill: number, fontSize: number, fontFamily = this.fontFamily): Text {
 		const t = new Text({
 			text,
 			style: new TextStyle({
-				fontFamily: this.fontFamily,
+				fontFamily,
 				fontSize,
 				fontWeight: '900',
 				fill,
 				stroke: { color: PALETTE.INK, width: Math.max(4, fontSize / 12) },
-				dropShadow: { color: fill, blur: 16, distance: 0, alpha: 0.8 },
+				// small soft shadow only — a big blur (16) overran PIXI's filter
+				// padding and clipped the glow into a hard rectangle (the "cut off"
+				// look). Keep it tight so edges stay smooth.
+				dropShadow: { color: PALETTE.INK, blur: 5, distance: 3, alpha: 0.6, angle: Math.PI / 2 },
 				letterSpacing: 4,
 			}),
 		});

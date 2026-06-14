@@ -80,15 +80,25 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		}
 
 		stateGame.gameType = bookEvent.gameType;
-		await stateGameDerived.enhancedBoard.spin({
-			revealEvent: bookEvent,
-			paddingBoard: config.paddingReels[bookEvent.gameType],
-		});
+		// Continuous rolling bed under the spin so it isn't dead silent; it fades
+		// out (stops) the moment every reel has settled. finally{} guarantees the
+		// loop can never get stranded if the spin rejects.
+		eventEmitter.broadcast({ type: 'soundLoop', name: 'sfx_reel_spin' });
+		try {
+			await stateGameDerived.enhancedBoard.spin({
+				revealEvent: bookEvent,
+				paddingBoard: config.paddingReels[bookEvent.gameType],
+			});
+		} finally {
+			eventEmitter.broadcast({ type: 'soundStop', name: 'sfx_reel_spin' });
+		}
 		eventEmitter.broadcast({ type: 'soundScatterCounterClear' });
 	},
 	winInfo: async (bookEvent: BookEventOfType<'winInfo'>) => {
 		if (winCapped) return;
-		eventEmitter.broadcast({ type: 'soundOnce', name: 'sfx_winlevel_small' });
+		// (No generic blip here — it stacked on the escalating tumble koto and the
+		// final win-level flourish, which was the main "soundboard" pile-up. The
+		// per-cascade win sound is the koto in updateTumbleWin.)
 
 		// ONE clear presentation cycle for all wins at once (no per-line repeats):
 		// board dims with the winning cells spotlit, all payline traces draw

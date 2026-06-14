@@ -82,10 +82,13 @@
 			style={{
 				align: 'center',
 				wordWrap: true,
-				wordWrapWidth: 200,
-				fontFamily: 'proxima-nova',
+				// wrap to the disc's own width (was a fixed 200 — wider than the
+				// 150 medallion, so "BUY BONUS" spilled the circle).
+				wordWrapWidth: sizes.width * 0.8,
+				lineHeight: UI_BASE_FONT_SIZE * 0.8 * 0.95,
+				fontFamily: 'Yuji Syuku',
 				fontWeight: '700',
-				fontSize: UI_BASE_FONT_SIZE * 0.9,
+				fontSize: UI_BASE_FONT_SIZE * 0.8,
 				fill: disabled ? 0xcabfa6 : 0xfff4d6,
 			}}
 		/>

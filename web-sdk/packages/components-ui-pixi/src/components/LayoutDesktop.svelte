@@ -26,7 +26,7 @@
 <MainContainer standard alignVertical="bottom">
 	<Container
 		x={context.stateLayoutDerived.mainLayoutStandard().width * 0.5}
-		y={context.stateLayoutDerived.mainLayoutStandard().height - DESKTOP_BASE_SIZE * BAR_SCALE - 8}
+		y={context.stateLayoutDerived.mainLayoutStandard().height - DESKTOP_BASE_SIZE * BAR_SCALE - 8 - context.stateLayoutDerived.mainLayoutStandard().height * 0.05}
 		scale={BAR_SCALE}
 		pivot={anchorToPivot({
 			anchor: { x: 0.5, y: 0 },
@@ -36,43 +36,52 @@
 			},
 		})}
 	>
-		<Container y={DESKTOP_BASE_SIZE * 0.5 - 160} x={900 - 500} scale={0.8}>
+		<!-- Three readout columns (Balance | Win | Bet), evenly spaced and not
+		     overlapping, each with its controls aligned directly beneath it.
+		     Column centres are symmetric about the bar centre (CENTER). -->
+		{@const CENTER = DESKTOP_BACKGROUND_WIDTH_LIST.reduce((s, w) => s + w, 0) / 2}
+		{@const COL = 580}
+		{@const COL_BAL = CENTER - COL}
+		{@const COL_WIN = CENTER}
+		{@const COL_BET = CENTER + COL}
+		{@const ROW_TOP = DESKTOP_BASE_SIZE * 0.5 - 150}
+		{@const ROW_BTM = DESKTOP_BASE_SIZE * 0.5 + 20}
+
+		<!-- readouts -->
+		<Container y={ROW_TOP} x={COL_BAL} scale={0.8}>
 			{@render props.amountBalance({ stacked: true })}
 		</Container>
-
-		<Container y={DESKTOP_BASE_SIZE * 0.5 - 160} x={900} scale={0.8}>
+		<Container y={ROW_TOP} x={COL_WIN} scale={0.8}>
 			{@render props.amountWin({ stacked: true })}
 		</Container>
-
-		<Container y={DESKTOP_BASE_SIZE * 0.5 - 160} x={900 + 500} scale={0.8}>
+		<Container y={ROW_TOP} x={COL_BET} scale={0.8}>
 			{@render props.amountBet({ stacked: true })}
 		</Container>
 
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={220} scale={0.8}>
+		<!-- under Balance: menu + buy bonus -->
+		<Container y={ROW_BTM} x={COL_BAL - 80} scale={0.8}>
 			{@render props.buttonMenu({ anchor: 0.5 })}
 		</Container>
-
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={220 + 150} scale={0.8}>
+		<Container y={ROW_BTM} x={COL_BAL + 80} scale={0.8}>
 			{@render props.buttonBuyBonus({ anchor: 0.5 })}
 		</Container>
 
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={160 + 150 * 4} scale={0.8}>
+		<!-- under Win: auto · SPIN (hero) · turbo -->
+		<Container y={ROW_BTM} x={COL_WIN - 170} scale={0.8}>
 			{@render props.buttonAutoSpin({ anchor: 0.5 })}
 		</Container>
-
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={160 + 150 * 5} scale={0.8}>
+		<Container y={ROW_BTM} x={COL_WIN} scale={0.96}>
 			{@render props.buttonBet({ anchor: 0.5 })}
 		</Container>
-
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={160 + 150 * 6} scale={0.8}>
+		<Container y={ROW_BTM} x={COL_WIN + 170} scale={0.8}>
 			{@render props.buttonTurbo({ anchor: 0.5 })}
 		</Container>
 
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={1440} scale={0.8}>
+		<!-- under Bet: − / + -->
+		<Container y={ROW_BTM} x={COL_BET - 82} scale={0.8}>
 			{@render props.buttonDecrease({ anchor: 0.5 })}
 		</Container>
-
-		<Container y={DESKTOP_BASE_SIZE * 0.5} x={1440 + 150} scale={0.8}>
+		<Container y={ROW_BTM} x={COL_BET + 82} scale={0.8}>
 			{@render props.buttonIncrease({ anchor: 0.5 })}
 		</Container>
 	</Container>

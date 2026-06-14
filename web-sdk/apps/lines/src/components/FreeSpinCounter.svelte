@@ -11,7 +11,7 @@
 
 	import { getContext } from '../game/context';
 	import { SYMBOL_SIZE } from '../game/constants';
-	import { anchorToPivot, BitmapText, Container, Sprite, type Sizes } from 'pixi-svelte';
+	import { anchorToPivot, Text, Container, Sprite, type Sizes } from 'pixi-svelte';
 
 	const context = getContext();
 	const PANEL_KEY_DESKTOP = 'fsCounterPanel'; // ornate oni-emblem panel
@@ -69,22 +69,30 @@
 				anchor: { x: 0.5, y: 0.5 },
 			})}
 		>
-			<BitmapText
+			<!-- brush Text (Yuji Syuku) — the placeholder 'gold' bitmap font was the
+			     mining set and rendered no digits; Yuji Syuku has the full set. -->
+			<Text
 				text={'FREE SPIN'}
 				style={{
-					fontFamily: 'gold',
+					fontFamily: 'Yuji Syuku',
 					fontSize,
+					fontWeight: '900',
+					fill: 0xffd24a,
+					stroke: { color: 0x1a0d06, width: Math.max(3, fontSize / 10) },
 					wordWrap: false,
 				}}
 				onresize={(sizes) => (titleSizes = sizes)}
 			/>
-			<BitmapText
+			<Text
 				text={`${current} OF ${total}`}
 				{...counterPosition}
 				anchor={{ x: 0.5, y: 0 }}
 				style={{
-					fontFamily: 'gold',
+					fontFamily: 'Yuji Syuku',
 					fontSize,
+					fontWeight: '900',
+					fill: 0xfff2c4,
+					stroke: { color: 0x1a0d06, width: Math.max(3, fontSize / 10) },
 				}}
 				onresize={(sizes) => (counterSizes = sizes)}
 			/>

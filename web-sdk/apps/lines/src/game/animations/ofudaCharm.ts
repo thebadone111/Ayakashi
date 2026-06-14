@@ -182,11 +182,15 @@ export class OfudaCharm {
 			}),
 		});
 		mult.anchor.set(0.5);
-		mult.position.set(0, -s * 0.85);
+		// float the reveal above the charm, but CLAMP so a top-row multiplier
+		// never pokes above the reel frame (it used to escape the window).
+		const revealCenterY = Math.max(y - s * 0.85, this.origin.y + s * 0.32);
+		const revealOffsetY = revealCenterY - y;
+		mult.position.set(0, revealOffsetY);
 		mult.scale.set(0);
 		node.addChild(mult);
 		this.particles.emit({
-			x, y: y - s * 0.85,
+			x, y: revealCenterY,
 			count: 14,
 			speed: [80, 260],
 			life: [350, 800],
@@ -204,7 +208,7 @@ export class OfudaCharm {
 			void this.tweens.to(ring, { alpha: 0 }, { duration: 350 });
 		}
 		void this.tweens.to(aura, { alpha: 0 }, { duration: 400 });
-		void this.tweens.to(mult, { alpha: 0, y: -s * 1.05 }, { duration: 400, ease: easings.quadOut });
+		void this.tweens.to(mult, { alpha: 0, y: revealOffsetY - s * 0.2 }, { duration: 400, ease: easings.quadOut });
 		if (opts.symbol && !opts.symbol.destroyed) {
 			void this.tweens.to(opts.symbol, { y: symbolBaseY }, { duration: 350, ease: easings.backOut });
 		}

@@ -45,10 +45,11 @@ export default {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/avatar/avatar.webp', import.meta.url).href,
 	},
-	// Ayakashi logo (SVG — rasterised by Pixi at load)
+	// Ayakashi logo — baked PNG/webp (NinjaKage brush title + 妖かし). Baked with
+	// real fonts via bake-logo.py because PIXI can't apply web fonts to SVG text.
 	logo: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/logo/ayakashi_logo.svg', import.meta.url).href,
+		src: new URL('../../assets/sprites/logo/ayakashi_logo.webp', import.meta.url).href,
 		preload: true,
 	},
 	// board chrome
@@ -159,6 +160,13 @@ export default {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/particles/foxfire/foxfire_0.webp', import.meta.url).href,
 		preload: true, // tiny; preloaded so FS-intro pillars never miss the flame
+	},
+	// bespoke torii gate (RunComfy) for the FS intro — replaces the procedural
+	// silhouette. Preloaded so the intro never shows the fallback.
+	torii: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/torii.webp', import.meta.url).href,
+		preload: true,
 	},
 	// sumi-e brush banner (white-on-black alpha) — tinted behind the win-
 	// celebration title/amount. Background-loaded; the celebration falls back to

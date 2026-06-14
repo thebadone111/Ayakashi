@@ -62,6 +62,10 @@
 
 	<BoardContext animate={true}>
 		<BoardContainer>
+			<!-- Round 4c (Max): the animating layer was UNMASKED, so spinning /
+			     landing symbols spilled above & below the reel frame. Mask it to the
+			     window like the static layer so all motion stays inside the frame. -->
+			<BoardMask />
 			<BoardBase />
 		</BoardContainer>
 	</BoardContext>

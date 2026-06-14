@@ -38,11 +38,14 @@ M = {
     # --- buttons / reel stops (wood) ----------------------------------------
     "sfx_btn_general":  ("wood-hit", "technology-tabble-slamhit-498921.mp3", 0, 0.15, False, -2),
     "sfx_btn_spin":     ("wood-hit", "film-special-effects-wood-hit-432148.mp3", 0, 0.8, False, 0),
-    "sfx_reel_stop_1":  ("wood-hit", "film-special-effects-wood-block-105066.mp3", 0, 0.5, False, 0),
-    "sfx_reel_stop_2":  ("wood-hit", "film-special-effects-hit-tree-02-266307.mp3", 0, 0.55, False, 0),
-    "sfx_reel_stop_3":  ("wood-hit", "film-special-effects-hit-tree-03-266306.mp3", 0, 0.6, False, 0),
-    "sfx_reel_stop_4":  ("wood-hit", "film-special-effects-stick-hitting-a-dreadlock-small-thud-83297.mp3", 0, 0.6, False, 0),
-    "sfx_reel_stop_5":  ("wood-hit", "film-special-effects-chopping-wood-96709.mp3", 0, 0.65, False, 0),
+    # reel stops fire 5x in quick succession every spin — duck them well below the
+    # win cues so they read as soft wood taps, not a drum solo. The game now cycles
+    # all 5 variants (one per reel) for a descending kokiriko-board feel.
+    "sfx_reel_stop_1":  ("wood-hit", "film-special-effects-wood-block-105066.mp3", 0, 0.5, False, -7),
+    "sfx_reel_stop_2":  ("wood-hit", "film-special-effects-hit-tree-02-266307.mp3", 0, 0.55, False, -7),
+    "sfx_reel_stop_3":  ("wood-hit", "film-special-effects-hit-tree-03-266306.mp3", 0, 0.6, False, -7),
+    "sfx_reel_stop_4":  ("wood-hit", "film-special-effects-stick-hitting-a-dreadlock-small-thud-83297.mp3", 0, 0.6, False, -7),
+    "sfx_reel_stop_5":  ("wood-hit", "film-special-effects-chopping-wood-96709.mp3", 0, 0.65, False, -7),
     "sfx_symbols_landing": ("wood-hit", "film-special-effects-hit-by-a-wood-230542.mp3", 0, 1.0, False, -3),
     "sfx_royals_landing":  ("wood-hit", "household-doorhit-98828.mp3", 0, 0.68, False, -3),
     # --- scatter (gong/bell) -------------------------------------------------
@@ -107,6 +110,38 @@ for key, (folder, fn, start, dur, loop, gain) in M.items():
     clips[key] = (a, loop)
     print(f"  {key:28s} {n/SR:6.2f}s  {'loop' if loop else ''}")
 
+# --- synthesised reel-spin bed -------------------------------------------------
+# No source clip exists for "reels spinning" — without it the spin is dead silent.
+# Synthesise a quiet, seamless rolling-noise bed (FFT band-pass + slow tremolo) so
+# there's continuous motion under the reels. numpy-only (the build env has no scipy).
+def synth_reel_spin(dur=1.6, peak_dbfs=-13.0):
+    n = int(dur * SR)
+    rng = np.random.default_rng(7)
+    spec = np.fft.rfft(rng.standard_normal(n))
+    freqs = np.fft.rfftfreq(n, 1 / SR)
+    lo, hi = 160.0, 1600.0
+    shape = np.zeros_like(freqs)
+    shape[(freqs >= lo) & (freqs <= hi)] = 1.0
+    le = (freqs >= lo * 0.5) & (freqs < lo)                      # raised-cosine edges
+    shape[le] = 0.5 - 0.5 * np.cos(np.pi * (freqs[le] - lo * 0.5) / (lo * 0.5))
+    he = (freqs > hi) & (freqs <= hi * 2)
+    shape[he] = 0.5 + 0.5 * np.cos(np.pi * (freqs[he] - hi) / hi)
+    bed = np.fft.irfft(spec * shape, n)
+    bed /= np.abs(bed).max() or 1.0
+    t = np.arange(n) / SR
+    bed *= 0.65 + 0.35 * np.sin(2 * np.pi * 8.5 * t)             # rolling tremolo
+    bed /= np.abs(bed).max() or 1.0
+    xf = int(0.10 * SR)                                          # crossfade seam → seamless loop
+    L = n - xf
+    fade = np.linspace(0, 1, xf)
+    clip = bed[:L].copy()
+    clip[:xf] = bed[:xf] * fade + bed[L:L + xf] * (1 - fade)
+    clip *= 10 ** (peak_dbfs / 20) / (np.abs(clip).max() or 1.0)
+    return np.stack([clip, clip], axis=1).astype(np.float32)
+
+clips["sfx_reel_spin"] = (synth_reel_spin(), True)
+print(f"  {'sfx_reel_spin':28s} {len(clips['sfx_reel_spin'][0])/SR:6.2f}s  loop (synth)")
+
 # lay out on whole-second boundaries with >=0.4s gap
 sprite, cursor, total = {}, 0.0, None
 parts = []
@@ -136,12 +171,21 @@ for out_name, codec in (("sounds.ogg", ["-c:a", "libvorbis", "-q:a", "5"]),
 os.remove(raw)
 
 old = json.load(open(os.path.join(OUT, "sounds.json")))
-assert set(sprite) == set(old["sprite"]), (
-    f"key mismatch: missing={set(old['sprite'])-set(sprite)} extra={set(sprite)-set(old['sprite'])}")
+# new key(s) since the reference bundle (e.g. the synthesised spin bed) are allowed;
+# we must never silently DROP a key the game still references.
+missing = set(old["sprite"]) - set(sprite)
+assert not missing, f"key(s) dropped vs old bundle: {missing}"
+config = {k: dict(v) for k, v in old["config"].items()}
+for k in set(sprite) - set(config):
+    config[k] = {"volume": 1}
+# per-cue runtime mix (cheap to tweak without a rebuild):
+config["bgm_main"]["volume"] = 0.9       # background music −10% (Max)
+config["bgm_freespin"]["volume"] = 0.9
+config["sfx_reel_spin"]["volume"] = 1    # already quiet from synth; tweak here if needed
 data = {
     "sprite": sprite,
     "src": ["./assets/audio/sounds.ogg", "./assets/audio/sounds.m4a", "./assets/audio/sounds.mp3"],
-    "config": old["config"],
+    "config": config,
 }
 with open(os.path.join(OUT, "sounds.json"), "w") as fh:
     json.dump(data, fh, indent=1)

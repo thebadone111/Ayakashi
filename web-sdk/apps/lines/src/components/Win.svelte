@@ -11,8 +11,8 @@
 	// Win presentation.
 	// big tiers (BIG/SUPER/MEGA/EPIC/MAX) → procedural WinCelebration
 	// small/medium tiers → simple count-up text (as reference behaviour)
-	import { Container } from 'pixi-svelte';
-	import { FadeContainer, WinCountUpProvider, ResponsiveBitmapText } from 'components-pixi';
+	import { Container, Text } from 'pixi-svelte';
+	import { FadeContainer, WinCountUpProvider } from 'components-pixi';
 	import { waitForResolve, waitForTimeout } from 'utils-shared/wait';
 	import { bookEventAmountToCurrencyString } from 'utils-shared/amount';
 	import { MainContainer } from 'components-layout';
@@ -92,16 +92,20 @@
 						x={context.stateGameDerived.boardLayout().x}
 						y={context.stateGameDerived.boardLayout().y}
 					>
-						<ResponsiveBitmapText
+						<!-- brush Text (Yuji Syuku) — the placeholder 'gold' bitmap font
+						     was the mining set and rendered no digits, so the win amount
+						     came up blank. Yuji Syuku has the full glyph set. -->
+						<Text
 							anchor={0.5}
-							maxWidth={context.stateLayoutDerived.canvasSizes().width /
-								context.stateLayoutDerived.mainLayout().scale}
 							text={bookEventAmountToCurrencyString(countUpAmount)}
 							style={{
-								fontFamily: 'gold',
+								fontFamily: 'Yuji Syuku',
 								fontSize: SYMBOL_SIZE,
 								align: 'center',
-								fontWeight: 'bold',
+								fontWeight: '900',
+								fill: 0xffd24a,
+								stroke: { color: 0x1a0d06, width: SYMBOL_SIZE / 12 },
+								dropShadow: { color: 0x000000, blur: 6, distance: 3, alpha: 0.6 },
 								letterSpacing: 0,
 							}}
 						/>

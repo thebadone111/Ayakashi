@@ -45,7 +45,7 @@
 							align: 'center',
 							wordWrap: true,
 							wordWrapWidth: 200,
-							fontFamily: 'proxima-nova',
+							fontFamily: 'Yuji Syuku',
 							fontWeight: '700',
 							fontSize: UI_BASE_FONT_SIZE * 0.9,
 							fill: 0xfff4d6,

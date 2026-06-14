@@ -5,7 +5,216 @@ Branch: `final-dev`. Each task = one commit. Max's direction (2026-06-12):
 "cinematically perfect animations; generate assets when needed; avatar more alive."
 
 ## Status legend
-`[ ]` todo · `[~]` in progress · `[x]` done (commit ref)
+`[ ]` todo · `[~]` in progress · `[x]` done (commit ref) · `[1★]` deferred — only
+revisit if the submission scores 1 star
+
+---
+
+## ROUND 5 — Max review 2026-06-14 (audio + final polish, then SUBMIT)
+
+DIRECTION (Max): the game is feature-complete. From here it's **polish only** of
+what we already have. Everything not listed under "polish" below is **frozen as
+`[1★]`** — a redesign we only spend time on if the live submission comes back at
+1 star. Next big step after this round's polish is **SUBMIT PREP**.
+
+### Polish — DONE this round (uncommitted working tree)
+- [x] **Audio cohesion overhaul** — the mix was a flat "soundboard": every cue at
+      volume 1, no spin bed, and all 5 reels firing the *same* `sfx_reel_stop_1`
+      with forcePlay. Fixes:
+        • **Reel-spin bed added** — synthesised seamless rolling-noise loop
+          (`sfx_reel_spin`, FFT band-pass + 8.5 Hz tremolo, ~−13 dBFS) injected
+          into `build-audio-bundle.py`; starts on spin, stops (finally{}) when all
+          reels settle. The spin is no longer dead silent.
+        • **Reel stops varied + ducked** — game now cycles `sfx_reel_stop_1..5`
+          (one per reel = descending kokiriko run); bundle gain −7 dB so they're
+          soft taps, not a drum solo.
+        • **Removed the per-win blip** — `winInfo` no longer fires
+          `sfx_winlevel_small` on every win (it stacked on the escalating tumble
+          koto + final flourish — the main pile-up).
+        • **Listener leak fixed** — `createPlayOnce` added a permanent `on('end')`
+          per one-shot; now an id-scoped `once` that self-removes (this was the
+          in-game twin of the MaxListeners warning).
+- [x] **BGM −10%** — `bgm_main` / `bgm_freespin` config volume → 0.9.
+- [x] **Pill buttons** — multi-word labels were cramped; default `labelScale`
+      0.9→0.8 (text a bit smaller) and ButtonBuyBonus wraps to the disc width
+      (was a fixed 200 px, wider than the 150 disc → "BUY BONUS" spilled). +/−
+      glyphs unaffected (they override labelScale=1.7).
+- [x] **WebGPU crash at FS end fixed** — PIXI v8.8 `TextureGCSystem` unloaded an
+      idle texture whose source a live `BindGroup` still referenced →
+      `_updateKey` read `_resourceId` on null, throwing every frame. Disabled the
+      texture GC (game-scoped, in `fxManager.app()`); our generated/loaded
+      textures are a bounded, resident set, so nothing to reclaim.
+
+### Decisions confirmed (Max, this round)
+- **NinjaKage** — RESOLVED (Max 2026-06-14): open-license, free for commercial
+  use. Keep `DISPLAY_FONT`. (Demo font *files* were also pulled out of the shipped
+  bundle during submit-prep; runtime uses a subset woff2.)
+- **FS counter placement** — good now; closed.
+- **Volume balance** — RESOLVED (Max): the R5 cohesion/mix pass is signed off.
+
+### SUBMIT PREP (R5 cont., 2026-06-14)
+- [x] `submit/` package built — math (index.json + lookup CSVs + jsonl.zst),
+      frontend bundle (21 MB), CHECKLIST.md, README.md, GAME-BLURB.md, verify script.
+- [x] Cross-checked vs Stake approval guidelines: stateless ✓, no
+      jackpot/gamble/continuation ✓, math format ✓, no hardcoded rgs_url ✓,
+      resume/auth/currency handled by SDK ✓. Limits 15 GB math / 15 GB FE.
+- [x] Math RTP 0.9700 + 2000× re-verified from lookup tables; CSV↔jsonl hashes match.
+- [~] Re-running math at 1,000,000 sims/mode (was 100k) for tail/variety fidelity.
+- [x] Front-end font bloat fixed — 24 MB of unused/personal-use demo fonts pulled
+      out of `static/` → `art/fonts/`; bake-logo.py repointed. Bundle 46→21 MB.
+- [ ] **🚩 BLOCKER — Pay Table & Game Rules modals are SDK placeholders**
+      ("ADD YOUR PAY TABLE" / "ADD YOUR GAME RULES" in components-ui-html). Menu is
+      wired and other modals work; these two need real content (symbol payouts from
+      config.ts + paylines + mechanics rules). Required for approval.
+- [ ] Placeholder identifiers: `providerName`/`gameName` in config.ts +
+      `GameVersion 0.0.0` → set real values before submit.
+
+### Frozen `[1★]` (do NOT touch unless the submission scores 1 star)
+- [1★] Q2 loading-screen redesign (was line ~270)
+- [1★] P4 brush-stroke reveals (FS wipe / win slash / textured paylines)
+- [1★] 3-act big-win finale — blackout + heartbeat act (needs a heartbeat cue)
+- [1★] Avatar "more alive" — JP voice-line speech bubbles; img2img pose variants
+
+---
+
+## ROUND 4 — Max review 2026-06-14 (UI polish + model decision)
+
+MODEL DECISION (Max): stay on full FLUX dev for Ayakashi (cloud was never GGUF —
+that's local only); trial Illustrious/NoobAI XL (anime) or Ideogram 3/Recraft
+(UI/text) on the NEXT game. See memory [[image-model-upgrade]].
+
+DONE this round (uncommitted working tree — pending Max sign-off in Storybook):
+- [x] **Build break fixed** — a mid-edit `freeSpinsScreen.ts` EOF had broken the
+      FX pipeline (fxManager imports it) → only the background rendered. Resolved;
+      full game mounts again.
+- [x] **Betting-UI alignment** — `LayoutDesktop` rebuilt into clean columns:
+      Balance | Win | Bet readouts evenly spaced (no overlap), controls aligned
+      directly beneath each (Menu+BuyBonus ‹Balance›, Auto·SPIN·Turbo ‹Win›,
+      −/+ ‹Bet›); SPIN slightly enlarged as the hero.
+- [x] **Brush typography everywhere** — all PIXI UI text (buttons, labels,
+      amounts) switched proxima-nova → `Yuji Syuku`; added a Storybook
+      preview-head so the font actually renders (it was silently falling back).
+      Full Yuji Mai / Yuji Syuku / Shippori Mincho TTFs downloaded.
+- [x] **Logo + title typography — kanji/brush (Max wanted MORE calligraphic).**
+      Downloaded NinjaKage (dramatic sword-brush display, per Max's 1001fonts
+      examples) + subset to woff2. SVG-text can't use web fonts in PIXI, so the
+      logo is now BAKED to a webp via bake-logo.py (NinjaKage "AYAKASHI" gold +
+      crimson outline + drop shadow, 妖かし subtitle in full Yuji Syuku, brush
+      tagline). Big display titles (FS intro, win celebration) FONT_FAMILY →
+      `Ninja Kage`; small UI labels stay on legible `Yuji Syuku`. NOTE: NinjaKage
+      is a DEMO font — confirm commercial license before submit.
+- [x] **Torii mist edges blended** — earlier feather wasn't enough; added an
+      image pass that gaussian-softens the blue MIST regions (keeping the red
+      gate crisp) + a wide feathered alpha ramp. Mist now fades wispily instead
+      of hard-cutting.
+- [x] **Win screen — dropped the orange/purple blob (Max).** Removed the big
+      additive glow `bloom` behind the avatar + the continuous foxfire-swirl
+      halo. Now: background dims (vignette) + sumi-e BRUSH banner + tier title +
+      hero amount + a single impact (flash/shake/shockwave + spark burst). The
+      avatar stays clearly visible. "Just the brush stroke and the dim."
+- [x] **Multipliers no longer escape the reel frame** — the Ofuda multiplier
+      reveal floated 0.85·cell ABOVE the cell, so a top-row multiplier poked over
+      the frame; clamped the reveal (and its release drift) to stay below the
+      board top.
+- [x] **Avatar shadows / 3D** — soft ground contact shadow + DropShadowFilter so
+      she lifts off the background.
+- [x] **New torii gate (FS intro)** — replaced the flat v1 render with a
+      painterly v2 gate (vermilion + blue foxfire mist + gold), and SOFTENED the
+      alpha edges (wide luminance ramp + feather) so the mist blends instead of
+      hard-cutting. Foxfire pillar flames shrunk (h 200→120) as braziers at the
+      post bases.
+
+CAVEAT to watch: the animating board layer (BoardContext animate=true) has no
+mask, so a symbol's persistent "2X" BitmapText could still spill mid-animation
+(distinct from the Ofuda reveal, which is now clamped). Revisit if Max still
+sees stray multipliers during spins.
+
+### ROUND 4b — missing NUMBERS root cause FOUND + fixed (2026-06-14, this session)
+
+ROOT CAUSE (definitively proven via canvas glyph-coverage tests in the live
+game): **'Ninja Kage' is a DEMO font whose digit / $ / . / , glyphs are EMPTY
+(zero outlines).** Letters render; NUMBERS render INVISIBLE. The face even loads
+with correct advance WIDTHS (so layout looked normal) but paints 0 pixels for
+"$2,412.50". This — NOT a freeze — is why Max saw "win screen has no amount" and
+"FS text weird/cut off". (Bonus discovery: the prior session's "celebration is
+frozen" was a PHANTOM — the headless preview tab is hidden, so the browser
+throttles rAF→0 and the whole Pixi ticker pauses. The avatar DropShadowFilter it
+removed chasing that phantom was likely innocent; ground shadow + try/catch tick
+hardening were kept.)
+
+Also found: 'Ninja Kage' was never even LOADING (used only in Pixi canvas text,
+which doesn't trigger CSS @font-face loading) — fixed too, though moot for digits
+since they're empty.
+
+FIXES (uncommitted working tree):
+- [x] **Two font roles in fxManager** — `DISPLAY_FONT='Ninja Kage'` (dramatic
+      brush, LETTER titles ONLY) + `TEXT_FONT='Yuji Syuku'` (full glyph set, for
+      anything with numbers). winCelebration + freeSpinsScreen gained a
+      `numberFontFamily` option (title stays NinjaKage, amount/count → Yuji).
+      ofuda / wildLanding (x-mult badges) + paylineHighlight (amount tags) →
+      Yuji. So every NUMBER now renders.
+- [x] **'gold' mining BITMAP font purged from visible numbers** — FreeSpinCounter
+      ("FREE SPIN" + "X OF Y") and Win.svelte small/med count-up amount were on
+      the placeholder mining `'gold'` bitmap font (the same one that broke the
+      reel multiplier). Switched to real `Text` in Yuji Syuku (gold fill +
+      ink stroke). Removes the fragile mining-font dependency for all on-screen
+      numbers; matches Max's brush direction.
+- [x] **Font-load hardening** — Game.svelte onMount force-loads both brush faces
+      (`document.fonts.load`) before any canvas text; @font-face `block`→`swap`
+      in app.html + preview-head so a number is NEVER invisible even if a face is
+      slow/missing (shows a fallback instead).
+
+LICENCE FLAG for Max: 'Ninja Kage' is a DEMO font (empty digits + likely no
+commercial licence). It's now used for LETTER titles only. Before submit either
+buy the full licence or set DISPLAY_FONT = TEXT_FONT (drop NinjaKage entirely;
+Yuji Syuku is OFL and renders the dramatic brush titles fine too).
+
+NOT verifiable headlessly: live animated playback (hidden preview tab freezes the
+ticker). Glyph rendering + font loading + clean build were verified; the moving
+celebration/FS screens need Max's eyes (or a visible browser).
+
+### ROUND 4c — Max layout/feel pass (2026-06-14)
+
+- [x] **Animations outside the frame** — the `animate={true}` BoardContext layer
+      (spinning/landing/win symbols) was UNMASKED, so symbols spilled above/below
+      the reel frame. Added `<BoardMask />` to it (matching the static layer) so
+      all symbol motion is clipped to the window. (Board + FX both derive from
+      BOARD_ANCHOR, so origins already align; if Max still sees a specific FX
+      off, grab a screenshot to pin it down.)
+- [x] **Avatar less jumpy** — added `motionScale = 0.92` in AvatarActor.update,
+      applied to every amplitude (breath, squash, sway, hop, idle bob, weight
+      shift, mesh-flow waves, follow-through, head-lean) → uniform ~8% calmer.
+- [x] **Nudge positions** — reel frame 5% LEFT (BOARD_ANCHOR.x 0.43→0.38),
+      avatar 5% RIGHT (x 0.76→0.81).
+- [x] **Raise UI + frame** — betting bar up 5% of layout height (LayoutDesktop),
+      reel frame up 5% (BOARD_ANCHOR.y 0.47→0.42). NEEDS Max's eye to confirm the
+      frame top still sits below the painted bg-foreground edge (bg_fg is a
+      full-screen composited layer, no code edge to clamp against).
+- [x] **Avatar shadow vanishes during win** — the celebration vignette cropped
+      her feet, so the dark ground shadow fell into the dimmed ring and
+      disappeared. Enlarged the clear zone (inner 0.62→0.72) and dropped its
+      centre toward the feet so the lit ground under her (and the shadow) stays
+      bright through the win.
+
+VERIFY: static layout (positions, frame-vs-foreground) is checkable via one-shot
+extract even with the frozen ticker; avatar calmness + win-shadow are motion and
+need Max's eyes (or a visible browser).
+
+### ROUND 4d — Max layout/UI tweaks (2026-06-14)
+
+- [x] **Avatar up + left a touch** — x 0.81→0.79, y 0.86→0.84.
+- [x] **Reel frame down 2%** — BOARD_ANCHOR.y 0.42→0.44 (also relieves the
+      tight-top from 4c; frame keeps clear of the bg foreground edge).
+- [x] **Button labels spilled the round medallions** — root cause: UiButton's
+      `wordWrapWidth` was a fixed 200, WIDER than the 150 disc, so two-word labels
+      (AUTO SPIN, BUY BONUS) stayed on one over-wide line and overflowed. Wrap now
+      = `sizes.width * 0.8`, so they wrap to two centred lines INSIDE the circle at
+      the same readable size (single words like MENU/TURBO still fit on one line).
+      Added a `labelScale` prop to UiButton for per-button glyph sizing.
+      (If Max prefers actual wider PILL buttons over wrapped labels, that's a
+      follow-up — needs the bar's button spacing re-tuned + a visible-browser check.)
+- [x] **Bigger + / −** — ButtonDecrease/Increase pass `labelScale={1.7}` (≈0.9→1.7
+      of UI_BASE_FONT_SIZE) so the +/− glyphs read large on their discs.
 
 ---
 
@@ -62,8 +271,9 @@ RunComfy, then ENCHANT them with the animation libs (GSAP + shaders + particles
       needOverlay() to refresh the particle registry (overlay FX no longer depend
       on a board-FX having run first to populate textures). Screenshot-verified:
       twin foxfire flames flank the FREE SPINS / count.
-- [ ] **Avatar MORE ALIVE** — voice lines via Japanese speech bubbles
+- [1★] **Avatar MORE ALIVE** — voice lines via Japanese speech bubbles
       (「やった！」 win, 「いくよ！」 spin), generated bubble asset shown on events.
+      FROZEN (R5): only if the submission scores 1 star.
 
 PROCESS: don't block-wait on RunComfy — kick off, periodically check, integrate.
 
@@ -126,7 +336,7 @@ LAST PRIORITY (do after all polish above — Max 2026-06-13):
 
 ### Art quality (likely needs regen / new assets — see ANIMATION LIBRARY note)
 - [x] **Q1 reel frame** — regenerated (HQ cloud square-window frame), live.
-- [ ] **Q2 loading screen looks horrible** — redesign LoadingScene.
+- [1★] **Q2 loading screen looks horrible** — redesign LoadingScene. FROZEN (R5).
 - [x] **Q3 symbols** — all 14 regenerated HQ + normalized, cohesive set, live.
 - [x] **Q4 coins** — WinCoins boosted: ~2x denser (frequency x0.45), 1.7x scale,
       2.5x maxParticles, longer life. Reads as a real gold shower now.
@@ -200,7 +410,7 @@ up, spill over, hard to see.
       are whispers (flatten-panel.py)
 - [x] Screenshot-verified: all 5 columns inside the window, no spill, no red
       edge lines
-- [ ] FS counter panel placement — revisit when FS mode is screenshot-verified
+- [x] FS counter panel placement — good now; closed (R5, Max)
 
 ## P1. Post-FX stack  `[x]` (28f83e7)
 - [x] pixi-filters 6.1.0 added
@@ -214,8 +424,8 @@ up, spill over, hard to see.
 - [x] hitStop() in fx.ts — 85ms ticker freeze on kanabo contact frame
 - [x] CameraGrammar: 4px tumble dip / 7px smash dip; 1.035 celebration zoom
       with breathing, pivot-trick on stage, auto-release
-- [~] 3-act bigwin: inhale beat done earlier; full blackout+heartbeat act
-      deferred (needs heartbeat audio cue) — title slash-reveal comes with P4
+- [1★] 3-act bigwin: inhale beat done earlier; full blackout+heartbeat act
+      FROZEN (R5, needs heartbeat audio cue) — title slash-reveal would come w/ P4
 - [x] Verified: wincap book (36 free spins, $2000) plays through correctly
 
 ## Sound audit  `[x]` (5ad25bf)
@@ -223,9 +433,10 @@ up, spill over, hard to see.
       updateTumbleWin now plays escalating koto (tumble_win_1..5)
 - [x] In-browser: Howler loaded ogg bundle, 52 sprites, ctx running, deferred
       load works, FS music switches
-- [ ] Volume balance pass — needs human ears (Max: listen to a few spins)
+- [x] Volume balance pass — R5 cohesion/mix overhaul (spin bed, ducked reel
+      stops, removed per-win blip, BGM −10%). Final loudness taste = Max's ears.
 
-## P3. Textured particles  `[~]`  (ComfyUI batch #1 RUNNING — gen-batch-1.py)
+## P3. Textured particles  `[x]` (25b74fa — header was stale; tidied R5)
 - [~] Generating: 11 jobs (5 particles, 2 brush strokes, 2 flipbook sheets,
       2 avatar poses). ink-splatter done (4 candidates, black-on-white —
       process script auto-inverts polarity)
@@ -241,11 +452,11 @@ up, spill over, hard to see.
       screenshot-verified CLEAN: 5 columns inside the frame, no spill/red lines,
       symbols read, bloom on lanterns+foxfire. DONE (25b74fa)
 
-## P4. Brush-stroke reveals  `[ ]`  (same gen batch)
-- [ ] Generate 4-6 wide brush strokes (white on black)
-- [ ] TransitionWipe: brush-stroke mask wipe for FS enter/exit
-- [ ] WinCelebration title: slash-reveal via stroke mask
-- [ ] PaylineHighlight: line drawn as textured brush stroke + ink droplets
+## P4. Brush-stroke reveals  `[1★]`  FROZEN (R5 — only if submission scores 1★)
+- [1★] Generate 4-6 wide brush strokes (white on black)
+- [1★] TransitionWipe: brush-stroke mask wipe for FS enter/exit
+- [1★] WinCelebration title: slash-reveal via stroke mask
+- [1★] PaylineHighlight: line drawn as textured brush stroke + ink droplets
 
 ## P5. Flipbook FX sheets  `[x]` (resolved as textured-particle foxfire)
 - FLUX "flipbook" grids came back as 9 DISTINCT flame doodles, not a smooth

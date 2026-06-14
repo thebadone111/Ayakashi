@@ -5,9 +5,9 @@
 <!-- Background removed — logo floats transparent over the game scene -->
 
 <!-- ═══════════════ MAIN TITLE ═══════════════ -->
-<text x="344" y="110" text-anchor="middle" font-size="62" fill="#3A0000" letter-spacing="3" style="font-family:'Dela Gothic One', Impact, 'Arial Black', sans-serif">AYAKASHI</text>
-<text x="341" y="107" text-anchor="middle" font-size="62" fill="#FFD700" letter-spacing="3" style="font-family:'Dela Gothic One', Impact, 'Arial Black', sans-serif">AYAKASHI</text>
-<text x="341" y="107" text-anchor="middle" font-size="62" fill="none" stroke="#FF8C00" stroke-width="1.2" letter-spacing="3" opacity="0.25" style="font-family:'Dela Gothic One', Impact, 'Arial Black', sans-serif">AYAKASHI</text>
+<text x="344" y="110" text-anchor="middle" font-size="62" fill="#3A0000" letter-spacing="3" style="font-family:'Yuji Syuku', 'Dela Gothic One', Impact, serif">AYAKASHI</text>
+<text x="341" y="107" text-anchor="middle" font-size="62" fill="#FFD700" letter-spacing="3" style="font-family:'Yuji Syuku', 'Dela Gothic One', Impact, serif">AYAKASHI</text>
+<text x="341" y="107" text-anchor="middle" font-size="62" fill="none" stroke="#FF8C00" stroke-width="1.2" letter-spacing="3" opacity="0.25" style="font-family:'Yuji Syuku', 'Dela Gothic One', Impact, serif">AYAKASHI</text>
 
 <!-- ═══════════════ DIVIDER ═══════════════ -->
 <line x1="65" y1="125" x2="270" y2="125" stroke="#6B0000" stroke-width="0.8" mask="url(#imagine-text-gaps-g9g52a)"/>
@@ -21,7 +21,7 @@
 <text x="340" y="162" text-anchor="middle" font-size="22" fill="#D4A017" letter-spacing="18" opacity="0.95" style="font-family:'Noto Serif JP', 'Yu Mincho', 'Hiragino Mincho ProN', Georgia, serif; font-weight:600">妖　か　し</text>
 
 <!-- ═══════════════ TAGLINE ═══════════════ -->
-<text x="340" y="194" text-anchor="middle" font-size="10" fill="#7A0000" letter-spacing="5" style="font-family:'Dela Gothic One', Impact, 'Arial Black', sans-serif">DARK     YOKAI     SLOTS</text>
+<text x="340" y="194" text-anchor="middle" font-size="10" fill="#7A0000" letter-spacing="5" style="font-family:'Yuji Syuku', 'Dela Gothic One', Impact, serif">DARK     YOKAI     SLOTS</text>
 
 <!-- Bottom rule removed with the box -->
 <polygon points="336,216 340,211 344,216 340,221" fill="#6B0000"/>

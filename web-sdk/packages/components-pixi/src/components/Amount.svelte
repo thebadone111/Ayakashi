@@ -71,7 +71,7 @@
 			y={stacked ? labelTextSizes.height * 0.5 : amountTextSizes.height * 0.5}
 			text={label}
 			style={{
-				fontFamily: 'proxima-nova',
+				fontFamily: 'Yuji Syuku',
 				fontSize: REM,
 				fontWeight: '600',
 				fill: disabled ? GREY : WHITE,
@@ -86,7 +86,7 @@
 		anchor={{ x: centerLabel ? 0.5 : 0, y: 0 }}
 		text={numberToCurrencyString(amount)}
 		style={{
-			fontFamily: 'proxima-nova',
+			fontFamily: 'Yuji Syuku',
 			fontSize: REM,
 			fontWeight: '600',
 			fill: disabled ? GREY : amountStyle.fill === undefined ? WHITE : amountStyle.fill,

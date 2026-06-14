@@ -1,0 +1,8 @@
+# Large, regenerable upload payloads — produced by the math sim and the FE build.
+# These are what you UPLOAD to Stake (they exist on disk); regenerate per README.md.
+# Not stored in git to avoid bloating the repo (the bonus book alone is ~hundreds of MB).
+math/*.jsonl.zst
+math/*.csv
+frontend/
+
+# Kept in git (small, useful as a record): math/index.json, *.md, _verify_books.py

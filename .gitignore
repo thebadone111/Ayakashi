@@ -22,6 +22,13 @@ build/
 dist/
 .vercel/
 
+# Working font sources (build inputs for bake-logo.py / build-fonts.py). Large +
+# include personal-use demo faces (NinjaKage/Scarfire/Shotengai) that must NOT
+# ship. Kept local only; the shipped runtime uses static/fonts/*-Subset.woff2.
+art/fonts/*.ttf
+art/fonts/*.otf
+art/fonts/brush/
+
 # Large throwaway art exploration (the source masters live in art/finals/;
 # rejected drafts are preserved on disk + in _git_backup, not in git history)
 art/rejected/
