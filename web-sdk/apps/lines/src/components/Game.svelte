@@ -8,7 +8,8 @@
 	import { stateModal } from 'state-shared';
 
 	import { UI, UiGameName } from 'components-ui-pixi';
-	import { GameVersion, Modals } from 'components-ui-html';
+	import { GameVersion } from 'components-ui-html';
+	import Modals from './AyakashiModals.svelte';
 
 	import { getContext } from '../game/context';
 	import { fxManager } from '../game/fxManager';

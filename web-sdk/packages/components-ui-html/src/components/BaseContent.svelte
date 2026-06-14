@@ -22,5 +22,10 @@
 		z-index: var(--zIndex);
 		max-width: var(--maxWidth);
 		gap: 1rem;
+		// Constrain height so a tall .scrollY child (PayTable, GameRules) is
+		// bounded and its overflow-y:auto can actually scroll. Without this
+		// the wrap grew to fit content and the modal clipped at the viewport.
+		max-height: 90vh;
+		min-height: 0;
 	}
 </style>

@@ -3,7 +3,7 @@
 Mapped against Stake Engine's official **Approval Guidelines**
 (https://stake-engine.com/docs/approval-guidelines and sub-pages) + the math
 **data-format** spec. Status: `[x]` verified · `[~]` needs live uploader/Max ·
-`[ ]` open. Last updated: R5 submit-prep, 2026-06-14.
+`[ ]` open. Last updated: R5 submit-prep + math re-run (RTP 0.965, base 1M), 2026-06-14.
 
 A submission is **two publishes** at engine.stake.com — **Math** and **Front End** —
 for a specific frontend + math version. See `README.md` for upload steps.
@@ -35,13 +35,12 @@ Per `math-sdk/docs/rgs_docs/data_format.md`.
       `id` / `events` / `payoutMultiplier`.
 - [x] **CSV payout ↔ jsonl `payoutMultiplier` match** (engine hashes these).
       Re-run: `math-sdk/env/Scripts/python.exe submit/_verify_books.py`.
-- [x] **RTP = 0.9700** — recomputed from BOTH lookup tables.
+- [x] **RTP = 0.9650** — recomputed from BOTH lookup tables (base 0.965, bonus 0.965).
 - [x] **Max win = 2000×** — config + both tables cap at `200000`.
-- [x] **Sim count: shipping 100k/mode (the verified set in `submit/math/`).** A
-      1M/mode attempt OOM'd a 32 GB machine on the bonus mode (long FS sequences ×
-      1M × 28 threads + ~4.6 GB compression) and was abandoned — 100k is a standard,
-      valid count and the optimizer pins RTP=0.97 / 2000× regardless. `run.py` is
-      back at 1e5. (Optional future: base 1e6 + bonus ~3e5 with fewer threads.)
+- [x] **Sim count: shipping base 1M / bonus 100k.** The bonus-mode 1M OOM on a
+      32 GB machine was sidestepped by dropping threads from 28 → 26 and the
+      compression batch size from 50k → 15k; base ran 1e6 cleanly. Optimizer pins
+      RTP=0.965 / 2000× across both.
 - [~] **Upload + backend stats check passes** — do the Math publish; confirm green.
 
 ## C. FRONT-END publish  (`submit/frontend/`)

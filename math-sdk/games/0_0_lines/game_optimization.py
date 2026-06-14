@@ -28,7 +28,7 @@ class OptimizationSetup:
                     "freegame": ConstructConditions(
                         rtp=0.37, hr=200, search_conditions={"symbol": "scatter"}
                     ).return_dict(),
-                    "basegame": ConstructConditions(hr=3.5, rtp=0.59).return_dict(),
+                    "basegame": ConstructConditions(hr=3.5, rtp=0.585).return_dict(),
                 },
                 "scaling": ConstructScaling(
                     [
@@ -70,7 +70,7 @@ class OptimizationSetup:
                     "wincap": ConstructConditions(
                         rtp=0.01, av_win=wincaps["bonus"], search_conditions=wincaps["bonus"]
                     ).return_dict(),
-                    "freegame": ConstructConditions(rtp=0.96, hr="x").return_dict(),
+                    "freegame": ConstructConditions(rtp=0.955, hr="x").return_dict(),
                 },
                 "scaling": ConstructScaling(
                     [

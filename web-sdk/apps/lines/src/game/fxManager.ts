@@ -202,8 +202,23 @@ const teardownPostFx = () => {
 	_postFx = null;
 };
 
+let _boardFxMask: Graphics | null = null;
+
 const registerBoardFx = (container: Container) => {
 	boardFxLayer = container;
+	// Clip board-space FX (paylines, symbol win bursts, kanabo, ofuda, tumble
+	// explosions, dust) to the 5x5 cell rectangle. Without a mask these bled
+	// into the lacquer-frame padding above/below the reels, making win FX look
+	// like they were connecting through the border art. The overlay layer
+	// (big-win celebrations, FS intro, bonus trigger, mist wipe) is intentionally
+	// unmasked — those are full-screen.
+	const origin = boardOrigin();
+	const mask = new Graphics()
+		.rect(origin.x, origin.y, BOARD_SIZES.width, BOARD_SIZES.height)
+		.fill(0xffffff);
+	container.addChild(mask);
+	container.mask = mask;
+	_boardFxMask = mask;
 	maybeInitPostFx();
 	return () => {
 		teardownPostFx();
@@ -222,6 +237,9 @@ const registerBoardFx = (container: Container) => {
 		_kanabo = _ofuda = _tumbleExplosion = _symbolWinFx = null;
 		_reelSpinFx = _paylineHighlight = _wildLanding = null;
 		_symbolIdles = null;
+		if (boardFxLayer) boardFxLayer.mask = null;
+		if (_boardFxMask && !_boardFxMask.destroyed) _boardFxMask.destroy();
+		_boardFxMask = null;
 		boardFxLayer = null;
 	};
 };

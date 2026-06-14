@@ -4,7 +4,7 @@ export default {
   "providerName": "Ayakashi",
   "gameName": "Ayakashi",
   "gameID": "0_0_lines",
-  "rtp": 0.97,
+  "rtp": 0.965,
   "numReels": 5,
   "numRows": [
     5,
@@ -18,14 +18,14 @@ export default {
       "cost": 1.0,
       "feature": true,
       "buyBonus": false,
-      "rtp": 0.97,
+      "rtp": 0.965,
       "max_win": 2000
     },
     "bonus": {
       "cost": 100.0,
       "feature": false,
       "buyBonus": true,
-      "rtp": 0.97,
+      "rtp": 0.965,
       "max_win": 2000
     }
   },
@@ -382,9 +382,22 @@ export default {
     ]
   },
   "symbols": {
-    "M": {
+    "L4": {
+      "paytable": [
+        {
+          "5": 2
+        },
+        {
+          "4": 0.5
+        },
+        {
+          "3": 0.4
+        }
+      ]
+    },
+    "X": {
       "special_properties": [
-        "fsMultiplier"
+        "exploder"
       ]
     },
     "L5": {
@@ -400,6 +413,45 @@ export default {
         }
       ]
     },
+    "H4": {
+      "paytable": [
+        {
+          "5": 8
+        },
+        {
+          "4": 2
+        },
+        {
+          "3": 1
+        }
+      ]
+    },
+    "H1": {
+      "paytable": [
+        {
+          "5": 50
+        },
+        {
+          "4": 20
+        },
+        {
+          "3": 10
+        }
+      ]
+    },
+    "L2": {
+      "paytable": [
+        {
+          "5": 3
+        },
+        {
+          "4": 0.7
+        },
+        {
+          "3": 0.6
+        }
+      ]
+    },
     "L3": {
       "paytable": [
         {
@@ -411,6 +463,42 @@ export default {
         {
           "3": 0.6
         }
+      ]
+    },
+    "M": {
+      "special_properties": [
+        "fsMultiplier"
+      ]
+    },
+    "L1": {
+      "paytable": [
+        {
+          "5": 5
+        },
+        {
+          "4": 1
+        },
+        {
+          "3": 1.0
+        }
+      ]
+    },
+    "H3": {
+      "paytable": [
+        {
+          "5": 10
+        },
+        {
+          "4": 3
+        },
+        {
+          "3": 2
+        }
+      ]
+    },
+    "S": {
+      "special_properties": [
+        "scatter"
       ]
     },
     "W": {
@@ -428,94 +516,6 @@ export default {
       "special_properties": [
         "wild",
         "multiplier"
-      ]
-    },
-    "H1": {
-      "paytable": [
-        {
-          "5": 50
-        },
-        {
-          "4": 20
-        },
-        {
-          "3": 10
-        }
-      ]
-    },
-    "X": {
-      "special_properties": [
-        "exploder"
-      ]
-    },
-    "S": {
-      "special_properties": [
-        "scatter"
-      ]
-    },
-    "H4": {
-      "paytable": [
-        {
-          "5": 8
-        },
-        {
-          "4": 2
-        },
-        {
-          "3": 1
-        }
-      ]
-    },
-    "L2": {
-      "paytable": [
-        {
-          "5": 3
-        },
-        {
-          "4": 0.7
-        },
-        {
-          "3": 0.6
-        }
-      ]
-    },
-    "H3": {
-      "paytable": [
-        {
-          "5": 10
-        },
-        {
-          "4": 3
-        },
-        {
-          "3": 2
-        }
-      ]
-    },
-    "L4": {
-      "paytable": [
-        {
-          "5": 2
-        },
-        {
-          "4": 0.5
-        },
-        {
-          "3": 0.4
-        }
-      ]
-    },
-    "L1": {
-      "paytable": [
-        {
-          "5": 5
-        },
-        {
-          "4": 1
-        },
-        {
-          "3": 1.0
-        }
       ]
     },
     "H2": {

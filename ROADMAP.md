@@ -10,6 +10,84 @@ revisit if the submission scores 1 star
 
 ---
 
+## ROUND 5.5 — Submit-fix sweep 2026-06-14 (this session)
+
+Max played the prod bundle and reported 6 issues. All fixed in this session;
+math was re-run at the new RTP target. Items below are still uncommitted —
+verification end-to-end requires a live RGS session (engine.stake.com →
+Developer → Start session → Launch).
+
+### Math re-run + RTP retarget
+- [x] **RTP retargeted 0.97 → 0.965** — softer hold per Max. `game_config.py`
+      `self.rtp = 0.9650`; optimization fences shifted in `game_optimization.py`
+      (base basegame 0.59→0.585; bonus freegame 0.96→0.955). Both modes now
+      land exactly on 0.965 per `library/stats_summary.json`.
+- [x] **Base sim count 100k → 1M** — bonus stays 100k. The earlier OOM was
+      avoided by dropping `num_threads`/`rust_threads` 28→26 and the compression
+      `batching_size` 50k→15k in `run.py`. CSV↔jsonl hashes verified via
+      `submit/_verify_books.py`.
+- [x] **Math-side identifiers** — `provider_name`/`game_name` defaults in
+      `game_config.py` set to `"Ayakashi"` so re-running sync-config.py no
+      longer clobbers the FE identifiers back to `sample_provider/sample_lines`.
+- [x] **Submission package refreshed** — `submit/math/` re-staged from the new
+      `publish_files/` (base book grew 62MB → 589MB at 1M sims). CHECKLIST.md
+      + README.md updated with the new RTP/size numbers.
+
+### Submit-feedback fixes (Max playtest, 2026-06-14)
+- [x] **P0 — Buy Bonus ERR_VAL "invalid amount"** — the SDK's
+      `DEFAULT_BET_MODE_META` shipped 6 demo modes (BASE/ANTE/SUPERANTE/
+      SUPERSPIN/BONUS/SUPER); our app never overrode it. Our math `index.json`
+      only declares lowercase `base`/`bonus`, so every card the modal rendered
+      sent a `mode` the engine couldn't validate. Fix: new
+      `game/stateMetaInit.ts` seeds `stateMeta.betModeMeta = { base, bonus }`
+      (correct casing + Ayakashi text) and defaults `stateBet.activeBetModeKey`
+      to `'base'`; called from `setContext()` before any UI mounts.
+- [x] **P1 — "Add Your Loader" placeholder removed** — `LoaderExample` dropped
+      from `+layout.svelte`. The Stake-Engine intro splash stays; our
+      cinematic `LoadingScreen` (Game.svelte) takes over as soon as the game
+      mounts. No more SDK placeholder text in the bundle.
+- [x] **P1 — Board-FX bleed past the lacquer frame** — `boardFxLayer` is now
+      masked to a rectangle sized to `BOARD_SIZES` (5×5 cells). Paylines,
+      symbol win bursts, kanabo, ofuda, tumble explosions clip cleanly inside
+      the reel window instead of leaking into the top/bottom frame padding.
+      The overlay FxHost (big-win celebrations, FS intro) is intentionally
+      unmasked — those are full-screen.
+- [x] **P2 — Orange "blob" behind Total Win → brush stroke** — the
+      win-celebration banner had a brush-stroke asset path (`brush_wide.webp`,
+      30 KB, sumi-e shape) but it wasn't preloaded, so first big wins fell
+      back to the procedural orange-stroked rounded rect. Added
+      `preload: true` so the brush banner is always ready before the first
+      celebration fires.
+- [x] **P2 — Bespoke Buy Bonus modal** — new
+      `components/ModalBuyBonusAyakashi.svelte`: lacquer-black panel, gold
+      corner brackets, brush-stroke title bar, two cards side-by-side:
+        • **BASE GAME** — torii-gate art, per-spin price, PLAY closes the
+          modal (sets `activeBetModeKey = 'base'`).
+        • **YOKAI BONUS** — kitsune-avatar art, 100× badge, BUY BONUS routes
+          through the SDK's `ModalBuyBonusConfirm` so a second tap is needed.
+      Reuses existing art (avatar/torii/brush) so no RunComfy generation was
+      required. Local `AyakashiModals.svelte` wraps the SDK modal stack and
+      substitutes only this one modal — every other modal (error/bet menu/
+      auto spin/pay table/game rules/settings/confirm) is untouched.
+- [x] **P3 — PayTable / Game Rules now scroll** — added `max-height: 90vh` +
+      `min-height: 0` to `BaseContent` so the inner `.scrollY` element
+      (`overflow-y: auto`) has a bounded parent. Tall paytable content now
+      scrolls inside the modal instead of clipping at the viewport.
+- **P4 — Powered by Stake Engine splash kept** (Max OK'd leaving it). It's
+  `LoaderStakeEngine` from the SDK; safer to keep until after first approval.
+
+### Notes for next session
+- TypeScript checks run cleanly on the new files; runtime click-through still
+  needs a live RGS session (`/wallet/authenticate` 400 in dev without one).
+- Production bundle 1.84 MB → 2.29 MB (+460 KB) from statically importing the
+  individual SDK modals in `AyakashiModals.svelte`. Acceptable; revisit if we
+  ever code-split the modal stack.
+- The remaining open items from R5 SUBMIT PREP (`Pay Table / Game Rules
+  content`, `GameVersion 0.0.0`) are still open and will be touched in the
+  same commit pass.
+
+---
+
 ## ROUND 5 — Max review 2026-06-14 (audio + final polish, then SUBMIT)
 
 DIRECTION (Max): the game is feature-complete. From here it's **polish only** of

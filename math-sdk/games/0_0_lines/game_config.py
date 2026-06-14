@@ -19,10 +19,12 @@ class GameConfig(Config):
         super().__init__()
         self.game_id = "0_0_lines"
         self.provider_number = 0
-        self.working_name = "Sample Lines Game"
+        self.provider_name = "Ayakashi"
+        self.game_name = "Ayakashi"
+        self.working_name = "Ayakashi"
         self.wincap = 2000.0
         self.win_type = "lines"
-        self.rtp = 0.9700
+        self.rtp = 0.9650
         self.construct_paths()
 
         # Game Dimensions

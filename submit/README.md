@@ -35,7 +35,9 @@ without re-review.
    root of the selected upload set).
 3. **Publish Game → Math**. The backend runs a preliminary stats check (RTP,
    probabilities, payout hashing). Wait for it to go green.
-   - Note: `books_bonus.jsonl.zst` is ~461 MB — the upload takes a while.
+   - Note: `books_base.jsonl.zst` is ~589 MB and `books_bonus.jsonl.zst` is
+     ~440 MB — the upload takes a while. Together they're ~1 GB, well under the
+     15 GB math limit.
 
 ## Step 2 — Publish the Front End
 
