@@ -10,6 +10,236 @@ revisit if the submission scores 1 star
 
 ---
 
+## ROUND 7 — Symbol atlas mask redesign + de-IP'd style 2026-06-26
+
+Triggered by IMPROVEMENT_PLAN.md Track A1 (symbol atlas regeneration). The
+2026-06-15 character-portrait approach for the high symbols was producing
+pretty anime girls in a row, not slot symbols — five portraits at 160 px
+read indistinguishable and competed with the avatar. This round pivots
+the highs to traditional yokai MASKS, de-IPs the style prefix, drops
+NoobAI from the rotation, resets the cast palette, and refactors the asset
+codebase to a thin per-asset script + shared queue helper.
+
+### Symbol redesign — 5 highs locked
+- [x] **High symbols pivoted from portraits to yokai masks** — h1 ao-oni
+      (indigo lacquered wood + horns), h2 kitsune-men (white porcelain +
+      red curling brushwork), h3 daitengu (crimson + long protruding nose),
+      h4 ko-omote (pale Noh female), h5 sinister bake-neko (charcoal-green
+      + ember slit eyes). A mask is a cultural shorthand for "yokai," gives
+      maximum silhouette differentiation, and rhymes with the kanji-on-
+      washi lows. Cast picks in
+      `art/generated/symbols-2026-06-26/_picked/` with a combined
+      `_cast.jpg` for set-cohesion review.
+- [x] **Cast palette swapped.** Was: oni-crimson / kitsune-foxfire / tengu-
+      charcoal-green / yuki-onna-silver / nekomata-ember. Now: oni-indigo /
+      kitsune-white-red / tengu-crimson / ko-omote-silver-cyan / bake-neko-
+      charcoal-green. The blue oni (ao-oni) is a canonical Japanese
+      variant alongside the red oni, so moving oni to indigo is grounded
+      and frees crimson for the tengu — cleaner silhouette + colour
+      differentiation across the whole row.
+- [x] **Style prefix de-IP'd** — STYLE_GUIDE.md §1 + PROMPT_GUIDE.md §2
+      now read "painterly dark-fantasy anime, Edo-period rural Japanese
+      yokai folklore…" — no "Demon Slayer" or "ufotable" named anchors.
+      The named anchors were triggering training-prior shortcuts the
+      negatives couldn't undo (always-on petals, vermillion temples) and
+      are a legal smell on a shipping product.
+
+### Avatar regen — cuttable under new style
+- [x] **Avatar regenerated under the new prefix in CUTTABLE mode** —
+      `art/avatar_ab.py` runs FLUX + Seedream only (3 cands each), solid
+      deep indigo backdrop, painted scene removed. Locked Seedream V3 to
+      `art/generated/avatar-2026-06-26/_picked/avatar.png` ready for the
+      next Wan I2V animation pass.
+
+### NoobAI dropped
+- [x] **NoobAI XL 1.1 removed from the Ayakashi rotation.** Once the
+      prompting was actually fixed (typo `very aware`→`very aesthetic`,
+      invented compound tags → real Danbooru tags, `prompt_weighting:true`
+      to lift the 77-token cap, official Laxhar negative pack added),
+      NoobAI did produce on-brief output but in a graphic-poster register
+      rather than the painterly cel-shade Ayakashi locks. Full prompting
+      recipe preserved in `memory/noobai-prompting.md` for future projects.
+
+### Lows pipeline reversed
+- [x] **Lows (l1-l5 kanji) move from AI-gen to font-composite primary.**
+      PROMPT_GUIDE.md §4g previously called the font composite "the
+      fallback for hallucination correctness"; flipped to primary. Five
+      classical-element kanji (火 水 木 金 土) rendered through Yuji Syuku
+      (already in `art/fonts/`) over one shared generated washi background
+      is hallucination-free, mechanically uniform (the whole point of the
+      lows family), cheaper, and faster than 5 × 6-candidate AI gens.
+      Composite step planned for the next session.
+
+### Code refactor — fal_generate.py is now the hub
+- [x] **Shared helpers extracted to `art/fal_generate.py`** — `gen_one`
+      (single submit + poll + download), `gen_batch` (fan out variants ×
+      candidates in parallel), `build_contact_sheet` (labelled grid of
+      subdir contents). Per-asset drivers (`avatar_ab.py`, `symbol_gen.py`)
+      are now thin scripts that just define prompts + variants.
+      `avatar_ab.py` ~200→108 lines; `symbol_gen.py` ~310→188 lines.
+- [x] **Resume-by-prompt-hash sidecar** — every saved image now writes
+      `<path>.prompt.sha` with sha256(request body). On rerun, gen_one
+      skips only when the hash matches; if the prompt changed (or the
+      hash is missing), regenerates. Replaces the file-size-based check
+      that silently shipped stale gens earlier in the session.
+- [x] **Poll-error visibility + 30s heartbeat** — gen_one now logs poll
+      exceptions and emits a periodic "still IN_QUEUE at Ns" so a slow
+      fal.ai queue isn't indistinguishable from a hung script. Fal had
+      multiple stuck-in-queue events this session; the heartbeat made
+      them obvious.
+- [x] **Deterministic per-symbol seeds** — Python's built-in `hash()` is
+      salted per-process, which was breaking resume-by-hash across reruns.
+      Switched to `hashlib.md5(sym_key)[:4]` for a stable seed_base.
+
+### `art/` directory aggressively cleaned
+- [x] **Down to the minimum viable layout** — 3 docs (PIPELINE,
+      PROMPT_GUIDE, STYLE_GUIDE) + 6 scripts (avatar_ab, symbol_gen,
+      fal_generate, i2v_test, bake_sprites, upscale) + logo + fonts/ +
+      generated/. Removed: `finals/` (old shipped assets, on github
+      branch), `_legacy/` (RunComfy-era drivers, in git history),
+      `spine/` relic, several old `generated/` subdirs (frames-hq,
+      runcomfy, avatar-cheer/wink), `finals.zip` (97 MB old bundle),
+      `rejected/`, dead scripts (`rembg_frames.py` — manual bg removal
+      now, `runcomfy_cleanup.py` + `RUNCOMFY_OPERATIONS.md` — RunComfy
+      out of rotation, `_contact_sheet.py` — folded into fal_generate.py).
+
+### Memory updates
+- [x] `memory/noobai-prompting.md` — marked DROPPED for Ayakashi with
+      the reasoning; recipe preserved for future projects.
+- [x] `memory/bg-removal-manual.md` — Max's preference for manual cuts
+      saved. Don't chain rembg/BiRefNet onto gens.
+- [x] `memory/asset-pipeline.md` — updated to 2-model mix.
+
+### Atlas composite + specials (2026-06-26 evening, same session)
+- [x] **Washi paper backdrop generated** — 6 candidates across FLUX +
+      Seedream, B_01 picked (pristine torn-edge ivory, no markings).
+- [x] **Wild / scatter / multiplier / exploder generated** — 4 object
+      emblems via `symbol_gen.py` with per-symbol `composition` overrides
+      (the SYMBOLS dict gained optional `composition` + `negatives`
+      fields). w kitsune spirit orb, s temple bonsho bell, m ofuda
+      talisman, x kanabo demon club. Picks locked in
+      `art/generated/symbols-2026-06-26/_picked/`.
+- [x] **compose_atlas.py written and run** — composes each picked high
+      mask onto a uniform washi-roundel-with-cyan-foxfire-halo, renders
+      the 5 lows kanji via Yuji Syuku in seal gold over the same washi,
+      passes the 4 specials through with hand-cut backgrounds. **14
+      final 1024×1024 atlas tiles** saved to
+      `art/generated/symbols-2026-06-26/_atlas/` plus `_grid.jpg` 3-row
+      preview. The set finally reads as a *set*.
+- [x] **Manual bg removal convention locked** — auto-cut in the first
+      pass of `compose_atlas` chewed up dark shafts and missed
+      translucent halos. Max hand-cuts now (saved as
+      `<sym>-nobg.png`); script's `picked_source()` prefers `-nobg.png`,
+      falls back to the raw `.png`. Memory:
+      [bg-removal-manual](memory/bg-removal-manual.md).
+
+### Background round 2 + petals (2026-06-27 morning)
+- [x] **bg_bg round 2** — round 1 (no branch in prompt) was weak. Round
+      2 baked cherry-branch framing INTO the bg_bg prompt so a separate
+      bg_fg layer becomes unnecessary. Four models compared: FLUX 1.1
+      Pro Ultra, Seedream v4, **Ideogram v3** (new), **Recraft v3**
+      (new). RunComfy attempted — driver restored from git
+      ([art/runcomfy_generate.py](art/runcomfy_generate.py)) but the
+      deployment `8ef39157-1983-46a9-b750-017363846751` is deleted
+      server-side (the API list endpoint reports it alive, inference
+      calls return `"error": "DeletedDeployment"`). **3 bg_bg finalists
+      locked** — FLUX_03, Seedream_02, Recraft_01 — final pick
+      deferred. Recraft has a 1000-char prompt cap, so it gets a
+      compact prompt variant in [bg_more.py](art/bg_more.py).
+- [x] **Petals as the replacement for bg_fg** — instead of a baked
+      foreground layer, 5 distinct sakura petals (v1-v5) generated as
+      stills (`bg_gen.py petal_v{1,2,3,4,5}`), hand-cut by Max
+      (`-nobg.png`), then animated via **both** Wan 2.2 a14b ($0.40) and
+      Hailuo 02 standard ($0.27) for direct comparison
+      ([petal_animate.py](art/petal_animate.py)). 10 mp4s landed in
+      `art/generated/petals-anim-v2-2026-06-27/mp4/`. Wan + Hailuo each
+      produce shippable petal motion — Wan slightly more lifelike,
+      Hailuo much smaller files (~30 KB WebP at 4×4 256 px).
+- [x] **Petal sprite sheets baked** — [petal_bake.py](art/petal_bake.py)
+      bakes each mp4 into a 4×4 256 px WebP sprite sheet (16 frames).
+      Total 10 sheets, sizes 15-110 KB. **5 primary picks** locked
+      (`petal_v1_hailuo`, `petal_v1_wan`, `petal_v3_hailuo`,
+      `petal_v5_hailuo`, `petal_v5_wan`) plus **3 backup picks** in
+      `art/generated/petals-anim-v2-2026-06-27/_picked/`. Total primary
+      atlas size: ~241 KB.
+- [x] **FLUX 8-frame strip comparison done** — also ran a direct
+      sprite-sheet generation approach via FLUX
+      ("8 sequential rotation frames in a horizontal strip"). Cleaner
+      cuts than Wan, but motion is jittery / not really rotating. Wan
+      wins on motion realism, FLUX strip wins on cuttability. Verdict:
+      use Wan, keep FLUX strip as a fallback if cleanup ever becomes
+      the bottleneck.
+
+### Cleanup + docs (2026-06-27)
+- [x] **`HANDOFF.md` written at project root** — session-handoff doc
+      summarising the two load-bearing decisions (masks-not-portraits +
+      de-IP'd prefix), locked picks, code map, credentials, next steps.
+      Read this first when picking up cold.
+- [x] **PIPELINE.md, PROMPT_GUIDE.md, STYLE_GUIDE.md** all updated to
+      reflect the 2-model mix, font-comp lows, mask composition rule,
+      Recraft as an additional fal.ai option.
+
+ROUND 7 total fal.ai spend ~$10-15 across symbol atlas (highs + lows +
+specials + washi + composite), avatar regen, bg_bg (4 models × multiple
+rounds), and petals (stills + 10 animation mp4s). Phase 1 (asset
+generation) is ~70% complete. Track A1 fully done; A2 in progress (3
+bg_bg finalists picked, petals fully baked); A4 in progress (still
+locked, animation pending); A5 partial (petals done); A3 + A6
+untouched.
+
+### Next session
+- Wire the new atlas + bg_bg pick + petal sprite sheets into the
+  web-sdk, see the new game running (the load-bearing demo).
+- Avatar Wan/Hailuo I2V animation pass (~$2, 4-5 reaction states).
+- A3 frame + UI chrome regen, A5 broader particle pack, A6 logo + fonts.
+
+---
+
+## ROUND 6 — Asset pipeline validation 2026-06-15
+
+Triggered by IMPROVEMENT_PLAN.md Track A0 (model look-test). Goal: end the
+guessing about which image/animation model produces the best Ayakashi art
+and lock a repeatable workflow.
+
+### Avatar A/B + I2V baseline
+- [x] **Avatar V4b_01 AuraSR 4x upscale** — `art/upscale.py` driver
+      (fal.ai `fal-ai/aura-sr`). 2304×1728 → 9216×6912, ~$0.05.
+- [x] **5-model A/B on V4b prompt** — `art/avatar_ab.py` ran Illustrious XL,
+      NoobAI XL, Ideogram v3 BALANCED, FLUX 1.1 Pro Ultra, Seedream v4 full
+      (2 candidates each, 10 images, ~$0.40). Contact sheet via
+      `art/_contact_sheet.py`. Outcome: Seedream v4 picked as working
+      default avatar; NoobAI XL_01 + FLUX 1.1 Pro Ultra kept as alternates
+      per role.
+- [x] **Wan vs Hailuo I2V baseline** — `art/i2v_test.py` ran both with an
+      idle prompt on the picked Seedream v4 still (~$0.47). Wan 2.2 a14b
+      @ 720p chosen as primary (better identity + 9-tail handling). Hailuo
+      02 had spawn-in/out artifacts on tails.
+- [x] **Sprite-sheet bake + PixiJS preview** — `art/bake_sprites.py` turns
+      mp4 → 16 frames → 4×4 WebP sheet (1.2 MB) → self-contained HTML
+      preview with PixiJS v8 + ping-pong loop. End-to-end pipeline proven.
+
+### Docs
+- [x] **`art/PIPELINE.md`** — canonical four-step workflow doc (generate /
+      pick / refine / animate). Cost reference table.
+- [x] **`memory/asset-pipeline.md`** — short-form pointer for future
+      sessions (replaces deleted `runcomfy-pipeline.md`).
+- [x] **`memory/image-model-upgrade.md`** rewritten — flipped the
+      2026-06-14 "trial on next game" plan to "done on Ayakashi".
+- [x] **`art/PROMPT_GUIDE.md`** — added cuttable-vs-key-art prompt
+      variant section; rewrote §6 model-specific tweaks for the new
+      3-model stack; marked §8 look-test done.
+- [x] **`IMPROVEMENT_PLAN.md`** — A0 marked done with pipeline pointer;
+      open-decision §8.1 (model choice) locked.
+- [x] **`art/STYLE_GUIDE.md`** — single line updated to point sakuga
+      flipbook reference at the new fal.ai pipeline.
+
+Total session spend ~$0.93 across all fal.ai calls. Drivers under
+`art/` (upscale.py, avatar_ab.py, i2v_test.py, idle_pipeline.py,
+bake_sprites.py, _contact_sheet.py) are now reusable templates for the
+rest of the asset re-spin in Track A.
+
+---
+
 ## ROUND 5.5 — Submit-fix sweep 2026-06-14 (this session)
 
 Max played the prod bundle and reported 6 issues. All fixed in this session;

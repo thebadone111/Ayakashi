@@ -58,14 +58,33 @@ def generate(prompt, width=1024, height=1024, batch=1, steps=24, seed=None,
 
     t0 = time.time()
     status = "?"
+    poll_n = 0
+    last_logged = ""
     while time.time() - t0 < timeout:
         time.sleep(poll_every)
+        poll_n += 1
         try:
-            s = requests.get(f"{API}/deployments/{DEP}/requests/{req}/status",
-                             headers=HEADERS, timeout=15).json()
-        except Exception:
+            resp = requests.get(f"{API}/deployments/{DEP}/requests/{req}/status",
+                                headers=HEADERS, timeout=15)
+        except Exception as e:
+            print(f"  [{label}] poll #{poll_n} net err: {e}", flush=True)
+            continue
+        if resp.status_code >= 400:
+            print(f"  [{label}] poll #{poll_n} HTTP {resp.status_code}: "
+                  f"{resp.text[:300]}", flush=True)
+            return []
+        try:
+            s = resp.json()
+        except Exception as e:
+            print(f"  [{label}] poll #{poll_n} json err: {e} "
+                  f"body={resp.text[:200]}", flush=True)
             continue
         status = s.get("status", "?")
+        # Heartbeat every 30s so we can see slow cold starts
+        if status != last_logged or (time.time() - t0) % 30 < poll_every:
+            print(f"  [{label}] poll #{poll_n} t={int(time.time()-t0)}s "
+                  f"status={status}", flush=True)
+            last_logged = status
         if status in ("completed", "succeeded", "success"):
             break
         if status in ("failed", "error", "cancelled"):
@@ -73,11 +92,21 @@ def generate(prompt, width=1024, height=1024, batch=1, steps=24, seed=None,
     else:
         print(f"  TIMEOUT [{label}] (last status {status})"); return []
 
-    res = requests.get(f"{API}/deployments/{DEP}/requests/{req}/result",
-                       headers=HEADERS, timeout=30).json()
+    res_resp = requests.get(f"{API}/deployments/{DEP}/requests/{req}/result",
+                            headers=HEADERS, timeout=30)
+    if res_resp.status_code >= 400:
+        print(f"  [{label}] RESULT HTTP {res_resp.status_code}: "
+              f"{res_resp.text[:300]}", flush=True)
+        return []
+    res = res_resp.json()
+    outputs = res.get("outputs", {})
+    if not outputs:
+        # Surface what the API actually returned so we don't fail silently
+        print(f"  [{label}] EMPTY RESULT: {json.dumps(res)[:400]}", flush=True)
+        return []
     os.makedirs(dest, exist_ok=True)
     saved = []
-    for node in res.get("outputs", {}).values():
+    for node in outputs.values():
         for i, img in enumerate(node.get("images", [])):
             url = img.get("url")
             if not url:
