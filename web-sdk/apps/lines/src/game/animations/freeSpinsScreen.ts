@@ -44,7 +44,7 @@ import {
 	delay,
 	fxBus,
 } from './fx';
-import { getParticleTexture } from './particleLib';
+import { getParticleTexture, particleAssetFor } from './particleLib';
 
 export interface FreeSpinsScreenOptions {
 	app: Application;
@@ -168,7 +168,7 @@ export class FreeSpinsScreen {
 		this.particles.emit({
 			x: cx, y: cy - 60,
 			count: 10,
-			texture: getParticleTexture('petal'),
+			...particleAssetFor('petal', { animFps: 18 }),
 			speed: [40, 150],
 			angle: [-Math.PI, 0],
 			gravity: 50,

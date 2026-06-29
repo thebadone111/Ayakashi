@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { Text, Rectangle } from 'pixi-svelte';
+	import { Text, Sprite } from 'pixi-svelte';
 	import { Button, type ButtonProps } from 'components-pixi';
 
+	import UiSprite from './UiSprite.svelte';
 	import type { ButtonIcon } from '../types';
 	import type { Snippet } from 'svelte';
 	import { i18nDerived } from '../i18n/i18nDerived';
@@ -13,14 +14,20 @@
 		active?: boolean;
 		children?: Snippet;
 		variant?: 'dark' | 'light';
-		labelScale?: number;
+		textSize?: number;
+		iconKey?: string;
+		iconRotation?: number;
+		iconScale?: number;
 	};
 
 	const {
 		icon,
 		active,
 		variant = 'dark',
-		labelScale = 1.05,
+		textSize,
+		iconKey,
+		iconRotation = 0,
+		iconScale = 0.62,
 		children: childrenFromParent,
 		...buttonProps
 	}: Props = $props();
@@ -28,60 +35,43 @@
 
 <Button {...buttonProps}>
 	{#snippet children({ center, hovered, pressed })}
-		{@const w = buttonProps.sizes.width}
-		{@const h = buttonProps.sizes.height}
-		{@const radius = Math.min(w, h) * 0.28}
-		{@const isDark = variant === 'dark'}
-		{@const baseBg = isDark ? 0x140709 : 0xffffff}
-		{@const hoverBg = isDark ? 0x2a1118 : 0xfff0cf}
-		{@const activeBg = isDark ? 0x4a1a26 : 0xffd98a}
-		{@const disabledBg = isDark ? 0x3a322c : 0xaaaaaa}
-		{@const goldBorder = buttonProps.disabled
-			? 0x8c7c5c
-			: active
-				? 0xffe9a8
-				: hovered || pressed
-					? 0xe0b56a
-					: 0xb88a3f}
-		{@const bg = buttonProps.disabled
-			? disabledBg
-			: active
-				? activeBg
-				: hovered || pressed
-					? hoverBg
-					: baseBg}
-
-		<Rectangle
+		<UiSprite
 			{...center}
 			anchor={0.5}
-			width={w}
-			height={h}
-			borderRadius={radius}
-			borderColor={isDark ? goldBorder : 0x000000}
-			borderWidth={active ? 6 : 4}
-			backgroundColor={bg}
+			width={buttonProps.sizes.width}
+			height={buttonProps.sizes.height}
+			borderRadius={Math.min(buttonProps.sizes.width, buttonProps.sizes.height) / 2}
+			backgroundColor={buttonProps.disabled ? 0x444455 : variant === 'dark' ? 0x2e2e48 : 0xffffff}
+			borderWidth={active ? 8 : 2}
+			borderColor={active ? 0xffd700 : 0x44446a}
 		/>
 
-		<Text
-			{...center}
-			anchor={0.5}
-			text={i18nDerived[icon]()}
-			style={{
-				align: 'center',
-				wordWrap: true,
-				wordWrapWidth: w * 0.88,
-				lineHeight: UI_BASE_FONT_SIZE * labelScale * 0.95,
-				fontFamily: 'Yuji Syuku',
-				fontWeight: '700',
-				fontSize: UI_BASE_FONT_SIZE * labelScale,
-				fill: isDark
-					? buttonProps.disabled
-						? 0xcabfa6
-						: 0xfff4d6
-					: 0x000000,
-				stroke: isDark ? { color: 0x000000, width: 3 } : undefined,
-			}}
-		/>
+		{#if iconKey}
+			<Sprite
+				{...center}
+				key={iconKey}
+				anchor={0.5}
+				width={buttonProps.sizes.width * iconScale}
+				height={buttonProps.sizes.height * iconScale}
+				rotation={iconRotation}
+				tint={buttonProps.disabled ? 0x666677 : 0xffffff}
+			/>
+		{:else}
+			<Text
+				{...center}
+				anchor={0.5}
+				text={i18nDerived[icon]()}
+				style={{
+					align: 'center',
+					wordWrap: true,
+					wordWrapWidth: 200,
+					fontFamily: 'proxima-nova, "Segoe UI Symbol", "Segoe UI Emoji", sans-serif',
+					fontWeight: '600',
+					fontSize: textSize ?? UI_BASE_FONT_SIZE * 0.9,
+					fill: buttonProps.disabled ? 0x888888 : variant === 'dark' ? 0xffffff : 0x000000,
+				}}
+			/>
+		{/if}
 
 		{@render childrenFromParent?.()}
 	{/snippet}

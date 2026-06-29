@@ -2,11 +2,11 @@
 	import { Tween } from 'svelte/motion';
 	import { cubicInOut } from 'svelte/easing';
 
-	import { stateUi } from 'state-shared';
+	import { stateUi, stateModal, stateSound } from 'state-shared';
 	import { BLACK } from 'constants-shared/colors';
 	import { FadeContainer } from 'components-pixi';
 	import { MainContainer } from 'components-layout';
-	import { Container, Rectangle } from 'pixi-svelte';
+	import { Container, Rectangle, Text } from 'pixi-svelte';
 	import { waitForResolve } from 'utils-shared/wait';
 
 	import LabelFreeSpinCounter from './LabelFreeSpinCounter.svelte';
@@ -16,6 +16,9 @@
 
 	const props: LayoutUiProps = $props();
 	const context = getContext();
+
+	const canvasW = $derived(context.stateLayoutDerived.canvasSizes().width);
+	const canvasH = $derived(context.stateLayoutDerived.canvasSizes().height);
 
 	const DRAWER_Y = {
 		unfold: 0,
@@ -178,43 +181,76 @@
 </MainContainer>
 
 {#if stateUi.menuOpen}
+	{@const ROW_H = 72}
+	{@const PW = Math.min(canvasW - 60, 340)}
+	{@const PH = ROW_H * 6 + 24}
+	{@const MENU_FONT = { fontFamily: 'proxima-nova', fontWeight: '700', fontSize: 27, fill: 0xffffff } as const}
+	{@const DIV = 0x252540}
+
+	<!-- Backdrop — tap outside to close -->
 	<Rectangle
 		eventMode="static"
 		cursor="pointer"
-		alpha={0.5}
+		alpha={0.65}
 		anchor={0.5}
 		backgroundColor={BLACK}
-		width={context.stateLayoutDerived.canvasSizes().width}
-		height={context.stateLayoutDerived.canvasSizes().height}
-		x={context.stateLayoutDerived.canvasSizes().width * 0.5}
-		y={context.stateLayoutDerived.canvasSizes().height * 0.5}
+		width={canvasW}
+		height={canvasH}
+		x={canvasW * 0.5}
+		y={canvasH * 0.5}
 		onpointerup={() => (stateUi.menuOpen = false)}
 	/>
 
-	<MainContainer standard alignVertical="bottom">
-		<Container
-			x={context.stateLayoutDerived.mainLayoutStandard().width * 0.5 - 440}
-			y={context.stateLayoutDerived.mainLayoutStandard().height - 400}
-		>
-			<Container y={-190 - 210 * 3}>
-				{@render props.buttonPayTable({ anchor: 0.5 })}
-			</Container>
+	<!-- Panel -->
+	<Container x={canvasW * 0.5} y={canvasH * 0.5}>
+		<Rectangle anchor={0.5} width={PW} height={PH} backgroundColor={0x08081a} alpha={0.98} borderRadius={20} eventMode="none" />
 
-			<Container y={-190 - 210 * 2}>
-				{@render props.buttonGameRules({ anchor: 0.5 })}
-			</Container>
+		<!-- BUY BONUS -->
+		<Rectangle y={-ROW_H * 2.5} anchor={0.5} width={PW} height={ROW_H} backgroundColor={0} alpha={0.001}
+			eventMode="static" cursor="pointer"
+			onpointerup={() => { stateModal.modal = { name: 'buyBonus' }; stateUi.menuOpen = false; }} />
+		<Text y={-ROW_H * 2.5} anchor={0.5} text="BUY BONUS" eventMode="none"
+			style={{ fontFamily: 'proxima-nova', fontWeight: '800', fontSize: 27, fill: 0xffd700 }} />
+		<Rectangle y={-ROW_H * 2} anchor={0.5} width={PW - 40} height={1} backgroundColor={DIV} eventMode="none" />
 
-			<Container y={-190 - 210 * 1}>
-				{@render props.buttonSettings({ anchor: 0.5 })}
-			</Container>
+		<!-- PAYTABLE -->
+		<Rectangle y={-ROW_H * 1.5} anchor={0.5} width={PW} height={ROW_H} backgroundColor={0} alpha={0.001}
+			eventMode="static" cursor="pointer"
+			onpointerup={() => { stateModal.modal = { name: 'payTable' }; stateUi.menuOpen = false; }} />
+		<Text y={-ROW_H * 1.5} anchor={0.5} text="PAYTABLE" eventMode="none" style={MENU_FONT} />
+		<Rectangle y={-ROW_H} anchor={0.5} width={PW - 40} height={1} backgroundColor={DIV} eventMode="none" />
 
-			<Container y={-190}>
-				{@render props.buttonSoundSwitch({ anchor: 0.5 })}
-			</Container>
+		<!-- INFO -->
+		<Rectangle y={-ROW_H * 0.5} anchor={0.5} width={PW} height={ROW_H} backgroundColor={0} alpha={0.001}
+			eventMode="static" cursor="pointer"
+			onpointerup={() => { stateModal.modal = { name: 'gameRules' }; stateUi.menuOpen = false; }} />
+		<Text y={-ROW_H * 0.5} anchor={0.5} text="INFO" eventMode="none" style={MENU_FONT} />
+		<Rectangle y={0} anchor={0.5} width={PW - 40} height={1} backgroundColor={DIV} eventMode="none" />
 
-			<Container>
-				{@render props.buttonMenuClose({ anchor: 0.5 })}
-			</Container>
-		</Container>
-	</MainContainer>
+		<!-- SETTINGS -->
+		<Rectangle y={ROW_H * 0.5} anchor={0.5} width={PW} height={ROW_H} backgroundColor={0} alpha={0.001}
+			eventMode="static" cursor="pointer"
+			onpointerup={() => { stateModal.modal = { name: 'settings' }; stateUi.menuOpen = false; }} />
+		<Text y={ROW_H * 0.5} anchor={0.5} text="SETTINGS" eventMode="none" style={MENU_FONT} />
+		<Rectangle y={ROW_H} anchor={0.5} width={PW - 40} height={1} backgroundColor={DIV} eventMode="none" />
+
+		<!-- SOUND -->
+		<Rectangle y={ROW_H * 1.5} anchor={0.5} width={PW} height={ROW_H} backgroundColor={0} alpha={0.001}
+			eventMode="static" cursor="pointer"
+			onpointerup={() => {
+				context.eventEmitter.broadcast({ type: 'soundPressGeneral' });
+				stateSound.volumeValueMaster = stateSound.volumeValueMaster === 0 ? 50 : 0;
+			}} />
+		<Text y={ROW_H * 1.5} anchor={0.5} eventMode="none"
+			text={stateSound.volumeValueMaster === 0 ? 'SOUND OFF' : 'SOUND ON'}
+			style={MENU_FONT} />
+		<Rectangle y={ROW_H * 2} anchor={0.5} width={PW - 40} height={1} backgroundColor={DIV} eventMode="none" />
+
+		<!-- EXIT -->
+		<Rectangle y={ROW_H * 2.5} anchor={0.5} width={PW} height={ROW_H} backgroundColor={0} alpha={0.001}
+			eventMode="static" cursor="pointer"
+			onpointerup={() => (stateUi.menuOpen = false)} />
+		<Text y={ROW_H * 2.5} anchor={0.5} text="EXIT" eventMode="none"
+			style={{ fontFamily: 'proxima-nova', fontWeight: '700', fontSize: 27, fill: 0xff6b6b }} />
+	</Container>
 {/if}

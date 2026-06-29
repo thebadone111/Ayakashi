@@ -25,4 +25,4 @@
 	};
 </script>
 
-<UiButton {...props} {sizes} {onpress} {disabled} icon="decrease" labelScale={1.7} />
+<UiButton {...props} {sizes} {onpress} {disabled} icon="decrease" iconKey="iconArrowUp" iconRotation={Math.PI} iconScale={0.55} />

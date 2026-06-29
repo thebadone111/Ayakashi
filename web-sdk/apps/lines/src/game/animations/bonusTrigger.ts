@@ -31,7 +31,7 @@ import {
 	delay,
 	fxBus,
 } from './fx';
-import { getParticleTexture } from './particleLib';
+import { getParticleTexture, particleAssetFor } from './particleLib';
 
 export interface BonusTriggerOptions {
 	app: Application;
@@ -105,7 +105,7 @@ export class BonusTriggerAnimation {
 				this.particles.emit({
 					x: pos.x, y: pos.y,
 					count: 4,
-					texture: getParticleTexture('petal'),
+					...particleAssetFor('petal', { animFps: 18 }),
 					speed: [40, 120], gravity: 60, drag: 0.5, life: [900, 1600],
 					scaleStart: [0.22, 0.4], alphaStart: 0.9,
 					tints: [0xffd9e8, 0xfff0f6, 0xffc4dd],

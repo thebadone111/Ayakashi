@@ -404,6 +404,11 @@ interface Particle {
 	gravity: number;
 	drag: number;
 	active: boolean;
+	/** Optional flipbook — cycles `frames` at `frameMs` per frame. null = static. */
+	frames: Texture[] | null;
+	frameMs: number;
+	frameTime: number;
+	frameIdx: number;
 }
 
 export interface EmitConfig {
@@ -411,6 +416,10 @@ export interface EmitConfig {
 	y: number;
 	count: number;
 	texture?: Texture;
+	/** Optional flipbook frames. If set, each particle cycles `animFrames` at
+	 *  `animFps` (default 24) starting from a random frame for natural variety. */
+	animFrames?: Texture[];
+	animFps?: number;
 	/** [min, max] speed px/sec */
 	speed?: [number, number];
 	/** [min, max] emission angle in radians (0 = right, -PI/2 = up) */
@@ -457,6 +466,8 @@ export class ParticlePool {
 		const {
 			x, y, count,
 			texture = this.defaultTexture,
+			animFrames,
+			animFps = 24,
 			speed = [60, 240],
 			angle = [0, Math.PI * 2],
 			gravity = 0,
@@ -470,13 +481,25 @@ export class ParticlePool {
 			tints = [PALETTE.WHITE],
 			blendMode = 'add',
 		} = config;
+		const useAnim = animFrames && animFrames.length > 1;
+		const frameMs = useAnim ? 1000 / animFps : 0;
 
 		for (let i = 0; i < count; i++) {
 			const p = this.obtain();
 			if (!p) break; // capacity reached — drop excess, never grow unbounded
 			const a = rand(angle[0], angle[1]);
 			const s = rand(speed[0], speed[1]);
-			p.sprite.texture = texture;
+			if (useAnim) {
+				const startIdx = (Math.random() * animFrames!.length) | 0;
+				p.frames = animFrames!;
+				p.frameMs = frameMs;
+				p.frameIdx = startIdx;
+				p.frameTime = 0;
+				p.sprite.texture = animFrames![startIdx];
+			} else {
+				p.frames = null;
+				p.sprite.texture = texture;
+			}
 			p.sprite.position.set(x, y);
 			p.sprite.tint = tints[(Math.random() * tints.length) | 0];
 			p.sprite.blendMode = blendMode;
@@ -508,6 +531,7 @@ export class ParticlePool {
 			sprite, vx: 0, vy: 0, life: 0, maxLife: 1,
 			scaleStart: 1, scaleEnd: 0, alphaStart: 1, alphaEnd: 0,
 			rotationSpeed: 0, gravity: 0, drag: 1, active: false,
+			frames: null, frameMs: 0, frameTime: 0, frameIdx: 0,
 		};
 		this.pool.push(p);
 		return p;
@@ -534,6 +558,14 @@ export class ParticlePool {
 			const scale = p.scaleStart + (p.scaleEnd - p.scaleStart) * t;
 			p.sprite.scale.set(scale);
 			p.sprite.alpha = p.alphaStart + (p.alphaEnd - p.alphaStart) * t;
+			if (p.frames) {
+				p.frameTime += deltaMS;
+				while (p.frameTime >= p.frameMs) {
+					p.frameTime -= p.frameMs;
+					p.frameIdx = (p.frameIdx + 1) % p.frames.length;
+				}
+				p.sprite.texture = p.frames[p.frameIdx];
+			}
 		}
 	}
 

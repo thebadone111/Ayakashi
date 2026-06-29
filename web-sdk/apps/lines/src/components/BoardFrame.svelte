@@ -13,7 +13,7 @@
 	import { Sprite } from 'pixi-svelte';
 
 	import { getContext } from '../game/context';
-	import { FRAME_RATIOS } from '../game/constants';
+	import { FRAME_RATIOS, FRAME_OUTER_HALF } from '../game/constants';
 	import { TweenRunner, PALETTE, easings } from '../game/animations';
 	import FxHost from './FxHost.svelte';
 
@@ -37,11 +37,12 @@
 		if (!app) return;
 		tweens = new TweenRunner(app.ticker);
 
-		const { x, y, width, height } = frameLayout;
+		const { x, y } = frameLayout;
+		const bLayout = context.stateGameDerived.boardLayout();
+		// Outer visible frame border dimensions (measured from sumi brush frame opaque extent).
+		const outerW = bLayout.width * FRAME_OUTER_HALF.width * 2;
+		const outerH = bLayout.height * FRAME_OUTER_HALF.height * 2;
 
-		// Warm GOLD halo (was blue FOXFIRE, which clashed with the red/gold frame
-		// and read as a stray blue border in free spins — B3). Softer + hugs the
-		// frame so it looks like the lacquer lighting up, not a separate ring.
 		glowGraphics = new PIXI.Graphics();
 		for (const [pad, stroke, alpha] of [
 			[12, 16, 0.05],
@@ -49,7 +50,7 @@
 			[1, 4, 0.22],
 		] as const) {
 			glowGraphics
-				.roundRect(-width / 2 - pad, -height / 2 - pad, width + pad * 2, height + pad * 2, 28)
+				.roundRect(-outerW / 2 - pad, -outerH / 2 - pad, outerW + pad * 2, outerH + pad * 2, 28)
 				.stroke({ color: PALETTE.GOLD, width: stroke, alpha });
 		}
 		glowGraphics.blendMode = 'add';
@@ -88,19 +89,7 @@
 
 <FxHost zIndex={-1} onhost={hostGlow} />
 
-<!-- lacquered ink-cloud panel behind the reels. The frame's transparent window
-     is board x 1.02 (see FRAME_RATIOS), so 1.08 covers the window and tucks the
-     panel edge under the lacquer border (border is ~12% of frame width). -->
-<Sprite
-	key="frameBgPanel"
-	anchor={0.5}
-	x={frameLayout.x}
-	y={frameLayout.y}
-	width={context.stateGameDerived.boardLayout().width * 1.08}
-	height={context.stateGameDerived.boardLayout().height * 1.08}
-/>
-
-<!-- hero red/gold lacquer frame on top (reel_frame.png, rembg'd) -->
+<!-- reel frame on top — bg_bg shows through the transparent window -->
 <Sprite
 	key="reelFrame"
 	anchor={0.5}

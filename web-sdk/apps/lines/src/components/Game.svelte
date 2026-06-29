@@ -114,8 +114,8 @@
 				<Sprite
 					key="logo"
 					anchor={{ x: 1, y: 0 }}
-					width={300}
-					height={300 * (270 / 690)}
+					width={220}
+					height={220 * (270 / 690)}
 				/>
 			{/snippet}
 		</UI>

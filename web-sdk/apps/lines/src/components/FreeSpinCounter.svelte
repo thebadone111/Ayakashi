@@ -10,31 +10,37 @@
 	import { FadeContainer } from 'components-pixi';
 
 	import { getContext } from '../game/context';
-	import { SYMBOL_SIZE } from '../game/constants';
+	import { SYMBOL_SIZE, FRAME_OUTER_HALF } from '../game/constants';
 	import { anchorToPivot, Text, Container, Sprite, type Sizes } from 'pixi-svelte';
 
 	const context = getContext();
-	const PANEL_KEY_DESKTOP = 'fsCounterPanel'; // ornate oni-emblem panel
-	const PANEL_RATIO_DESKTOP = 4 / 3;
+	const PANEL_KEY_DESKTOP = 'fsCounterPanel';
+	// B_iron_plate_flux_03: 2368x1792
+	const PANEL_RATIO_DESKTOP = 2368 / 1792;
 	const panelKey = PANEL_KEY_DESKTOP;
-	const panelWidth = $derived(SYMBOL_SIZE * 2);
+	const panelWidth = $derived(SYMBOL_SIZE * 2.9);
 	const panelSizes = $derived({
 		width: panelWidth,
 		height: panelWidth / PANEL_RATIO_DESKTOP,
 	});
 	const scale = 1;
-	// right of the reels frame (board sits left now) — clear of the frame art
+	// Positioned to the RIGHT of the reel frame, vertically near the frame top.
+	// x: visible frame right border edge (board centre + board.width * FRAME_OUTER_HALF.width) + 8px gap
+	// y: visible frame top border edge + small inset
 	const position = $derived({
 		x:
 			context.stateGameDerived.boardLayout().x +
-			context.stateGameDerived.boardLayout().width * 0.5 +
-			SYMBOL_SIZE * 0.9,
+			context.stateGameDerived.boardLayout().width * FRAME_OUTER_HALF.width +
+			8 -
+			context.stateGameDerived.boardLayout().width * 0.08,
 		y:
 			context.stateGameDerived.boardLayout().y -
-			context.stateGameDerived.boardLayout().height * 0.5,
+			context.stateGameDerived.boardLayout().height * FRAME_OUTER_HALF.height +
+			16 +
+			context.stateGameDerived.boardLayout().height * 0.15,
 	});
 
-	const fontSize = SYMBOL_SIZE * 0.275;
+	const fontSize = SYMBOL_SIZE * 0.22;
 
 	let show = $state(false);
 	let current = $state(0);

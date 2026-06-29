@@ -23,4 +23,4 @@
 	};
 </script>
 
-<UiButton {...props} {sizes} {onpress} {disabled} icon="increase" labelScale={1.7} />
+<UiButton {...props} {sizes} {onpress} {disabled} icon="increase" iconKey="iconArrowUp" iconScale={0.55} />

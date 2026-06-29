@@ -2,34 +2,41 @@ import _ from 'lodash';
 
 import type { RawSymbol, SymbolState } from './types';
 
-export const SYMBOL_SIZE = 80; // 5x5 board at 400x400 (-20% per Max's feedback)
+export const SYMBOL_SIZE = 115; // scale test — tighter grid
 
 export const REEL_PADDING = 0.53;
 
 // Board placement as a fraction of the main layout — shared by boardLayout()
-// and fxManager.boardOrigin(). Moved toward centre (0.34 -> 0.43) per Max so
-// the reel frame sits more central; the avatar moves in from the right to match.
-// Round 4c (Max): nudged 5% LEFT (0.43 -> 0.38). Vertical settled at 0.44 — up
-// 5% then back down 2% (0.47 -> 0.42 -> 0.44) so the frame top keeps clear of
-// the bg foreground edge. The avatar moves in from the right to compensate.
-export const BOARD_ANCHOR = { x: 0.38, y: 0.44 };
+// and fxManager.boardOrigin(). 2026-06-27 (Max): pulled 10% LEFT from 0.62 so
+// the reel sits more central in the canvas and clears the top-right logo.
+// Avatar holds at 0.18 on the LEFT; FS counter is anchored on the frame's
+// top-centre rather than between avatar+frame (there's no longer a wide enough
+// gap between them once the avatar grew). Y unchanged.
+export const BOARD_ANCHOR = { x: 0.515, y: 0.405 };
 
-// Frame assembly: frame_bg1 panel behind the reels, reel_frame.webp (new HQ
-// cloud-FLUX ornate red/gold frame) on top. MEASURED (process-reel-frame.py):
-// this frame's transparent square window is 72.8% x 68.8% of the art, so the
-// frame is scaled up by 1/fraction to map the window onto the board.
+// Frame assembly: reel_frame.webp (B_sumi_brush_flux_02 ink-wash frame) on top.
+// MEASURED (transparent-centre flood-fill on 2048x2048 source):
+// window at (475,454)→(1578,1592) = 1103x1138 px → 53.9% x 55.6% of image.
 export const FRAME_RATIOS = {
-	width: 1 / 0.728,
-	height: 1 / 0.688,
+	width: 1 / 0.5386,
+	height: 1 / 0.5557,
 };
 
-// 5x5 visible board + 1 padding row top and bottom = 7 symbols per reel.
+// Outer visible frame border edge as a multiple of the board half-dimension.
+// B_sumi_brush_flux_02 opaque extent (321,249)→(1744,1773) in 2048×2048.
+// Used for: FS counter x/y positioning, free-spin glow rectangle.
+export const FRAME_OUTER_HALF = {
+	width: 0.653,  // right outer edge ≈ boardCenter ± board.width  * 0.653
+	height: 0.681, // top  outer edge ≈ boardCenter ± board.height * 0.681
+};
+
+// 5x4 visible board + 1 padding row top and bottom = 6 symbols per reel.
 const INITIAL_BOARD_NAMES = [
-	['L2', 'L1', 'L4', 'H2', 'L1', 'L3', 'H4'],
-	['H1', 'L5', 'L2', 'H3', 'L4', 'L1', 'L2'],
-	['L3', 'L5', 'L3', 'H4', 'L4', 'L2', 'H2'],
-	['H4', 'H3', 'L4', 'L5', 'L1', 'L3', 'L5'],
-	['H3', 'L3', 'L3', 'H1', 'H1', 'L4', 'L1'],
+	['L2', 'L1', 'L4', 'H2', 'L1', 'H4'],
+	['H1', 'L5', 'L2', 'H3', 'L4', 'L2'],
+	['L3', 'L5', 'L3', 'H4', 'L4', 'H2'],
+	['H4', 'H3', 'L4', 'L5', 'L1', 'L5'],
+	['H3', 'L3', 'L3', 'H1', 'H1', 'L1'],
 ] as const;
 
 export const INITIAL_BOARD: RawSymbol[][] = INITIAL_BOARD_NAMES.map((reel) =>
@@ -95,6 +102,20 @@ export const SPIN_OPTIONS_FAST = {
 	reelSpinDelay: 70,
 };
 
+// speedMode 2 ("fast" / gold bolt): near-instant reel resolution — minimal
+// padding, no bounce, no per-reel stagger. speedMode 1 ("medium") keeps using
+// SPIN_OPTIONS_FAST above so the two turbo tiers feel distinct.
+export const SPIN_OPTIONS_FASTEST = {
+	reelPreSpinSpeed: 8,
+	reelSpinSpeed: 9,
+	reelBounceSizeMulti: 0,
+	reelBounceBackSpeed: 0.25,
+	reelSpinSpeedBeforeBounce: 9,
+	reelPaddingMultiplierNormal: 0.6,
+	reelPaddingMultiplierAnticipated: 4,
+	reelSpinDelay: 0,
+};
+
 export const MOTION_BLUR_VELOCITY = 31;
 
 export const zIndexes = {
@@ -107,7 +128,7 @@ export const zIndexes = {
 
 // All symbol states are static sprites from the Ayakashi atlas.
 // Motion (win pop, landing, explosion) is procedural — see game/fxManager.ts.
-const spriteState = (assetKey: string, ratio = 0.92) =>
+const spriteState = (assetKey: string, ratio = 1.22) =>
 	({ type: 'sprite', assetKey, sizeRatios: { width: ratio, height: ratio } }) as const;
 
 const makeSymbolInfo = (assetKey: string, ratio?: number) => {

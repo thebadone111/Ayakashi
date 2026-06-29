@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import type { Tween } from 'svelte/motion';
 
-import { stateBet } from 'state-shared';
+import { stateBet, stateBetDerived } from 'state-shared';
 import { createEnhanceBoard, createReelForSpinning } from 'utils-slots';
 import { createGetWinLevelDataByWinLevelAlias } from 'utils-shared/winLevel';
 
@@ -18,6 +18,7 @@ import {
 	BOARD_DIMENSIONS,
 	SPIN_OPTIONS_DEFAULT,
 	SPIN_OPTIONS_FAST,
+	SPIN_OPTIONS_FASTEST,
 	INITIAL_SYMBOL_STATE,
 	SCATTER_LAND_SOUND_MAP,
 } from './constants';
@@ -69,8 +70,13 @@ const board = _.range(BOARD_DIMENSIONS.x).map((reelIndex) => {
 		onSymbolLand: ({ rawSymbol }) => onSymbolLand({ rawSymbol, reelIndex }),
 	});
 
-	reel.reelState.spinOptions = () =>
-		reel.reelState.spinType === 'fast' ? SPIN_OPTIONS_FAST : SPIN_OPTIONS_DEFAULT;
+	// spinType is 'fast' for both turbo tiers (the shared engine only knows the
+	// boolean isTurbo); speedMode distinguishes medium (1 → FAST) from fast
+	// (2 → FASTEST). Non-turbo and anticipated spins keep the default feel.
+	reel.reelState.spinOptions = () => {
+		if (reel.reelState.spinType !== 'fast') return SPIN_OPTIONS_DEFAULT;
+		return stateBetDerived.effectiveSpeedMode() === 2 ? SPIN_OPTIONS_FASTEST : SPIN_OPTIONS_FAST;
+	};
 
 	return reel;
 });

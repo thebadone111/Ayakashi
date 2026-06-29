@@ -55,7 +55,7 @@ import {
 	delay,
 	fxBus,
 } from './fx';
-import { getParticleTexture } from './particleLib';
+import { getParticleTexture, particleAssetFor } from './particleLib';
 
 export type BigWinAlias = 'big' | 'superwin' | 'mega' | 'epic' | 'max';
 
@@ -454,7 +454,7 @@ export class WinCelebration {
 		this.particles.emit({
 			x: cx, y: cy,
 			count: Math.round(tier.burstCount * 0.25 * scale),
-			texture: getParticleTexture('petal'),
+			...particleAssetFor('petal', { animFps: 20 }),
 			speed: [200, 600],
 			angle: [-Math.PI, 0],
 			gravity: 500,

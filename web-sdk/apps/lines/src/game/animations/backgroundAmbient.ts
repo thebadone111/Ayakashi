@@ -30,6 +30,7 @@
 import { Application, Container, Sprite, Texture, Ticker } from 'pixi.js';
 
 import { PALETTE, TweenRunner, ParticlePool, easings } from './fx';
+import { particleAssetFor } from './particleLib';
 
 export interface BackgroundAmbientOptions {
 	app: Application;
@@ -46,13 +47,34 @@ export interface BackgroundAmbientOptions {
 
 type Mood = 'base' | 'freespin';
 
+// Ambient ember density was 280 ms (≈3.6/sec) base / 140 ms (≈7/sec) freespin —
+// felt twitchy against the new HQ Seedream02 painting which already carries its
+// own warmth. Halved (and a touch more) on 2026-06-27 to read as occasional
+// drifting embers rather than a constant rain.
 const MOOD_TINTS: Record<Mood, { base: number; effect: number; emberEveryMs: number }> = {
-	base: { base: 0xffffff, effect: 0xffffff, emberEveryMs: 280 },
-	freespin: { base: 0xcdb8e8, effect: 0xb794e6, emberEveryMs: 140 },
+	base: { base: 0xffffff, effect: 0xffffff, emberEveryMs: 700 },
+	freespin: { base: 0xcdb8e8, effect: 0xb794e6, emberEveryMs: 320 },
 };
 
-/** Big lazy foxfire wisp, every few seconds. */
-const WISP_EVERY_MS = 3800;
+/** Big lazy foxfire wisp — bumped 3800 → 8500 ms so it reads as rare. */
+const WISP_EVERY_MS = 8500;
+
+/** Vertical bias for the bg painting in main-space (fraction of canvas height).
+ *  Was -0.04 (lifted up) on 2026-06-27 morning — reverted to 0 the same day
+ *  because the lift was disconnecting the bg from the bottom of the canvas
+ *  visually. Centred again so the painting fills cleanly. */
+const BG_Y_BIAS = 0;
+
+/** Over-scan applied to the bg base & effect on cover-fit. Bumped 1.06 → 1.12
+ *  on 2026-06-27 — Max wanted the bg "way more noticeable, stand on its own".
+ *  A larger cover lets the painted detail dominate instead of sitting tightly
+ *  in the safe area. Within reason: too high cuts off the torii. */
+const BG_COVER_EXTRA = 1.12;
+
+/** Ambient sakura petal drift — visible from rest. The petal flipbook (5 sheet
+ *  variants × 16 frames) is wired via particleLib; one petal every PETAL_MS so
+ *  ~3-4 are in flight at any time. */
+const PETAL_EVERY_MS = 800;
 
 export class BackgroundAmbient {
 	private app: Application;
@@ -73,6 +95,7 @@ export class BackgroundAmbient {
 	private elapsed = 0;
 	private emberAccumulator = 0;
 	private wispAccumulator = 0;
+	private petalAccumulator = 0;
 	private tick = (ticker: Ticker) => this.update(ticker.deltaMS);
 
 	constructor(opts: BackgroundAmbientOptions) {
@@ -97,11 +120,11 @@ export class BackgroundAmbient {
 			this.mistB = new Sprite(opts.textures.mist);
 			for (const m of [this.mistA, this.mistB]) {
 				m.anchor.set(0.5);
-				m.alpha = 0.5;
+				m.alpha = 0.10;
 				this.root.addChild(m);
 			}
 			this.mistB.scale.x = -1; // mirrored so the seam never reads as a repeat
-			this.mistB.alpha = 0.35;
+			this.mistB.alpha = 0.07;
 		}
 
 		// embers between mist and effect pass
@@ -164,13 +187,14 @@ export class BackgroundAmbient {
 	private layout() {
 		const cx = this.width / 2;
 		const cy = this.height / 2;
-		const cover = (sprite: Sprite, extra = 1) => {
+		const cyBg = cy + this.height * BG_Y_BIAS;
+		const cover = (sprite: Sprite, extra = 1, y = cy) => {
 			const scale = Math.max(this.width / sprite.texture.width, this.height / sprite.texture.height) * extra;
 			sprite.scale.set(scale * Math.sign(sprite.scale.x || 1), scale);
-			sprite.position.set(cx, cy);
+			sprite.position.set(cx, y);
 		};
-		cover(this.base, 1.04); // slight over-scan leaves room for the zoom breath
-		if (this.effect) cover(this.effect, 1.04);
+		cover(this.base, BG_COVER_EXTRA, cyBg);
+		if (this.effect) cover(this.effect, BG_COVER_EXTRA, cyBg);
 		if (this.trim) cover(this.trim, 1);
 		if (this.mistA) cover(this.mistA, 1.3); // wide over-scan for drift travel
 		if (this.mistB) cover(this.mistB, 1.3);
@@ -181,16 +205,13 @@ export class BackgroundAmbient {
 		const t = this.elapsed / 1000;
 		const cx = this.width / 2;
 		const cy = this.height / 2;
+		const cyBg = cy + this.height * BG_Y_BIAS;
 		const cover = (sprite: Sprite, extra: number) =>
 			Math.max(this.width / sprite.texture.width, this.height / sprite.texture.height) * extra;
 
-		// base — zoom breath (9 s, ±2%) + slow parallax sway
-		const breath = 1 + Math.sin((t / 9) * Math.PI * 2) * 0.02;
-		this.base.scale.set(cover(this.base, 1.06) * breath);
-		this.base.position.set(
-			cx + Math.sin(t / 17) * this.width * 0.012,
-			cy + Math.sin(t / 21 + 1.2) * this.height * 0.008,
-		);
+		// base — static cover-fit, no zoom or parallax
+		this.base.scale.set(cover(this.base, BG_COVER_EXTRA));
+		this.base.position.set(cx, cyBg);
 
 		// mist drift — wider, faster, with alpha breathing (living fog)
 		const driftRange = this.width * 0.13;
@@ -199,35 +220,29 @@ export class BackgroundAmbient {
 				cx + Math.sin(t / 14) * driftRange,
 				cy + Math.sin(t / 19) * driftRange * 0.35,
 			);
-			this.mistA.alpha = 0.5 + Math.sin(t / 7) * 0.15;
+			this.mistA.alpha = 0.10 + Math.sin(t / 7) * 0.04;
 		}
 		if (this.mistB) {
 			this.mistB.position.set(
 				cx - Math.sin(t / 11 + 1.7) * driftRange,
 				cy + Math.cos(t / 16) * driftRange * 0.3,
 			);
-			this.mistB.alpha = 0.35 + Math.sin(t / 9 + 2.4) * 0.12;
+			this.mistB.alpha = 0.07 + Math.sin(t / 9 + 2.4) * 0.03;
 		}
 
-		// effect glow — the floating lights get real travel: a slow lissajous
-		// drift plus swell and flicker, so the glow pass visibly wanders
+		// effect glow — toned down 2026-06-27. The new HQ Seedream02 painting
+		// already carries its own warmth, so the additive glow pass was reading
+		// twitchy on top. Now a slow swell only (no 5.3 / 11.7 Hz flicker), with
+		// alpha capped lower and a much narrower position drift. Sits with the
+		// painting instead of fighting it.
 		if (this.effect) {
-			// slow deep pulse (the lights visibly breathe) + organic flicker on top
-			this.effect.alpha =
-				0.52 +
-				(Math.sin(t * 0.6) * 0.5 + 0.5) * 0.3 +
-				Math.sin(t * 5.3 + 2) * 0.06 +
-				Math.sin(t * 11.7) * 0.03;
-			this.effect.scale.set(cover(this.effect, 1.1) * (1 + Math.sin(t * 1.3) * 0.022));
-			this.effect.position.set(
-				cx + Math.sin(t / 6.5) * this.width * 0.022,
-				cy + Math.sin(t / 8.7 + 1.3) * this.height * 0.016,
-			);
+			this.effect.alpha = 0.30 + (Math.sin(t * 0.6) * 0.5 + 0.5) * 0.12;
+			this.effect.scale.set(cover(this.effect, BG_COVER_EXTRA));
+			this.effect.position.set(cx, cyBg);
 		}
 
-		// trim — counter-parallax shimmer so foreground separates from the painting
 		if (this.trim) {
-			this.trim.position.set(cx - Math.sin(t / 15 + 1) * this.width * 0.008, cy);
+			this.trim.position.set(cx, cy);
 			this.trim.alpha = 0.92 + Math.sin(t * 2.6) * 0.06;
 		}
 
@@ -270,6 +285,35 @@ export class BackgroundAmbient {
 				scaleEnd: 0,
 				alphaStart: 0.4,
 				tints: [PALETTE.FOXFIRE, PALETTE.SPIRIT],
+			});
+		}
+
+		// Ambient sakura petals — spawned just above the canvas top, drifting
+		// down with a slight side breeze. Uses the Wan/Hailuo flipbook sheets
+		// so each petal tumbles realistically. Random sheet per particle (one
+		// of five) so a steady stream reads varied, not mechanical. Animation
+		// is registered lazily by fxManager; if it hasn't loaded yet,
+		// particleAssetFor() returns {} and the particle uses the glow dot —
+		// the stream still works, just less pretty until the textures land.
+		this.petalAccumulator += deltaMS;
+		if (this.petalAccumulator >= PETAL_EVERY_MS) {
+			this.petalAccumulator = 0;
+			this.particles.emit({
+				x: Math.random() * this.width,
+				y: -30,
+				count: 1,
+				...particleAssetFor('petal', { animFps: 14 }),
+				speed: [40, 110],
+				angle: [Math.PI * 0.42, Math.PI * 0.58], // mostly downward, slight side drift
+				drag: 0.7,
+				life: [7000, 12000],
+				scaleStart: [0.20, 0.38],
+				scaleEnd: 0.10,
+				alphaStart: 0.85,
+				alphaEnd: 0,
+				rotationSpeed: [-0.8, 0.8],
+				tints: [0xffd9e8, 0xffe3ec, 0xffc4dd, 0xffffff],
+				blendMode: 'normal',
 			});
 		}
 	}

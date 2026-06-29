@@ -10,7 +10,7 @@
 
 	const props: Partial<Omit<ButtonProps, 'children'>> = $props();
 	const context = getContext();
-	const sizes = { width: UI_BASE_SIZE * 1.45, height: UI_BASE_SIZE };
+	const sizes = { width: UI_BASE_SIZE, height: UI_BASE_SIZE };
 	const active = $derived(stateBetDerived.hasAutoBetCounter());
 	const disabled = $derived.by(() => {
 		if (stateBet.isSpaceHold) return true;
@@ -27,7 +27,7 @@
 	};
 </script>
 
-<UiButton {...props} {sizes} {active} {onpress} {disabled} icon="autoSpin">
+<UiButton {...props} {sizes} {active} {onpress} {disabled} icon="autoSpin" iconKey="iconAutospin" iconScale={0.6}>
 	<Container x={sizes.width * 0.5} y={sizes.height * 0.5}>
 		<ButtonBetAutoSpinsCounter />
 	</Container>

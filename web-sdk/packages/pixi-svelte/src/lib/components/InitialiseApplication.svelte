@@ -29,7 +29,8 @@
 			preference: 'webgpu',
 			powerPreference: 'high-performance',
 			resolution: devicePixelRatio.current,
-			resizeTo: window,
+			resizeTo: wrap,
+			textureGCActive: false,
 		});
 
 		wrap.appendChild(context.stateApp.pixiApplication.canvas);
@@ -55,7 +56,10 @@
 	});
 </script>
 
-<div bind:this={wrap}>
+<div
+	bind:this={wrap}
+	style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(100vw, 1200px); height: min(100vh, 675px); overflow: hidden;"
+>
 	{#if initialised}
 		{@render props.children()}
 	{/if}

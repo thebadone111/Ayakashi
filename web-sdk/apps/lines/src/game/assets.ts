@@ -25,11 +25,7 @@ export default {
 		src: new URL('../../assets/sprites/background/bg_bg.webp', import.meta.url).href,
 		preload: true,
 	},
-	bgFg: {
-		type: 'sprite',
-		src: new URL('../../assets/sprites/background/bg_fg.webp', import.meta.url).href,
-		preload: true,
-	},
+	// bgFg dropped 2026-06-27: cherry branches are now baked into bg_bg.
 	bgEffect: {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/background/bg_effect.webp', import.meta.url).href,
@@ -45,6 +41,9 @@ export default {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/avatar/avatar.webp', import.meta.url).href,
 	},
+	// avatarIdleSheet removed 2026-06-27 — old sheet was baked from the old
+	// avatar art. New still landed without a fresh Wan I2V pass; the sheet
+	// will return after that pass runs (see HANDOFF.md §7 option B).
 	// Ayakashi logo — baked PNG/webp (NinjaKage brush title + 妖かし). Baked with
 	// real fonts via bake-logo.py because PIXI can't apply web fonts to SVG text.
 	logo: {
@@ -93,25 +92,60 @@ export default {
 		type: 'font',
 		src: new URL('../../assets/fonts/purpleFont/mm_purple.xml', import.meta.url).href,
 	},
-	// ── Betting-UI lacquer set (U1) — bespoke RunComfy art, cut to alpha ──
-	// Consumed by the core components-ui-pixi components via UiSprite key lookup:
-	//   bet         → ornate spin-button medallion (ButtonBet)
-	//   base_button → standard lacquer button plate (UiButton dark variant)
-	//   base_ticker → balance/win/bet readout plaque (UiLabel)
+	// ── Betting-UI icon set ──
+	// icon_menu      → hamburger menu (black/transparent, tinted white in-engine)
+	// icon_bolt_slow → thin outline lightning bolt (turbo mode 0 = normal)
+	// icon_bolt_med  → solid black bolt (turbo mode 1 = medium)
+	// icon_bolt_fast → gold bolt (turbo mode 2 = fast)
+	// icon_arrow_up  → up arrow; reused rotated 180° for decrease
+	// icon_autospin  → circular arrows for AutoSpin button
+	iconMenu: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/icon_menu.webp', import.meta.url).href,
+		preload: true,
+	},
+	iconBoltSlow: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/icon_bolt_slow.webp', import.meta.url).href,
+		preload: true,
+	},
+	iconBoltMed: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/icon_bolt_med.webp', import.meta.url).href,
+		preload: true,
+	},
+	iconBoltFast: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/icon_bolt_fast.webp', import.meta.url).href,
+		preload: true,
+	},
+	iconArrowUp: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/icon_arrow_up.webp', import.meta.url).href,
+		preload: true,
+	},
+	iconAutospin: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/icon_autospin.webp', import.meta.url).href,
+		preload: true,
+	},
+	iconSpin: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/icon_spin.webp', import.meta.url).href,
+		preload: true,
+	},
+	// legacy bespoke assets (no longer used by UI buttons — kept to avoid 404)
 	bet: {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/spin_medallion.webp', import.meta.url).href,
-		preload: true,
 	},
 	base_button: {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/base_button.webp', import.meta.url).href,
-		preload: true,
 	},
 	base_ticker: {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/uiSlotsAssetsBespoke/base_ticker.webp', import.meta.url).href,
-		preload: true,
 	},
 	// loading + ui sprites
 	progressBar: {
@@ -138,9 +172,42 @@ export default {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/particles/ink_splat.webp', import.meta.url).href,
 	},
-	particlePetal: {
+	// Petal flipbook — five 4x4 Wan/Hailuo I2V sheets (16 frames each, 256 px /
+	// frame). fxManager slices each sheet into 16 Textures at load time and
+	// registers all five with particleLib; pickParticleAnim() then random-picks
+	// a sheet PER PARTICLE at emit time so a falling swarm reads varied, not
+	// mechanical. Each particle also starts on a random frame within its sheet.
+	particlePetal1: {
 		type: 'sprite',
-		src: new URL('../../assets/sprites/particles/petal.webp', import.meta.url).href,
+		src: new URL('../../assets/sprites/particles/petals/petal_v1_wan.webp', import.meta.url).href,
+	},
+	particlePetal2: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/petals/petal_v1_hailuo.webp', import.meta.url).href,
+	},
+	particlePetal3: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/petals/petal_v3_hailuo.webp', import.meta.url).href,
+	},
+	particlePetal4: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/petals/petal_v5_wan.webp', import.meta.url).href,
+	},
+	particlePetal5: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/petals/petal_v5_hailuo.webp', import.meta.url).href,
+	},
+	particlePetal6: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/petals/petal_v3_wan.webp', import.meta.url).href,
+	},
+	particlePetal7: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/petals/petal_v4_hailuo.webp', import.meta.url).href,
+	},
+	particlePetal8: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/petals/petal_v2_wan.webp', import.meta.url).href,
 	},
 	particlePaper: {
 		type: 'sprite',

@@ -27,4 +27,11 @@ export { LoaderOrbs, type LoaderOrbsOptions } from './loaderFx';
 export { LoadingScene, type LoadingSceneOptions } from './loadingScene';
 export { PostFx, type PostFxOptions } from './postFx';
 export { CameraGrammar, type CameraGrammarOptions } from './cameraGrammar';
-export { setParticleTexture, getParticleTexture, type ParticleName } from './particleLib';
+export {
+	setParticleTexture,
+	setParticleAnim,
+	getParticleTexture,
+	pickParticleAnim,
+	particleAssetFor,
+	type ParticleName,
+} from './particleLib';

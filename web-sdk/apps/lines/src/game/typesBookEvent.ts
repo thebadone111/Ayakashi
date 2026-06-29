@@ -130,9 +130,7 @@ export type BookEvent =
 	| BookEventUpdateTumbleWin
 	| BookEventFreeSpinRetrigger
 	| BookEventFsMultiplier
-	| BookEventWincap
-	// customised
-	| BookEventCreateBonusSnapshot;
+	| BookEventWincap;
 
 export type Bet = BetType<BookEvent>;
 export type BookEventOfType<T> = Extract<BookEvent, { type: T }>;

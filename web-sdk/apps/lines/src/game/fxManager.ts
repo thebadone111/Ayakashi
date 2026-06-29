@@ -17,8 +17,8 @@
  * acceptable for Storybook/desktop v1, revisit for production mobile.
  */
 
-import { Graphics } from 'pixi.js';
-import type { Application, Container, Texture } from 'pixi.js';
+import { Graphics, Rectangle, Texture } from 'pixi.js';
+import type { Application, Container } from 'pixi.js';
 
 import {
 	WinCelebration,
@@ -40,6 +40,7 @@ import {
 	PostFx,
 	CameraGrammar,
 	setParticleTexture,
+	setParticleAnim,
 	type ParticleName,
 } from './animations';
 
@@ -140,19 +141,70 @@ const boardCellToCanvas = (pos: Position) => {
 // Generated alpha sprites for ParticlePool (background-loaded; modules fall
 // back to the glow dot until these resolve). Refreshed on every module getter
 // because assets can land after the layers register.
-const PARTICLE_ASSET_MAP: Record<ParticleName, string> = {
+const PARTICLE_ASSET_MAP: Record<Exclude<ParticleName, 'petal'>, string> = {
 	ink: 'particleInk',
-	petal: 'particlePetal',
 	paper: 'particlePaper',
 	ember: 'particleEmber',
 	smoke: 'particleSmoke',
 	foxfire: 'particleFoxfire',
 };
 
+// Petal asset keys — each one is a 4x4 sprite sheet (16 frames at 256 px) of
+// a tumbling-rotation Wan/Hailuo I2V cycle. We slice each loaded sheet into a
+// Texture[] of frames and register all of them with particleLib so emit sites
+// random-pick one cycle per particle for natural ambient drift variety.
+const PETAL_SHEET_KEYS = [
+	'particlePetal1',
+	'particlePetal2',
+	'particlePetal3',
+	'particlePetal4',
+	'particlePetal5',
+	'particlePetal6',
+	'particlePetal7',
+	'particlePetal8',
+];
+const PETAL_GRID = { cols: 4, rows: 4 };
+
+// Cache the slice work — sheet sources don't change after load, so we only
+// build the frame arrays once per source.
+const _petalFrameCache = new Map<unknown, Texture[]>();
+
+const sliceSheet = (sheet: Texture, cols: number, rows: number): Texture[] => {
+	const cached = _petalFrameCache.get(sheet.source);
+	if (cached) return cached;
+	const fw = sheet.width / cols;
+	const fh = sheet.height / rows;
+	const frames: Texture[] = [];
+	for (let i = 0; i < cols * rows; i++) {
+		const c = i % cols;
+		const r = Math.floor(i / cols);
+		frames.push(
+			new Texture({
+				source: sheet.source,
+				frame: new Rectangle(c * fw, r * fh, fw, fh),
+			}),
+		);
+	}
+	// Ping-pong: append the sequence reversed (excluding endpoints) so the loop
+	// seam is invisible. [0..15] → [0..15, 14..1] = 30-frame seamless cycle.
+	// The particle pool starts each new particle at a random frame, so the swarm
+	// always looks varied even though every particle shares the same cycle.
+	const pingPong = [...frames, ...frames.slice(1, -1).reverse()];
+	_petalFrameCache.set(sheet.source, pingPong);
+	return pingPong;
+};
+
 const refreshParticleTextures = () => {
 	for (const [name, key] of Object.entries(PARTICLE_ASSET_MAP)) {
 		setParticleTexture(name as ParticleName, texture(key));
 	}
+	// Slice each loaded petal sheet into its 16 frames and register them.
+	const petalSheets: Texture[][] = [];
+	for (const key of PETAL_SHEET_KEYS) {
+		const sheet = texture(key);
+		if (sheet) petalSheets.push(sliceSheet(sheet, PETAL_GRID.cols, PETAL_GRID.rows));
+	}
+	setParticleAnim('petal', petalSheets);
 };
 
 const needBoardFx = (): Container => {
@@ -262,14 +314,18 @@ const registerAvatar = (container: Container) => {
 	const avatarTexture = texture('avatar');
 	if (avatarTexture) {
 		const main = stateLayoutDerived.mainLayout();
-		// right side of the screen (board sits left), large and raised
+		// Mirrored 2026-06-27 (Max): avatar on the LEFT. Height bumped 560 → 640
+		// the same day — source is 1536×2688 (aspect 0.571), so at h=640 she
+		// renders ~366 px wide in main-space, well under the avatar/frame gap.
+		// We're downsampling 4.2x from source, so plenty of headroom remains;
+		// further size bumps are texture-quality safe.
 		_avatar = new AvatarActor({
 			app: app(),
 			parent: container,
 			texture: avatarTexture,
-			x: main.width * 0.79, // Round 4c (Max): right to 0.81, then a touch back left to 0.79
-			y: main.height * 0.84, // Round 4c (Max): nudged up a touch (0.86 -> 0.84)
-			height: 560,
+			x: main.width * 0.155,
+			y: main.height * 0.81,
+			height: 640,
 		});
 		// reaction poses (img2img variants) — registered if present; the
 		// avatar no-ops the pose swap when a variant is missing
@@ -293,9 +349,13 @@ const registerBackground = (container: Container) => {
 			parent: container,
 			textures: {
 				base,
-				trim: texture('bgFg'),
-				effect: texture('bgEffect'),
-				mist: texture('bgMist'),
+				// trim (bg_fg) removed 2026-06-27: cherry branches baked into bg_bg.
+				// effect (bg_effect) also dropped 2026-06-27: bg already carries
+				// its own bokeh + light dynamics.
+				// mist (bg_mist) dropped 2026-06-27 (afternoon): Max wanted the
+				// remaining grey wash gone too — the new bg paints its own mist
+				// into the lower portion of the scene already, so a separate
+				// drifting mist layer was just washing the painting.
 			},
 			width: sizes.width,
 			height: sizes.height,

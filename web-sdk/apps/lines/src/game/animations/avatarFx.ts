@@ -64,6 +64,15 @@ export interface AvatarActorOptions {
 	verticesY?: number;
 	/** Subscribe to fxBus automatically (default true). */
 	autoReact?: boolean;
+	/**
+	 * Optional idle animation frames (the Wan 2.2 I2V output, sliced from
+	 * `avatar_idle_sheet`). When provided, the actor cycles through them in
+	 * ping-pong order at `idleFps`, swapping `mesh.texture` each step.
+	 * Suspended while a pose-swap twirl is active (cheer / wink).
+	 */
+	idleFrames?: Texture[];
+	/** Playback rate for idleFrames. Default 12. */
+	idleFps?: number;
 }
 
 interface Spring {
@@ -125,6 +134,14 @@ export class AvatarActor {
 	private baseTexture: Texture;
 	private pendingTexture: Texture | null = null;
 	private poseRevertTimer: ReturnType<typeof setTimeout> | null = null;
+	// Idle animation — ping-pong cycle through Wan-generated frames. Swaps
+	// mesh.texture each step. Suspended while a pose twirl is active so the
+	// pendingTexture / pose pose-swap mechanism isn't fighting the cycle.
+	private idleFrames: Texture[] = [];
+	private idleFps = 12;
+	private idleFrameIdx = 0;
+	private idleAcc = 0;
+	private poseActive = false;
 
 	private busHandlers: Partial<Record<FxEvent, (data?: unknown) => void>> = {};
 	// A throw here would abort the shared ticker frame and starve every FX
@@ -188,6 +205,14 @@ export class AvatarActor {
 		const buffer = this.mesh.geometry.getBuffer('aPosition');
 		this.basePositions = new Float32Array(buffer.data);
 		this.baseTexture = opts.texture;
+
+		// Expand sliced sheet to a ping-pong sequence so the loop is seamless
+		// without re-generating reverse frames: [0..15, 14..1] = 30 steps.
+		if (opts.idleFrames && opts.idleFrames.length > 1) {
+			const f = opts.idleFrames;
+			this.idleFrames = [...f, ...f.slice(1, -1).reverse()];
+			this.idleFps = opts.idleFps ?? 12;
+		}
 
 		if (opts.autoReact ?? true) this.subscribe();
 		this.app.ticker.add(this.tick);
@@ -267,11 +292,13 @@ export class AvatarActor {
 		const poseTexture = pose && this.poses[pose];
 		if (poseTexture) {
 			this.pendingTexture = poseTexture;
+			this.poseActive = true; // suspend idle-frame cycling
 			if (this.poseRevertTimer) clearTimeout(this.poseRevertTimer);
 			this.poseRevertTimer = setTimeout(() => {
 				this.poseRevertTimer = null;
 				if (this.destroyed || this.mesh.texture === this.baseTexture) return;
 				this.pendingTexture = this.baseTexture;
+				this.poseActive = false; // resume idle-frame cycling
 				this.twirl(1); // spin back to the base pose
 			}, 2600);
 		}
@@ -385,6 +412,20 @@ export class AvatarActor {
 			data[i + 1] = y0 + Math.sin(t * 2.6 + ny * 5.5 + x0 * 0.013) * waveAmp * 0.3 * topWeight;
 		}
 		buffer.update();
+
+		// --- idle frame cycling (Wan I2V sheet) --------------------------------
+		// Only when frames were supplied AND a pose isn't currently overriding.
+		// Ticks the frame index by real time so playback rate stays correct
+		// even when ticker.deltaMS spikes from a tab switch (already clamped to 50).
+		if (this.idleFrames.length && !this.poseActive) {
+			this.idleAcc += dt;
+			const frameTime = 1 / this.idleFps;
+			while (this.idleAcc >= frameTime) {
+				this.idleAcc -= frameTime;
+				this.idleFrameIdx = (this.idleFrameIdx + 1) % this.idleFrames.length;
+			}
+			this.mesh.texture = this.idleFrames[this.idleFrameIdx];
+		}
 
 		// --- aura -------------------------------------------------------------------
 		this.aura.alpha = 0.1 + this.excite * 0.22;
