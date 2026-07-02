@@ -100,7 +100,7 @@
 	height={context.stateGameDerived.boardLayout().height * 1.08}
 />
 
-<!-- hero red/gold lacquer frame on top (reel_frame.png, rembg'd) -->
+<!-- hero red/gold lacquer frame (reel_frame.png, rembg'd) -->
 <Sprite
 	key="reelFrame"
 	anchor={0.5}
@@ -109,3 +109,4 @@
 	width={frameLayout.width}
 	height={frameLayout.height}
 />
+

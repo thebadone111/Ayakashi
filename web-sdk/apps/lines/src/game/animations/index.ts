@@ -22,6 +22,7 @@ export { KanaboSmash, type KanaboSmashOptions } from './kanaboSmash';
 export { OfudaCharm, type OfudaCharmOptions } from './ofudaCharm';
 export { TumbleExplosion, type TumbleExplosionOptions } from './tumbleExplosion';
 export { SymbolWinFx, type SymbolTier, type SymbolWinFxOptions } from './symbolWinFx';
+export { SymbolWinAnimations, type SymbolWinAnimationsOptions } from './symbolWinAnimations';
 export { TransitionWipe, type TransitionWipeOptions } from './transitionWipe';
 export { LoaderOrbs, type LoaderOrbsOptions } from './loaderFx';
 export { LoadingScene, type LoadingSceneOptions } from './loadingScene';

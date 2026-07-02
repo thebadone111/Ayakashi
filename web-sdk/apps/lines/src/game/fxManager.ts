@@ -29,6 +29,7 @@ import {
 	OfudaCharm,
 	TumbleExplosion,
 	SymbolWinFx,
+	SymbolWinAnimations,
 	ReelSpinFx,
 	PaylineHighlight,
 	WildLandingAnimation,
@@ -77,6 +78,7 @@ let _kanabo: KanaboSmash | null = null;
 let _ofuda: OfudaCharm | null = null;
 let _tumbleExplosion: TumbleExplosion | null = null;
 let _symbolWinFx: SymbolWinFx | null = null;
+let _symbolWinAnimations: SymbolWinAnimations | null = null;
 let _reelSpinFx: ReelSpinFx | null = null;
 let _paylineHighlight: PaylineHighlight | null = null;
 let _wildLanding: WildLandingAnimation | null = null;
@@ -109,6 +111,9 @@ const app = (): Application => {
 
 const texture = (key: string): Texture | undefined =>
 	stateApp.loadedAssets?.[key] as Texture | undefined;
+
+const frames = (key: string): Texture[] | undefined =>
+	stateApp.loadedAssets?.[key] as Texture[] | undefined;
 
 const canvas = () => stateLayoutDerived.canvasSizes();
 
@@ -235,6 +240,8 @@ const registerBoardFx = (container: Container) => {
 		_wildLanding?.destroy();
 		_symbolIdles?.destroy();
 		_kanabo = _ofuda = _tumbleExplosion = _symbolWinFx = null;
+		_symbolWinAnimations?.destroy();
+		_symbolWinAnimations = null;
 		_reelSpinFx = _paylineHighlight = _wildLanding = null;
 		_symbolIdles = null;
 		if (boardFxLayer) boardFxLayer.mask = null;
@@ -422,6 +429,16 @@ const symbolWinFx = (): SymbolWinFx => {
 	return _symbolWinFx;
 };
 
+const symbolWinAnimations = (): SymbolWinAnimations => {
+	if (!_symbolWinAnimations) {
+		_symbolWinAnimations = new SymbolWinAnimations({
+			effectsLayer: needBoardFx(),
+			getFrames: frames,
+		});
+	}
+	return _symbolWinAnimations;
+};
+
 const reelSpinFx = (): ReelSpinFx => {
 	if (!_reelSpinFx) {
 		_reelSpinFx = new ReelSpinFx({
@@ -483,12 +500,11 @@ const winBurstAt = async (paddedPos: Position, symbolName?: string) => {
 					: symbolName?.startsWith('H')
 						? 'high'
 						: 'low';
-	await symbolWinFx().play({
-		symbol: undefined,
-		x: origin.x + (pos.reel + 0.5) * SYMBOL_SIZE,
-		y: origin.y + (pos.row + 0.5) * SYMBOL_SIZE,
-		tier,
-	});
+	const cx = origin.x + (pos.reel + 0.5) * SYMBOL_SIZE;
+	const cy = origin.y + (pos.row + 0.5) * SYMBOL_SIZE;
+	// Fire the per-symbol overlay animation (fire-and-forget — doesn't gate the book).
+	if (symbolName) symbolWinAnimations().play({ symbolName, x: cx, y: cy });
+	await symbolWinFx().play({ symbol: undefined, x: cx, y: cy, tier });
 };
 
 // --- win spotlight: dims the board except the winning cells -------------------

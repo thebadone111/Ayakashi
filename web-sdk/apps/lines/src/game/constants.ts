@@ -2,26 +2,15 @@ import _ from 'lodash';
 
 import type { RawSymbol, SymbolState } from './types';
 
-export const SYMBOL_SIZE = 80; // 5x5 board at 400x400 (-20% per Max's feedback)
+export const SYMBOL_SIZE = 90; // 5x5 board at 450x450
 
 export const REEL_PADDING = 0.53;
 
 // Board placement as a fraction of the main layout — shared by boardLayout()
-// and fxManager.boardOrigin(). Moved toward centre (0.34 -> 0.43) per Max so
-// the reel frame sits more central; the avatar moves in from the right to match.
-// Round 4c (Max): nudged 5% LEFT (0.43 -> 0.38). Vertical settled at 0.44 — up
-// 5% then back down 2% (0.47 -> 0.42 -> 0.44) so the frame top keeps clear of
-// the bg foreground edge. The avatar moves in from the right to compensate.
-export const BOARD_ANCHOR = { x: 0.38, y: 0.44 };
-
-// Frame assembly: frame_bg1 panel behind the reels, reel_frame.webp (new HQ
-// cloud-FLUX ornate red/gold frame) on top. MEASURED (process-reel-frame.py):
-// this frame's transparent square window is 72.8% x 68.8% of the art, so the
-// frame is scaled up by 1/fraction to map the window onto the board.
-export const FRAME_RATIOS = {
-	width: 1 / 0.728,
-	height: 1 / 0.688,
-};
+// and fxManager.boardOrigin(). Centered at (0.50, 0.41) so the board sits
+// inside the bg_fg frame window (window center ≈ 711, 330 in the 1422×800
+// desktop layout). The avatar stays on the right at x=0.79.
+export const BOARD_ANCHOR = { x: 0.50, y: 0.41 };
 
 // 5x5 visible board + 1 padding row top and bottom = 7 symbols per reel.
 const INITIAL_BOARD_NAMES = [
@@ -41,6 +30,15 @@ export const BOARD_DIMENSIONS = { x: INITIAL_BOARD.length, y: INITIAL_BOARD[0].l
 export const BOARD_SIZES = {
 	width: SYMBOL_SIZE * BOARD_DIMENSIONS.x,
 	height: SYMBOL_SIZE * BOARD_DIMENSIONS.y,
+};
+
+// reel_frame.webp border — constant pixel thickness in both axes so the inner
+// border shrinks proportionally as the board grows wider (more columns).
+// At 5×5 these reproduce the original 1/0.728 × 1/0.688 ratios.
+const FRAME_BORDER_CELLS = { width: 1.868, height: 2.267 };
+export const FRAME_RATIOS = {
+	width:  1 + FRAME_BORDER_CELLS.width  / BOARD_DIMENSIONS.x,
+	height: 1 + FRAME_BORDER_CELLS.height / BOARD_DIMENSIONS.y,
 };
 
 export const BACKGROUND_RATIO = 2039 / 1000;

@@ -1,0 +1,14 @@
+/home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/target/release/deps/libserde-bf4ed536ec074d1e.rmeta: /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/target/release/build/serde-0fc73efed9c3a709/out/private.rs
+
+/home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/target/release/deps/libserde-bf4ed536ec074d1e.rlib: /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/target/release/build/serde-0fc73efed9c3a709/out/private.rs
+
+/home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/target/release/deps/serde-bf4ed536ec074d1e.d: /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/target/release/build/serde-0fc73efed9c3a709/out/private.rs
+
+/home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/zakarias/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/target/release/build/serde-0fc73efed9c3a709/out/private.rs:
+
+# env-dep:OUT_DIR=/home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/target/release/build/serde-0fc73efed9c3a709/out

@@ -1,0 +1,1 @@
+/home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/target/release/PigFarmRust: /home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/src/exes.rs /home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/src/main.rs /home/zakarias/Documents/StakeGame/Ayakashi/optimization_program/src/setup.rs

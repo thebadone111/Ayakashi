@@ -19,6 +19,19 @@ export default {
 		type: 'sprites',
 		src: new URL('../../assets/sprites/symbolsStatic/symbolsStatic.json', import.meta.url).href,
 	},
+	// Per-symbol win animation overlays (MP4 → sprite sheet via art/mp4_to_spritesheet.py)
+	winAnimH1: {
+		type: 'spriteSheet',
+		src: new URL('../../assets/sprites/symbolWin/h1-1.json', import.meta.url).href,
+	},
+	winAnimH2: {
+		type: 'spriteSheet',
+		src: new URL('../../assets/sprites/symbolWin/h2-1.json', import.meta.url).href,
+	},
+	winAnimH3: {
+		type: 'spriteSheet',
+		src: new URL('../../assets/sprites/symbolWin/h3-2.json', import.meta.url).href,
+	},
 	// Ayakashi background layers (driven by BackgroundAmbient)
 	bgBg: {
 		type: 'sprite',
