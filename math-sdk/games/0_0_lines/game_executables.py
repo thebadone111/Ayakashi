@@ -6,7 +6,15 @@ class GameExecutables(GameCalculations):
 
     def evaluate_lines_board(self):
         """Populate win-data, record wins, and mark symbols for explosion."""
-        self.win_data = Lines.get_lines(self.board, self.config, global_multiplier=self.global_multiplier)
+        # "combined": Wild symbol multipliers (added) scaled by the tumble-ladder
+        # global multiplier. With global_multiplier == 1 this is identical to the
+        # previous "symbol" strategy.
+        self.win_data = Lines.get_lines(
+            self.board,
+            self.config,
+            multiplier_method="combined",
+            global_multiplier=self.global_multiplier,
+        )
         Lines.record_lines_wins(self)
         self.win_manager.update_spinwin(self.win_data["totalWin"])
         self._mark_winning_positions_explodable()

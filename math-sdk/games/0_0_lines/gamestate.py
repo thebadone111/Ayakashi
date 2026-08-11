@@ -15,6 +15,7 @@ class GameState(GameStateOverride):
             self.emit_tumble_win_events()
             while self.win_data["totalWin"] > 0 and not self.wincap_triggered:
                 self.tumble_game_board()
+                self.update_global_mult()
                 self.evaluate_lines_board()
                 self.emit_tumble_win_events()
             self.set_end_tumble_event()
@@ -37,6 +38,7 @@ class GameState(GameStateOverride):
             self.emit_tumble_win_events()
             while self.win_data["totalWin"] > 0 and not self.wincap_triggered:
                 self.tumble_game_board()
+                self.update_global_mult()
                 self.evaluate_lines_board()
                 self.emit_tumble_win_events()
             self.set_end_tumble_event()

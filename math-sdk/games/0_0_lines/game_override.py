@@ -16,18 +16,21 @@ class GameStateOverride(GameExecutables):
         super().update_freespin_amount(scatter_key)
         fs_multiplier_event(self)
 
+    def update_freespin(self) -> None:
+        super().update_freespin()
+        # Tumble-ladder multiplier resets at the start of every free spin.
+        self.global_multiplier = 1
+
     def assign_special_sym_function(self):
         self.special_symbol_functions = {
             "W": [self.assign_mult_property],
         }
 
     def assign_mult_property(self, symbol) -> dict:
-        """Assign multiplier value to Wild symbol in freegame."""
-        multiplier_value = 1
-        if self.gametype == self.config.freegame_type:
-            multiplier_value = get_random_outcome(
-                self.get_current_distribution_conditions()["mult_values"][self.gametype]
-            )
+        """Assign multiplier value to Wild symbols from the current gametype's distribution."""
+        multiplier_value = get_random_outcome(
+            self.get_current_distribution_conditions()["mult_values"][self.gametype]
+        )
         symbol.assign_attribute({"multiplier": multiplier_value})
 
     def check_repeat(self):

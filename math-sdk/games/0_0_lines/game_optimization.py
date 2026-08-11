@@ -26,13 +26,17 @@ class OptimizationSetup:
                     ).return_dict(),
                     "0": ConstructConditions(rtp=0, av_win=0, search_conditions=0).return_dict(),
                     "freegame": ConstructConditions(
-                        rtp=0.37, hr=200, search_conditions={"symbol": "scatter"}
+                        rtp=0.335, hr=200, search_conditions={"symbol": "scatter"}
                     ).return_dict(),
-                    "basegame": ConstructConditions(hr=3.5, rtp=0.585).return_dict(),
+                    # nil-rate identity: prob_nil ~= 1 - 1/hr_base - 1/hr_free.
+                    # hr=2.25 -> ~55% dead spins (was hr=3.5 -> 70.9%).
+                    # av_win of this fence is pinned at rtp*hr (~1.4x) — the old
+                    # 3.5x av_win target is unreachable at nil<=0.55; nil rate wins.
+                    "basegame": ConstructConditions(hr=2.25, rtp=0.62).return_dict(),
                 },
                 "scaling": ConstructScaling(
                     [
-                        {"criteria": "basegame", "scale_factor": 1.2, "win_range": (1, 2), "probability": 1.0},
+                        {"criteria": "basegame", "scale_factor": 1.4, "win_range": (3, 8), "probability": 1.0},
                         {"criteria": "basegame", "scale_factor": 1.5, "win_range": (10, 20), "probability": 1.0},
                         {
                             "criteria": "freegame",
