@@ -47,20 +47,19 @@ import {
 import { SYMBOL_SIZE, BOARD_SIZES, BOARD_ANCHOR, BOARD_DIMENSIONS } from './constants';
 import { stateApp } from './stateApp';
 import { stateLayoutDerived } from './stateLayout';
+import manifest from './winSheets.manifest.json';
 import type { Position } from './types';
 
 const PADDING_ROW_OFFSET = 1; // board reels carry 1 padding symbol on top
-// Two locally-hosted brush faces (see app.html @font-face).
+// Locally-hosted brush face (see app.html @font-face).
 //
-// IMPORTANT: 'Ninja Kage' is a DEMO face whose digit/$/. glyphs are EMPTY
-// (zero outlines) — letters render, NUMBERS render INVISIBLE. So it may only be
-// used for LETTER-ONLY titles (FREE SPINS, MEGA WIN, TOTAL WIN). Anything that
-// contains a number (win amount, FS count, x-multiplier badges, payline tags)
-// MUST use 'Yuji Syuku', which renders the full set. (Also: NinjaKage is a demo
-// font — confirm a commercial licence before submit, or switch DISPLAY_FONT to
-// TEXT_FONT.)
-const DISPLAY_FONT = 'Ninja Kage'; // dramatic brush — letter titles ONLY
-const TEXT_FONT = 'Yuji Syuku'; // legible brush — anything with numbers
+// 2026-07-03: DISPLAY_FONT switched off 'Ninja Kage' — it is a DEMO face with
+// no commercial licence (a submission hard-stop) and empty digit glyphs.
+// Yuji Syuku ships under the OFL, covers the full character set, and already
+// renders every numeric string in the game. If a punchier display face is
+// wanted later, license one and swap DISPLAY_FONT only.
+const DISPLAY_FONT = 'Yuji Syuku'; // titles (BIG WIN, FREE SPINS, …)
+const TEXT_FONT = 'Yuji Syuku'; // anything with numbers
 
 // --- registered containers (set by FxHost callbacks) -------------------------
 
@@ -310,6 +309,22 @@ const registerOverlay = (container: Container) => {
 	};
 };
 
+/** Plain 4x4 grid slice (no ping-pong — AvatarActor ping-pongs idles itself). */
+const sliceGrid = (sheet: Texture, cols: number, rows: number): Texture[] => {
+	const fw = sheet.width / cols;
+	const fh = sheet.height / rows;
+	const frames: Texture[] = [];
+	for (let i = 0; i < cols * rows; i++) {
+		frames.push(
+			new Texture({
+				source: sheet.source,
+				frame: new Rectangle((i % cols) * fw, Math.floor(i / cols) * fh, fw, fh),
+			}),
+		);
+	}
+	return frames;
+};
+
 const registerAvatar = (container: Container) => {
 	const avatarTexture = texture('avatar');
 	if (avatarTexture) {
@@ -319,20 +334,45 @@ const registerAvatar = (container: Container) => {
 		// renders ~366 px wide in main-space, well under the avatar/frame gap.
 		// We're downsampling 4.2x from source, so plenty of headroom remains;
 		// further size bumps are texture-quality safe.
+		//
+		// Wan I2V idle (green-screen render, baked 4x4): when the sheet is
+		// loaded the mesh cycles real animation frames (ping-pong inside
+		// AvatarActor) UNDER the procedural flow/jiggle — texture motion +
+		// mesh motion together is the "alive" look. The static webp remains
+		// the fallback when the sheet hasn't landed.
+		const idleSheet = texture('avatarIdleSheet');
+		const idleFrames = idleSheet
+			? sliceGrid(idleSheet, manifest.avatarIdle.cols, manifest.avatarIdle.rows).slice(
+					0,
+					manifest.avatarIdle.frames,
+				)
+			: undefined;
 		_avatar = new AvatarActor({
 			app: app(),
 			parent: container,
-			texture: avatarTexture,
+			texture: idleFrames?.[0] ?? avatarTexture,
 			x: main.width * 0.155,
 			y: main.height * 0.81,
 			height: 640,
+			idleFrames,
+			// 40 frames ping-pong at 16 fps ≈ 4.9 s breath cycle — dense enough
+			// that no step reads as stop-motion; pace matches the source clip.
+			idleFps: 16,
 		});
-		// reaction poses (img2img variants) — registered if present; the
-		// avatar no-ops the pose swap when a variant is missing
-		_avatar.setPoses({
-			cheer: texture('avatarCheer'),
-			wink: texture('avatarWink'),
-		});
+		// Animated cheer (Wan clip) on big wins; static pose textures stay as a
+		// fallback path if only those exist. Ping-pong so the loop wrap during
+		// a long pose hold never pops from end-pose back to start-pose.
+		const cheerSheet = texture('avatarCheerSheet');
+		if (cheerSheet) {
+			const f = sliceGrid(cheerSheet, manifest.avatarCheer.cols, manifest.avatarCheer.rows).slice(
+				0,
+				manifest.avatarCheer.frames,
+			);
+			_avatar.setPoseFrames({ cheer: [...f, ...f.slice(1, -1).reverse()] });
+		}
+		const cheer = texture('avatarCheer');
+		const wink = texture('avatarWink');
+		if (cheer || wink) _avatar.setPoses({ cheer, wink });
 	}
 	return () => {
 		_avatar?.destroy();
@@ -443,6 +483,9 @@ const kanabo = (): KanaboSmash => {
 			clubTexture: texture('x2.png'),
 		});
 	}
+	// the symbolsStatic atlas background-loads (phase 2) — backfill the club art
+	// if the module was built before the atlas landed
+	_kanabo.setClubTexture(texture('x2.png'));
 	return _kanabo;
 };
 
@@ -468,6 +511,16 @@ const tumbleExplosion = (): TumbleExplosion => {
 			symbolSize: SYMBOL_SIZE,
 		});
 	}
+	// authored Wan ink-burst clip (background-loads) — replaces the procedural
+	// glow/particle spray once the sheet lands
+	const burstSheet = texture('fxInkBurst');
+	if (burstSheet)
+		_tumbleExplosion.setBurstFrames(
+			sliceGrid(burstSheet, manifest.inkBurst.cols, manifest.inkBurst.rows).slice(
+				0,
+				manifest.inkBurst.frames,
+			),
+		);
 	return _tumbleExplosion;
 };
 
@@ -528,7 +581,15 @@ const symbolIdles = (): SymbolIdleManager => {
 
 // --- convenience helpers used by handlers/components ------------------------------
 
-/** Win burst at a padded book-event position (visible cell centre). */
+/**
+ * Win burst at a padded book-event position (visible cell centre).
+ *
+ * Cell-only by design: the elastic pop/shimmer on the symbol itself is played
+ * by SymbolSprite when boardWithAnimateSymbols flips its state to 'win' (the
+ * declarative board owns its display objects — there is no imperative symbol
+ * Container to hand to SymbolWinFx). This layer adds the tier-tinted glow
+ * flare + spark spray behind the popping symbol.
+ */
 const winBurstAt = async (paddedPos: Position, symbolName?: string) => {
 	if (!boardFxLayer) return;
 	const pos = toVisible(paddedPos);
@@ -544,7 +605,6 @@ const winBurstAt = async (paddedPos: Position, symbolName?: string) => {
 						? 'high'
 						: 'low';
 	await symbolWinFx().play({
-		symbol: undefined,
 		x: origin.x + (pos.reel + 0.5) * SYMBOL_SIZE,
 		y: origin.y + (pos.row + 0.5) * SYMBOL_SIZE,
 		tier,

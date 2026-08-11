@@ -18,29 +18,45 @@
 	// B_iron_plate_flux_03: 2368x1792
 	const PANEL_RATIO_DESKTOP = 2368 / 1792;
 	const panelKey = PANEL_KEY_DESKTOP;
-	const panelWidth = $derived(SYMBOL_SIZE * 2.9);
+	const isPortrait = $derived(context.stateLayoutDerived.layoutType() === 'portrait');
+	// Portrait gets a reduced panel so it fits between the logo strip and the
+	// reel frame (MISSING-04 — portrait players must see their spin count).
+	const panelWidth = $derived(SYMBOL_SIZE * (isPortrait ? 2.1 : 2.9));
 	const panelSizes = $derived({
 		width: panelWidth,
 		height: panelWidth / PANEL_RATIO_DESKTOP,
 	});
 	const scale = 1;
-	// Positioned to the RIGHT of the reel frame, vertically near the frame top.
-	// x: visible frame right border edge (board centre + board.width * FRAME_OUTER_HALF.width) + 8px gap
-	// y: visible frame top border edge + small inset
-	const position = $derived({
-		x:
-			context.stateGameDerived.boardLayout().x +
-			context.stateGameDerived.boardLayout().width * FRAME_OUTER_HALF.width +
-			8 -
-			context.stateGameDerived.boardLayout().width * 0.08,
-		y:
-			context.stateGameDerived.boardLayout().y -
-			context.stateGameDerived.boardLayout().height * FRAME_OUTER_HALF.height +
-			16 +
-			context.stateGameDerived.boardLayout().height * 0.15,
-	});
+	// Desktop/landscape: to the RIGHT of the reel frame, vertically near the
+	// frame top. x: visible frame right border edge + 8px gap; y: visible frame
+	// top border edge + small inset.
+	// Portrait: centred ABOVE the reel frame.
+	const position = $derived(
+		isPortrait
+			? {
+					x: context.stateGameDerived.boardLayout().x - panelSizes.width / 2,
+					y:
+						context.stateGameDerived.boardLayout().y -
+						context.stateGameDerived.boardLayout().height * FRAME_OUTER_HALF.height -
+						panelSizes.height -
+						8,
+				}
+			: {
+					x:
+						context.stateGameDerived.boardLayout().x +
+						context.stateGameDerived.boardLayout().width * FRAME_OUTER_HALF.width +
+						8 -
+						context.stateGameDerived.boardLayout().width * 0.08,
+					y:
+						context.stateGameDerived.boardLayout().y -
+						context.stateGameDerived.boardLayout().height * FRAME_OUTER_HALF.height +
+						16 +
+						context.stateGameDerived.boardLayout().height * 0.15,
+				},
+	);
 
-	const fontSize = SYMBOL_SIZE * 0.22;
+	// tracks panel size so the reduced portrait panel keeps text inside it
+	const fontSize = $derived(panelWidth * (0.22 / 2.9));
 
 	let show = $state(false);
 	let current = $state(0);
@@ -78,7 +94,7 @@
 			<!-- brush Text (Yuji Syuku) — the placeholder 'gold' bitmap font was the
 			     mining set and rendered no digits; Yuji Syuku has the full set. -->
 			<Text
-				text={'FREE SPIN'}
+				text={'FREE SPINS'}
 				style={{
 					fontFamily: 'Yuji Syuku',
 					fontSize,

@@ -13,25 +13,14 @@
 			type="font/woff2"
 			crossorigin
 		/>
-		<link
-			rel="preload"
-			href="%sveltekit.assets%/fonts/NinjaKage-Subset.woff2"
-			as="font"
-			type="font/woff2"
-			crossorigin
-		/>
+		<!-- NinjaKage removed 2026-07-03: demo face with no commercial licence.
+		     All display + text rendering uses Yuji Syuku (OFL). -->
 		<style>
 			@font-face {
 				font-family: 'Yuji Syuku';
 				src: url('%sveltekit.assets%/fonts/YujiSyuku-Subset.woff2') format('woff2');
 				/* swap (not block): if the face is slow/unavailable, show a fallback
 				   rather than INVISIBLE text — a win amount must never be blank. */
-				font-display: swap;
-			}
-			/* NinjaKage — dramatic brush display face for big titles (Latin subset) */
-			@font-face {
-				font-family: 'Ninja Kage';
-				src: url('%sveltekit.assets%/fonts/NinjaKage-Subset.woff2') format('woff2');
 				font-display: swap;
 			}
 		</style>

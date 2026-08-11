@@ -10,11 +10,8 @@
  */
 
 export default {
-	pressToContinueText: {
-		type: 'sprites',
-		src: new URL('../../assets/sprites/pressToContinueText/MM_pressanywhere.json', import.meta.url).href,
-		preload: true,
-	},
+	// pressToContinueText removed 2026-07-03 (MM_pressanywhere was a reference
+	// asset) — PressToContinue.svelte renders a Yuji Syuku Text instead.
 	symbolsStatic: {
 		type: 'sprites',
 		src: new URL('../../assets/sprites/symbolsStatic/symbolsStatic.json', import.meta.url).href,
@@ -26,24 +23,33 @@ export default {
 		preload: true,
 	},
 	// bgFg dropped 2026-06-27: cherry branches are now baked into bg_bg.
+	// bgEffect/bgMist are no longer composited by BackgroundAmbient (the new
+	// bg_bg carries its own bokeh + mist). bgMist still feeds TransitionWipe's
+	// fog, which constructs lazily — neither needs to block first paint.
 	bgEffect: {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/background/bg_effect.webp', import.meta.url).href,
-		preload: true,
 	},
 	bgMist: {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/background/bg_mist.webp', import.meta.url).href,
-		preload: true,
 	},
 	// Ayakashi avatar (driven by AvatarActor)
 	avatar: {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/avatar/avatar.webp', import.meta.url).href,
 	},
-	// avatarIdleSheet removed 2026-06-27 — old sheet was baked from the old
-	// avatar art. New still landed without a fresh Wan I2V pass; the sheet
-	// will return after that pass runs (see HANDOFF.md §7 option B).
+	// Wan I2V avatar animation sheets (green-screen renders 2026-07-04, baked
+	// by art/bake_avatar_sheets.py — 4x4 keyed frames). Idle loops on the mesh;
+	// cheer plays through the pose-hold on big wins.
+	avatarIdleSheet: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/avatar/avatar_idle.webp', import.meta.url).href,
+	},
+	avatarCheerSheet: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/avatar/avatar_cheer.webp', import.meta.url).href,
+	},
 	// Ayakashi logo — baked PNG/webp (NinjaKage brush title + 妖かし). Baked with
 	// real fonts via bake-logo.py because PIXI can't apply web fonts to SVG text.
 	logo: {
@@ -75,23 +81,10 @@ export default {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/payFrame/payFrame.webp', import.meta.url).href,
 	},
-	// fonts (placeholder reference bitmap fonts)
-	goldFont: {
-		type: 'font',
-		src: new URL('../../assets/fonts/goldFont/mm_gold.xml', import.meta.url).href,
-	},
-	goldBlur: {
-		type: 'font',
-		src: new URL('../../assets/fonts/goldBlur/miningfont_gold_blur.xml', import.meta.url).href,
-	},
-	silverFont: {
-		type: 'font',
-		src: new URL('../../assets/fonts/silverFont/mm_silver.xml', import.meta.url).href,
-	},
-	purpleFont: {
-		type: 'font',
-		src: new URL('../../assets/fonts/purpleFont/mm_purple.xml', import.meta.url).href,
-	},
+	// Bitmap fonts removed 2026-07-03: no runtime consumer remained (all text
+	// renders through PixiJS TextStyle with the licensed Yuji Syuku face), and
+	// the mm_* filenames read as reference-game assets to reviewers. The
+	// build-fonts.py pipeline still exists if a bitmap face is ever needed.
 	// ── Betting-UI icon set ──
 	// icon_menu      → hamburger menu (black/transparent, tinted white in-engine)
 	// icon_bolt_slow → thin outline lightning bolt (turbo mode 0 = normal)
@@ -157,14 +150,33 @@ export default {
 		type: 'sprites',
 		src: new URL('../../assets/sprites/freeSpins/freeSpins.json', import.meta.url).href,
 	},
-	winSmall: {
-		type: 'sprites',
-		src: new URL('../../assets/sprites/winSmall/MM_Localisation_winsmall.json', import.meta.url).href,
-	},
+	// winSmall (MM_Localisation_winsmall) removed 2026-07-03 — reference asset
+	// with no consumer.
+	// bespoke 24-frame spinning yen coin (build-coin-sheet.py) — renamed off the
+	// reference SD2_Coin filename 2026-07-03
 	coins: {
 		type: 'spriteSheet',
-		src: new URL('../../assets/sprites/coin/SD2_Coin.json', import.meta.url).href,
+		src: new URL('../../assets/sprites/coin/ayakashi_coin.json', import.meta.url).href,
 	},
+	// ── Symbol win flipbooks (Wan 2.2 I2V, baked 2026-07-04) ──
+	// 4x4 sheets, 16 frames @256px, background chroma-keyed at bake time
+	// (art/bake_win_sheets.py). Sliced by game/symbolWinFrames.ts; played
+	// in-place by SymbolSprite on the 'win' state (ping-pong, returns to rest).
+	// Not preloaded — SymbolSprite falls back to the procedural pop until they
+	// arrive in phase 2.
+	winH1: { type: 'sprite', src: new URL('../../assets/sprites/symbols/h1_win.webp', import.meta.url).href },
+	winH2: { type: 'sprite', src: new URL('../../assets/sprites/symbols/h2_win.webp', import.meta.url).href },
+	winH3: { type: 'sprite', src: new URL('../../assets/sprites/symbols/h3_win.webp', import.meta.url).href },
+	winH4: { type: 'sprite', src: new URL('../../assets/sprites/symbols/h4_win.webp', import.meta.url).href },
+	winL1: { type: 'sprite', src: new URL('../../assets/sprites/symbols/l1_win.webp', import.meta.url).href },
+	winL2: { type: 'sprite', src: new URL('../../assets/sprites/symbols/l2_win.webp', import.meta.url).href },
+	winL3: { type: 'sprite', src: new URL('../../assets/sprites/symbols/l3_win.webp', import.meta.url).href },
+	winL4: { type: 'sprite', src: new URL('../../assets/sprites/symbols/l4_win.webp', import.meta.url).href },
+	winL5: { type: 'sprite', src: new URL('../../assets/sprites/symbols/l5_win.webp', import.meta.url).href },
+	winW: { type: 'sprite', src: new URL('../../assets/sprites/symbols/w_win.webp', import.meta.url).href },
+	winS: { type: 'sprite', src: new URL('../../assets/sprites/symbols/s_win.webp', import.meta.url).href },
+	winM: { type: 'sprite', src: new URL('../../assets/sprites/symbols/m_win.webp', import.meta.url).href },
+	winX: { type: 'sprite', src: new URL('../../assets/sprites/symbols/x_win.webp', import.meta.url).href },
 	// FLUX-generated textured particles (white-body alpha sprites; ParticlePool
 	// tints them per effect). Not preloaded — modules fall back to the glow dot
 	// until these arrive in phase 2.
@@ -220,6 +232,12 @@ export default {
 	particleSmoke: {
 		type: 'sprite',
 		src: new URL('../../assets/sprites/particles/smoke.webp', import.meta.url).href,
+	},
+	// Wan-rendered ink-burst flipbook (4x4, keyed) — tumble explosion clip;
+	// replaces the procedural glow/particle spray (2026-07-04 feedback)
+	fxInkBurst: {
+		type: 'sprite',
+		src: new URL('../../assets/sprites/particles/fx_ink_burst.webp', import.meta.url).href,
 	},
 	// bespoke blue-white foxfire flame (RunComfy) — FS-intro pillars + drifting
 	// wisps. Tinted spirit-blue by ParticlePool; falls back to the glow dot.

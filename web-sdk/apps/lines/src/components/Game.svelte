@@ -35,22 +35,19 @@
 	const context = getContext();
 
 	// PIXI rasterizes canvas text ONCE on creation and never observes async
-	// @font-face loads. Our brush faces are only ever used in PIXI canvas text,
-	// so nothing in the DOM triggers their load — especially 'Ninja Kage'
-	// (big-win amount/title, FS intro title+count), which was rendering INVISIBLE
+	// @font-face loads. The brush face is only ever used in PIXI canvas text,
+	// so nothing in the DOM triggers its load — text would render INVISIBLE
 	// (font-display) → "win screen has no amount", "FS text weird/cut off".
-	// Force-load them during the loading screen, before any game/FX text exists.
+	// Force-load it during the loading screen, before any game/FX text exists.
 	// (font-display is also set to swap as a failsafe so text is never blank.)
 	function loadBrushFonts() {
-		// The @font-face rules live in <head> (app.html / preview-head), so the
-		// faces are already registered by the time onMount runs — a direct load()
-		// finds them. Fire-and-forget (no fonts.ready gate, which can hang).
+		// The @font-face rule lives in <head> (app.html / preview-head), so the
+		// face is already registered by the time onMount runs — a direct load()
+		// finds it. Fire-and-forget (no fonts.ready gate, which can hang).
 		if (typeof document === 'undefined' || !document.fonts) return;
-		for (const family of ['Ninja Kage', 'Yuji Syuku']) {
-			document.fonts.load(`1em "${family}"`).catch(() => {
-				/* ignore — font-display:swap fallback keeps text visible */
-			});
-		}
+		document.fonts.load(`1em "Yuji Syuku"`).catch(() => {
+			/* ignore — font-display:swap fallback keeps text visible */
+		});
 	}
 
 	onMount(() => {
@@ -121,9 +118,8 @@
 		</UI>
 		<Win />
 		<FreeSpinIntro />
-		{#if ['desktop', 'landscape'].includes(context.stateLayoutDerived.layoutType())}
-			<FreeSpinCounter />
-		{/if}
+		<!-- all layouts — portrait moves it above the reels (MISSING-04) -->
+		<FreeSpinCounter />
 		<FreeSpinOutro />
 		<Transition />
 	{/if}
@@ -136,7 +132,7 @@
 
 <Modals>
 	{#snippet version()}
-		<GameVersion version="1.0.0" />
+		<GameVersion version={__APP_VERSION__} />
 	{/snippet}
 	{#snippet payTable()}
 		<PayTableContent />

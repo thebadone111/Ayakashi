@@ -45,6 +45,11 @@ export class CameraGrammar {
 		on('tumble', () => this.dip(4));
 		on('smash', () => this.dip(7));
 		on('bigwin', () => this.zoomIn());
+		// deterministic release on celebration teardown (incl. pointerdown skip) —
+		// the 9 s timeout below is only a safety net and used to fire AFTER a
+		// skipped celebration had already returned the board to play, snapping
+		// the stage zoom mid-spin.
+		on('bigwinEnd', () => this.release());
 	}
 
 	/** Board drops `px` and settles back with overshoot — weight. */

@@ -78,6 +78,11 @@ export class KanaboSmash {
 		this.effectsLayer.addChild(this.particles.container);
 	}
 
+	/** Backfill the club art if the atlas hadn't loaded when this was built. */
+	setClubTexture(texture: Texture | undefined) {
+		if (texture) this.clubTexture = texture;
+	}
+
 	private cellCenter(pos: { reel: number; row: number }) {
 		return {
 			x: this.origin.x + (pos.reel + 0.5) * this.symbolSize,

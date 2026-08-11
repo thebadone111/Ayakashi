@@ -29,8 +29,7 @@ const winLevelSoundsPlay = ({ winLevelData }: { winLevelData: WinLevelData }) =>
 
 const winLevelSoundsStop = () => {
 	eventEmitter.broadcast({ type: 'soundStop', name: 'sfx_bigwin_coinloop' });
-	if (stateBet.activeBetModeKey === 'SUPERSPIN' || stateGame.gameType === 'freegame') {
-		// check if SUPERSPIN, when finishing a bet.
+	if (stateGame.gameType === 'freegame') {
 		eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_freespin' });
 	} else {
 		eventEmitter.broadcast({ type: 'soundMusic', name: 'bgm_main' });
@@ -117,38 +116,24 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 
 		const uniquePositions: Position[] = [];
 		const seen = new Set<string>();
-		const symbolAt = new Map<string, string>();
 		for (const win of wins) {
 			for (const position of win.positions) {
 				const key = `${position.reel}:${position.row}`;
 				if (!seen.has(key)) {
 					seen.add(key);
 					uniquePositions.push(position);
-					symbolAt.set(key, win.symbol);
 				}
 			}
 		}
 
+		// 2026-07-04 (Max): the procedural win FX — glow-dot burst + spark spray
+		// (winBurstAt) and the neon payline traces — read as "computer generated"
+		// next to the Wan symbol flipbooks, which now ARE the win moment. Only the
+		// spotlight dim stays (readability, not decoration): board dims, winning
+		// symbols play their ignition clips, board comes back.
 		await tryFx(() => fxManager.spotlightShow(uniquePositions.map(fxManager.toVisible)));
-		const lineFx = tryFx(() =>
-			Promise.all(
-				wins.map((win) =>
-					fxManager.paylineHighlight().showLine({
-						positions: win.positions.map(fxManager.toVisible),
-						lineIndex: win.meta.lineIndex,
-					}),
-				),
-			),
-		);
-		const burstFx = tryFx(() =>
-			Promise.all(
-				uniquePositions.map((position) =>
-					fxManager.winBurstAt(position, symbolAt.get(`${position.reel}:${position.row}`)),
-				),
-			),
-		);
-		await Promise.all([animateSymbols({ positions: uniquePositions }), lineFx, burstFx]);
-		await tryFx(() => Promise.all([fxManager.paylineHighlight().clear(), fxManager.spotlightHide()]));
+		await animateSymbols({ positions: uniquePositions });
+		await tryFx(() => fxManager.spotlightHide());
 	},
 	setTotalWin: async (bookEvent: BookEventOfType<'setTotalWin'>) => {
 		stateBet.winBookEventAmount = bookEvent.amount;
@@ -161,7 +146,6 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		const exploderPositions = bookEvent.explodingSymbols.filter(
 			(pos) => rawBoard[pos.reel]?.[pos.row]?.name === 'X',
 		);
-		if (exploderPositions.length > 0) console.info('[fx] kanabo smash x', exploderPositions.length);
 		for (const exploderPos of exploderPositions) {
 			const center = fxManager.toVisible(exploderPos);
 			const affected = bookEvent.explodingSymbols
@@ -355,7 +339,7 @@ export const bookEventHandlerMap: BookEventHandlerMap<BookEvent, BookEventContex
 		const lastSetTotalWinEvent = findLastBookEvent('setTotalWin' as const);
 
 		if (lastFreeSpinTriggerEvent) await playBookEvent(lastFreeSpinTriggerEvent, { bookEvents });
-		if (lastUpdateFreeSpinEvent) playBookEvent(lastUpdateFreeSpinEvent, { bookEvents });
-		if (lastSetTotalWinEvent) playBookEvent(lastSetTotalWinEvent, { bookEvents });
+		if (lastUpdateFreeSpinEvent) await playBookEvent(lastUpdateFreeSpinEvent, { bookEvents });
+		if (lastSetTotalWinEvent) await playBookEvent(lastSetTotalWinEvent, { bookEvents });
 	},
 };

@@ -40,7 +40,7 @@
 	const SPECIALS = [
 		{ key: 'W', name: 'Kitsune Spirit Orb', role: 'WILD', desc: 'Substitutes for all paying symbols. Can land carrying a win multiplier that boosts the line it completes.' },
 		{ key: 'S', name: 'Temple Bell', role: 'SCATTER', desc: 'Land 3 or more anywhere to toll the bell and trigger the Free Spins.' },
-		{ key: 'M', name: 'Ofuda Talisman', role: 'FREE SPINS', desc: 'On the trigger, each Ofuda multiplies the number of Free Spins awarded. Scatters during the feature retrigger more.' },
+		{ key: 'M', name: 'Ofuda Talisman', role: 'FREE SPINS', desc: 'On the trigger, Ofuda multiply the Free Spins awarded: 1 Talisman ×2, 2 ×3, 3 ×5, 4 ×10, 5 ×20. Scatters during the feature retrigger more.' },
 		{ key: 'X', name: 'Oni Kanabo', role: 'FEATURE', desc: 'The war-club smashes its surrounding 3×3 area, clearing those symbols so the reels cascade.' },
 	];
 
@@ -48,14 +48,14 @@
 	const rtpPct = Math.round(((config as any).rtp ?? 0.97) * 1000) / 10;
 	const maxWin = (config as any).betModes?.base?.max_win ?? 2000;
 	const cols = 5;
-	const rows = 5;
+	const rows = 4;
 
 	const fmt = (n: number) => (Number.isInteger(n) ? `${n}` : `${n}`);
 </script>
 
 <div class="pt">
 	<h2 class="pt-title">PAY TABLE</h2>
-	<p class="pt-sub">妖かし — Ayakashi · 5×5, {paylines.length} lines · RTP {rtpPct}% · Max win {maxWin}×</p>
+	<p class="pt-sub">妖かし — Ayakashi · 5×4, {paylines.length} lines · RTP {rtpPct}% · Max win {maxWin}×</p>
 	<p class="pt-note">Payouts are shown for 5 / 4 / 3 of a kind, as a multiple of the line bet. Wins pay left-to-right on a line.</p>
 
 	<h3 class="pt-h">Symbols</h3>

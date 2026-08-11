@@ -22,7 +22,7 @@
  * be instant), but passing it gives the shrink-and-spin dissolve.
  */
 
-import { Application, Container, Sprite } from 'pixi.js';
+import { Application, Container, Sprite, Texture, Ticker } from 'pixi.js';
 
 import { getParticleTexture } from './particleLib';
 import { gsap } from './motion';
@@ -52,6 +52,10 @@ export class TumbleExplosion {
 	private origin: { x: number; y: number };
 	private symbolSize: number;
 	private liveGlows = new Set<Sprite>();
+	// Wan-rendered ink-burst flipbook (fx_ink_burst.webp, sliced by fxManager).
+	// When present it REPLACES the procedural glow-flash + particle sprays —
+	// only the symbol's own shatter motion remains alongside it.
+	private burstFrames: Texture[] | null = null;
 
 	constructor(opts: TumbleExplosionOptions) {
 		this.app = opts.app;
@@ -63,6 +67,39 @@ export class TumbleExplosion {
 		this.effectsLayer.addChild(this.particles.container);
 	}
 
+	/** Register the authored ink-burst flipbook (backfilled after asset load). */
+	setBurstFrames(frames: Texture[] | null | undefined) {
+		if (frames && frames.length) this.burstFrames = frames;
+	}
+
+	/** One-shot flipbook burst at (x, y). Resolves when the clip ends. */
+	private playBurstClip(x: number, y: number): Promise<void> {
+		const frames = this.burstFrames!;
+		const sprite = new Sprite(frames[0]);
+		sprite.anchor.set(0.5);
+		sprite.position.set(x, y);
+		const size = this.symbolSize * 1.7;
+		sprite.width = size;
+		sprite.height = size;
+		this.effectsLayer.addChild(sprite);
+		return new Promise((resolve) => {
+			const fps = 16;
+			let elapsed = 0;
+			const tick = (ticker: Ticker) => {
+				elapsed += ticker.deltaMS;
+				const idx = Math.floor((elapsed / 1000) * fps);
+				if (idx >= frames.length) {
+					this.app.ticker.remove(tick);
+					if (!sprite.destroyed) sprite.destroy();
+					resolve();
+					return;
+				}
+				sprite.texture = frames[idx];
+			};
+			this.app.ticker.add(tick);
+		});
+	}
+
 	/** Explode one cell. Resolves when the dissolve completes (~480 ms). */
 	async explodeAt(opts: {
 		pos: { reel: number; row: number };
@@ -71,6 +108,24 @@ export class TumbleExplosion {
 		const s = this.symbolSize;
 		const x = this.origin.x + (opts.pos.reel + 0.5) * s;
 		const y = this.origin.y + (opts.pos.row + 0.5) * s;
+
+		// authored ink-burst clip replaces every procedural element except the
+		// symbol's own shatter motion
+		if (this.burstFrames) {
+			const clip = this.playBurstClip(x, y);
+			if (opts.symbol && !opts.symbol.destroyed) {
+				const sym = opts.symbol;
+				const sc = sym.scale.x;
+				const tl = gsap.timeline();
+				tl.to(sym, { pixi: { tint: 0xfff2c8 }, duration: 0.05 })
+					.to(sym.scale, { x: sc * 1.2, y: sc * 1.2, duration: 0.12, ease: 'back.out(3)' }, '<')
+					.to(sym, { pixi: { alpha: 0 }, duration: 0.28, ease: 'power2.in' });
+				await Promise.all([clip, tl]);
+			} else {
+				await clip;
+			}
+			return;
+		}
 
 		// foxfire flash at the cell
 		const glow = new Sprite(makeGlowTexture(this.app.renderer, Math.round(s * 0.7), PALETTE.FOXFIRE));

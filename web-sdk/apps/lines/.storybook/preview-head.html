@@ -1,5 +1,6 @@
 <!-- Match app.html: load the Yuji Syuku brush font so PIXI Text renders with
-     the real calligraphy face in Storybook (not the fallback serif). -->
+     the real calligraphy face in Storybook (not the fallback serif).
+     NinjaKage removed 2026-07-03 — demo face with no commercial licence. -->
 <link
 	rel="preload"
 	href="/fonts/YujiSyuku-Subset.woff2"
@@ -7,16 +8,10 @@
 	type="font/woff2"
 	crossorigin
 />
-<link rel="preload" href="/fonts/NinjaKage-Subset.woff2" as="font" type="font/woff2" crossorigin />
 <style>
 	@font-face {
 		font-family: 'Yuji Syuku';
 		src: url('/fonts/YujiSyuku-Subset.woff2') format('woff2');
-		font-display: swap;
-	}
-	@font-face {
-		font-family: 'Ninja Kage';
-		src: url('/fonts/NinjaKage-Subset.woff2') format('woff2');
 		font-display: swap;
 	}
 </style>

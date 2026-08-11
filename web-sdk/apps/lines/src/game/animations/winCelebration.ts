@@ -187,6 +187,8 @@ export class WinCelebration {
 	private brushTexture: Texture | null;
 	private getAvatarFocus: (() => AvatarFocusRect | null) | null;
 	private vignetteTexture: Texture | null = null;
+	/** Focus geometry the cached vignette was rendered for. */
+	private vignetteKey = '';
 
 	constructor(opts: WinCelebrationOptions) {
 		this.app = opts.app;
@@ -322,6 +324,9 @@ export class WinCelebration {
 			yoyo: true,
 		});
 
+		// spirit flames halo up her silhouette for the rest of the celebration
+		this.startFoxfireSwirl(focus);
+
 		// ember rain for high tiers
 		if (tier.emberRain) this.startEmberRain();
 
@@ -385,6 +390,18 @@ export class WinCelebration {
 	private buildVignette(focus: Focus): Sprite {
 		const w = Math.round(this.width);
 		const h = Math.round(this.height);
+		// the gradient only depends on focus geometry + canvas size — reuse the
+		// texture across plays instead of allocating a full-canvas texture per
+		// big win (BUG-08)
+		const key = `${w}:${h}:${Math.round(focus.cx)}:${Math.round(focus.torsoY)}:${Math.round(focus.w)}:${Math.round(focus.h)}`;
+		if (this.vignetteTexture && this.vignetteKey === key) {
+			return new Sprite(this.vignetteTexture);
+		}
+		if (this.vignetteTexture) {
+			this.vignetteTexture.destroy(true);
+			this.vignetteTexture = null;
+		}
+		this.vignetteKey = key;
 		const cnv = document.createElement('canvas');
 		cnv.width = w;
 		cnv.height = h;
@@ -572,6 +589,7 @@ export class WinCelebration {
 	private async outro() {
 		const root = this.root;
 		if (!root) return;
+		fxBus.emit('bigwinEnd'); // camera zoom releases with the celebration
 		this.stopEmberRain();
 		this.stopFoxfireSwirl();
 		this.tweens.killAll();
@@ -585,21 +603,24 @@ export class WinCelebration {
 		if (this.root) {
 			// particles container is owned by the pool — detach before destroy
 			this.root.removeChild(this.particles.container);
-			this.root.destroy({ children: true });
+			// the vignette Sprite is a child and gets destroyed here, but its
+			// TEXTURE is cached across plays (see buildVignette) — don't let the
+			// scene destroy take it down with the sprite
+			this.root.destroy({ children: true, texture: false });
 			this.root = null;
-		}
-		// the per-play vignette canvas texture isn't shared — release it
-		if (this.vignetteTexture) {
-			this.vignetteTexture.destroy(true);
-			this.vignetteTexture = null;
 		}
 	}
 
 	/** Full release — call on game unmount. Instance is unusable afterwards. */
 	destroy() {
+		if (this.playing) fxBus.emit('bigwinEnd');
 		this.stopEmberRain();
 		this.stopFoxfireSwirl();
 		this.teardownScene();
+		if (this.vignetteTexture) {
+			this.vignetteTexture.destroy(true);
+			this.vignetteTexture = null;
+		}
 		this.tweens.destroy();
 		this.particles.destroy();
 		this.shaker.destroy();

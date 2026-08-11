@@ -193,7 +193,7 @@ export class FreeSpinsScreen {
 		this.startFoxfireWisps(cx);
 
 		// hold for press or timeout
-		await this.waitForPress(opts.autoDismissMs ?? 30000);
+		await this.waitForPress(opts.autoDismissMs ?? 12000);
 
 		await this.dismiss();
 	}
@@ -276,7 +276,7 @@ export class FreeSpinsScreen {
 
 		void this.tweens.to(hint, { alpha: 1 }, { duration: 400, ease: easings.sineInOut, repeat: -1, yoyo: true });
 
-		await this.waitForPress(opts.autoDismissMs ?? 30000);
+		await this.waitForPress(opts.autoDismissMs ?? 12000);
 		await this.dismiss();
 	}
 

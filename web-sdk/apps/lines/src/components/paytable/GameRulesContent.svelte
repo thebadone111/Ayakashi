@@ -15,7 +15,7 @@
 
 	<section>
 		<h3 class="gr-h">Overview</h3>
-		<p>Ayakashi is a 5×5, {paylines}-line video slot set in a moonlit realm of Japanese
+		<p>Ayakashi is a 5×4, {paylines}-line video slot set in a moonlit realm of Japanese
 		yokai. Wins are paid left-to-right along a payline, starting from the leftmost
 		reel. Only the highest win per line is paid. <b>RTP {rtpPct}%</b>, maximum win
 		<b>{maxWin}×</b> the total bet.</p>
@@ -36,6 +36,9 @@
 		<p>After every win, the winning symbols are cleared and the symbols above fall
 		to fill the gaps, with new symbols dropping in from the top. Tumbles repeat as
 		long as new wins are formed — all part of the same spin.</p>
+		<p>Each consecutive tumble raises a <b>spin multiplier</b> by +1 (×1, ×2, ×3, …)
+		that applies to every win in that tumble. The multiplier resets at the start of
+		each new spin.</p>
 	</section>
 
 	<section>
@@ -52,10 +55,12 @@
 
 	<section>
 		<h3 class="gr-h">Temple Bell — Free Spins</h3>
-		<p>Land <b>3 or more Temple Bell scatters</b> to trigger the Free Spins. On the
-		trigger, each <b>Ofuda Talisman</b> on the board multiplies the number of Free
-		Spins you are awarded. Temple Bells landing during the feature retrigger and add
-		more spins.</p>
+		<p>Land <b>3 or more Temple Bell scatters</b> to trigger the Free Spins:
+		<b>3 scatters → 8</b>, <b>4 → 12</b>, <b>5 → 15</b> Free Spins. Temple Bells
+		landing during the feature retrigger and add more spins (2 → +3, 3 → +5,
+		4 → +8, 5 → +12).</p>
+		<p>On the trigger, <b>Ofuda Talismans</b> on the board multiply the number of
+		Free Spins awarded: 1 Talisman ×2, 2 ×3, 3 ×5, 4 ×10, 5 ×20.</p>
 	</section>
 
 	<section>

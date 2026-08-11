@@ -4,6 +4,7 @@
 	// reference Spine assets.
 	import SymbolSprite from './SymbolSprite.svelte';
 	import { getSymbolInfo } from '../game/utils';
+	import { SYMBOL_SIZE } from '../game/constants';
 	import type { SymbolState, RawSymbol } from '../game/types';
 	import { Text } from 'pixi-svelte';
 
@@ -20,7 +21,14 @@
 	const symbolInfo = $derived(getSymbolInfo({ rawSymbol: props.rawSymbol, state: props.state }));
 </script>
 
-<SymbolSprite {symbolInfo} state={props.state} x={props.x} y={props.y} oncomplete={props.oncomplete} />
+<SymbolSprite
+	{symbolInfo}
+	symbolName={props.rawSymbol.name}
+	state={props.state}
+	x={props.x}
+	y={props.y}
+	oncomplete={props.oncomplete}
+/>
 
 {#if props.rawSymbol.multiplier && props.rawSymbol.multiplier > 1}
 	<!-- multiplier badge: real Text in a digit-capable font (the old 'gold'
@@ -28,12 +36,12 @@
 	     bottom-right inside the cell so it never overhangs the frame. -->
 	<Text
 		anchor={{ x: 1, y: 1 }}
-		x={(props.x ?? 0) + 52}
-		y={(props.y ?? 0) + 56}
+		x={(props.x ?? 0) + SYMBOL_SIZE * 0.45}
+		y={(props.y ?? 0) + SYMBOL_SIZE * 0.49}
 		text={`${props.rawSymbol.multiplier}X`}
 		style={{
 			fontFamily: 'Yuji Syuku',
-			fontSize: 44,
+			fontSize: SYMBOL_SIZE * 0.38,
 			fontWeight: '900',
 			fill: 0xffd24a,
 			stroke: { color: 0x1a0d06, width: 6 },

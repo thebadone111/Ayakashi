@@ -12,6 +12,7 @@
 		stateBet,
 		stateModal,
 		stateBetDerived,
+		stateConfig,
 		stateMeta,
 	} from 'state-shared';
 	import { getContextEventEmitter } from 'utils-event-emitter';
@@ -34,6 +35,30 @@
 	const canAffordBonus = $derived(
 		stateBet.betAmount > 0 && stateBet.balanceAmount >= bonusCost,
 	);
+
+	// Bet stepping walks the operator bet levels (same behaviour as the betting
+	// bar's increase/decrease buttons) instead of free halving/doubling, so the
+	// bet can never leave the configured range.
+	const atMinBet = $derived(stateBet.betAmount <= stateConfig.betAmountOptions[0]);
+	const atMaxBet = $derived(
+		stateBet.betAmount >= stateConfig.betAmountOptions[stateConfig.betAmountOptions.length - 1],
+	);
+
+	function stepBetDown() {
+		const nextSmaller = [...stateConfig.betAmountOptions]
+			.sort((a, b) => b - a)
+			.find((option) => option < stateBet.betAmount);
+		stateBetDerived.setBetAmount(nextSmaller ?? stateConfig.betAmountOptions[0]);
+	}
+
+	function stepBetUp() {
+		const nextBigger = [...stateConfig.betAmountOptions]
+			.sort((a, b) => a - b)
+			.find((option) => option > stateBet.betAmount);
+		stateBetDerived.setBetAmount(
+			nextBigger ?? stateConfig.betAmountOptions[stateConfig.betAmountOptions.length - 1],
+		);
+	}
 
 	function close() {
 		stateModal.modal = null;
@@ -95,9 +120,11 @@
 					</div>
 					<h3 class="card-title">YOKAI BONUS</h3>
 					<p class="card-desc">
-						Skip the wait. Enter Free Spins instantly with the Global
-						Multiplier already active.
+						Skip the wait. Enter Free Spins directly with bonus reels
+						active. Ofuda Talismans may multiply your spin count at
+						trigger.
 					</p>
+					<p class="card-avg">Average win: ~96× your bet</p>
 					<div class="price-row">
 						<span class="price-label">BUY COST</span>
 						<span class="price">{numberToCurrencyString(bonusCost)}</span>
@@ -117,7 +144,8 @@
 				<button
 					class="bet-step"
 					type="button"
-					onclick={() => stateBetDerived.updateBetAmount((v) => v / 2)}
+					onclick={stepBetDown}
+					disabled={atMinBet}
 					aria-label="Decrease bet"
 				>
 					−
@@ -129,7 +157,8 @@
 				<button
 					class="bet-step"
 					type="button"
-					onclick={() => stateBetDerived.updateBetAmount((v) => v * 2)}
+					onclick={stepBetUp}
+					disabled={atMaxBet}
 					aria-label="Increase bet"
 				>
 					+
@@ -321,6 +350,14 @@
 		max-width: 22ch;
 	}
 
+	.card-avg {
+		margin: 0;
+		font-size: 0.78rem;
+		letter-spacing: 0.06em;
+		color: $gold;
+		text-shadow: 1px 1px 0 $ink;
+	}
+
 	.price-row {
 		display: flex;
 		justify-content: space-between;
@@ -395,8 +432,12 @@
 		border-radius: 50%;
 		cursor: pointer;
 		transition: filter 0.15s;
-		&:hover {
+		&:hover:not(:disabled) {
 			filter: brightness(1.3);
+		}
+		&:disabled {
+			cursor: not-allowed;
+			filter: grayscale(0.6) brightness(0.6);
 		}
 	}
 

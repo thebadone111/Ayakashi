@@ -131,6 +131,13 @@ export class AvatarActor {
 	// at the twirl's edge-on frame (scale.x ≈ 0) so no crossfade is needed —
 	// she spins and comes back around in the new pose.
 	private poses: Partial<Record<'cheer' | 'wink', Texture>> = {};
+	// animated reaction poses (Wan I2V frame sequences) — preferred over the
+	// static pose texture when present; cycled ping-pong while the pose holds.
+	private poseFrames: Partial<Record<'cheer' | 'wink', Texture[]>> = {};
+	private activePoseFrames: Texture[] | null = null;
+	private pendingPoseFrames: Texture[] | null = null;
+	private poseFrameIdx = 0;
+	private poseAcc = 0;
 	private baseTexture: Texture;
 	private pendingTexture: Texture | null = null;
 	private poseRevertTimer: ReturnType<typeof setTimeout> | null = null;
@@ -227,6 +234,16 @@ export class AvatarActor {
 		this.poses = { ...this.poses, ...poses };
 	}
 
+	/**
+	 * Register ANIMATED reaction poses (Wan I2V sequences, e.g. the cheer
+	 * clip's sliced frames). Takes precedence over the static pose texture:
+	 * she twirls, comes out of the spin INTO the playing clip (ping-pong),
+	 * and twirls back to base when the hold ends.
+	 */
+	setPoseFrames(frames: Partial<Record<'cheer' | 'wink', Texture[]>>) {
+		this.poseFrames = { ...this.poseFrames, ...frames };
+	}
+
 	// =========================================================================
 	// Reactions
 	// =========================================================================
@@ -289,19 +306,30 @@ export class AvatarActor {
 		this.hop.velocity += 3.4;
 		this.squash.velocity += 1.0;
 
+		const frames = pose && this.poseFrames[pose];
 		const poseTexture = pose && this.poses[pose];
-		if (poseTexture) {
-			this.pendingTexture = poseTexture;
+		if (frames && frames.length) {
+			// animated pose: swap to the clip's first frame at the edge-on
+			// moment, then cycle while the pose holds
+			this.pendingTexture = frames[0];
+			this.pendingPoseFrames = frames;
 			this.poseActive = true; // suspend idle-frame cycling
-			if (this.poseRevertTimer) clearTimeout(this.poseRevertTimer);
-			this.poseRevertTimer = setTimeout(() => {
-				this.poseRevertTimer = null;
-				if (this.destroyed || this.mesh.texture === this.baseTexture) return;
-				this.pendingTexture = this.baseTexture;
-				this.poseActive = false; // resume idle-frame cycling
-				this.twirl(1); // spin back to the base pose
-			}, 2600);
+		} else if (poseTexture) {
+			this.pendingTexture = poseTexture;
+			this.poseActive = true;
+		} else {
+			return;
 		}
+		if (this.poseRevertTimer) clearTimeout(this.poseRevertTimer);
+		this.poseRevertTimer = setTimeout(() => {
+			this.poseRevertTimer = null;
+			if (this.destroyed) return;
+			this.activePoseFrames = null;
+			this.pendingPoseFrames = null;
+			this.pendingTexture = this.baseTexture;
+			this.poseActive = false; // resume idle-frame cycling
+			this.twirl(1); // spin back to the base pose
+		}, 3400);
 	}
 
 	setVisible(visible: boolean) {
@@ -364,6 +392,12 @@ export class AvatarActor {
 			if (this.pendingTexture && Math.abs(facing) < 0.12) {
 				this.mesh.texture = this.pendingTexture;
 				this.pendingTexture = null;
+				if (this.pendingPoseFrames) {
+					this.activePoseFrames = this.pendingPoseFrames;
+					this.pendingPoseFrames = null;
+					this.poseFrameIdx = 0;
+					this.poseAcc = 0;
+				}
 			}
 			if (this.twirlPhase >= 1) this.squash.velocity += 1.4; // landing plop
 		}
@@ -389,7 +423,11 @@ export class AvatarActor {
 		const buffer = this.mesh.geometry.getBuffer('aPosition');
 		const data = buffer.data as Float32Array;
 		const base = this.basePositions;
-		const waveAmp = this.texH * 0.0042 * excitement * m;
+		// with a real Wan idle clip on the texture, the baked hair/cloth motion
+		// carries the life — heavy mesh waves on top read as underwater. Keep a
+		// whisper of flow for reactions, let the render do the idling.
+		const flowTrim = this.idleFrames.length ? 0.35 : 1;
+		const waveAmp = this.texH * 0.0042 * excitement * m * flowTrim;
 		const swayShear = Math.tanh(this.sway.value * 0.5) * this.texW * 0.04 * m;
 		// follow-through: hair/cloth lag behind body motion — proportional to
 		// sway VELOCITY (not position), so a stop produces a whip-and-settle
@@ -425,6 +463,17 @@ export class AvatarActor {
 				this.idleFrameIdx = (this.idleFrameIdx + 1) % this.idleFrames.length;
 			}
 			this.mesh.texture = this.idleFrames[this.idleFrameIdx];
+		}
+
+		// --- animated pose cycling (cheer/wink clip during the pose hold) -------
+		if (this.activePoseFrames) {
+			this.poseAcc += dt;
+			const frameTime = 1 / this.idleFps;
+			while (this.poseAcc >= frameTime) {
+				this.poseAcc -= frameTime;
+				this.poseFrameIdx = (this.poseFrameIdx + 1) % this.activePoseFrames.length;
+			}
+			this.mesh.texture = this.activePoseFrames[this.poseFrameIdx];
 		}
 
 		// --- aura -------------------------------------------------------------------

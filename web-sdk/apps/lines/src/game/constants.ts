@@ -69,7 +69,10 @@ export const PORTRAIT_MAIN_SIZES = {
 	height: PORTRAIT_HEIGHT,
 };
 
-export const HIGH_SYMBOLS = ['H1', 'H2', 'H3', 'H4', 'H5'];
+// H5 resolved 2026-07-03 (QUALITY-02): it appears nowhere in the math — no
+// paytable entry, no reel strip, absent from generated config.ts — so it is
+// intentionally cut from the game and removed here to end the ambiguity.
+export const HIGH_SYMBOLS = ['H1', 'H2', 'H3', 'H4'];
 
 export const INITIAL_SYMBOL_STATE: SymbolState = 'static';
 
@@ -148,7 +151,6 @@ export const SYMBOL_INFO_MAP = {
 	H2: makeSymbolInfo('h2.webp'),
 	H3: makeSymbolInfo('h3.webp'),
 	H4: makeSymbolInfo('h4.webp'),
-	H5: makeSymbolInfo('h5.webp'), // not on current reels — kept for safety
 	L1: makeSymbolInfo('l1.webp'),
 	L2: makeSymbolInfo('l2.webp'),
 	L3: makeSymbolInfo('l3.webp'),

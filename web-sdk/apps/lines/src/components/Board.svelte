@@ -37,10 +37,11 @@
 					reelSymbol.symbolState = 'win';
 					// Gate on the symbol's oncomplete, but NEVER let book playback hang
 					// on it — race a hard timeout so a stuck win animation can't freeze
-					// the game (this was the jackpot/freespin freeze).
+					// the game (this was the jackpot/freespin freeze). 3600ms clears the
+					// ~3.3s Wan win flipbook with margin; it's a hang guard, not a pace.
 					await Promise.race([
 						waitForResolve((resolve) => (reelSymbol.oncomplete = resolve)),
-						new Promise((resolve) => setTimeout(resolve, 1200)),
+						new Promise((resolve) => setTimeout(resolve, 3600)),
 					]);
 					reelSymbol.symbolState = 'postWinStatic';
 				});

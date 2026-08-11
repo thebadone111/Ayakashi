@@ -382,6 +382,71 @@ export default {
     ]
   },
   "symbols": {
+    "L4": {
+      "paytable": [
+        {
+          "5": 2
+        },
+        {
+          "4": 0.5
+        },
+        {
+          "3": 0.4
+        }
+      ]
+    },
+    "L5": {
+      "paytable": [
+        {
+          "5": 1
+        },
+        {
+          "4": 0.3
+        },
+        {
+          "3": 0.3
+        }
+      ]
+    },
+    "L2": {
+      "paytable": [
+        {
+          "5": 3
+        },
+        {
+          "4": 0.7
+        },
+        {
+          "3": 0.6
+        }
+      ]
+    },
+    "L1": {
+      "paytable": [
+        {
+          "5": 5
+        },
+        {
+          "4": 1
+        },
+        {
+          "3": 1.0
+        }
+      ]
+    },
+    "H3": {
+      "paytable": [
+        {
+          "5": 10
+        },
+        {
+          "4": 3
+        },
+        {
+          "3": 2
+        }
+      ]
+    },
     "W": {
       "paytable": [
         {
@@ -399,68 +464,6 @@ export default {
         "multiplier"
       ]
     },
-    "L5": {
-      "paytable": [
-        {
-          "5": 1
-        },
-        {
-          "4": 0.3
-        },
-        {
-          "3": 0.3
-        }
-      ]
-    },
-    "S": {
-      "special_properties": [
-        "scatter"
-      ]
-    },
-    "L2": {
-      "paytable": [
-        {
-          "5": 3
-        },
-        {
-          "4": 0.7
-        },
-        {
-          "3": 0.6
-        }
-      ]
-    },
-    "X": {
-      "special_properties": [
-        "exploder"
-      ]
-    },
-    "H3": {
-      "paytable": [
-        {
-          "5": 10
-        },
-        {
-          "4": 3
-        },
-        {
-          "3": 2
-        }
-      ]
-    },
-    "H2": {
-      "paytable": [
-        {
-          "5": 15
-        },
-        {
-          "4": 5
-        },
-        {
-          "3": 3
-        }
-      ]
-    },
     "L3": {
       "paytable": [
         {
@@ -471,19 +474,6 @@ export default {
         },
         {
           "3": 0.6
-        }
-      ]
-    },
-    "L4": {
-      "paytable": [
-        {
-          "5": 2
-        },
-        {
-          "4": 0.5
-        },
-        {
-          "3": 0.4
         }
       ]
     },
@@ -500,24 +490,6 @@ export default {
         }
       ]
     },
-    "L1": {
-      "paytable": [
-        {
-          "5": 5
-        },
-        {
-          "4": 1
-        },
-        {
-          "3": 1.0
-        }
-      ]
-    },
-    "M": {
-      "special_properties": [
-        "fsMultiplier"
-      ]
-    },
     "H4": {
       "paytable": [
         {
@@ -529,6 +501,34 @@ export default {
         {
           "3": 1
         }
+      ]
+    },
+    "H2": {
+      "paytable": [
+        {
+          "5": 15
+        },
+        {
+          "4": 5
+        },
+        {
+          "3": 3
+        }
+      ]
+    },
+    "S": {
+      "special_properties": [
+        "scatter"
+      ]
+    },
+    "X": {
+      "special_properties": [
+        "exploder"
+      ]
+    },
+    "M": {
+      "special_properties": [
+        "fsMultiplier"
       ]
     }
   },

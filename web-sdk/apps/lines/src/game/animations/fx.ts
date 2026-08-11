@@ -86,6 +86,7 @@ export const hitStop = (ticker: Ticker, durationMs = 80, speed = 0.04) => {
 
 export type FxEvent =
 	| 'bigwin' // data: { level: 'big'|'superwin'|'mega'|'epic'|'max' }
+	| 'bigwinEnd' // celebration torn down (natural end AND skip) — release camera etc.
 	| 'bonus'
 	| 'smash'
 	| 'wildland'
