@@ -33,6 +33,27 @@ art/fonts/brush/
 # rejected drafts are preserved on disk + in _git_backup, not in git history)
 art/rejected/
 
+# Generation media: Wan I2V renders + fal.ai/FLUX exploration output (~2.4 GB of
+# mp4/png). Deliberately local-only — the shipped artefacts are the baked WebP
+# sheets under web-sdk/.../static/assets/sprites/, and they are reproducible from
+# the prompts + art/bake_sheets_v2.py, both of which ARE tracked below.
+# Prompts (.txt/.md), bake scripts (.py) and manifests (.json) stay in git.
+art/wan-animations/**/*.mp4
+art/wan-animations/**/*.png
+art/wan-animations/**/*.jpg
+art/wan-animations/**/*.webp
+art/wan-animations/**/*.sha
+art/generated/**/*.mp4
+art/generated/**/*.png
+art/generated/**/*.jpg
+art/generated/**/*.webp
+art/generated/**/*.sha
+
+# ...except the green-screen stills that were the actual I2V inputs for the
+# shipped 2026-07-05 render set (4.2 MB). Without these the sheets are not
+# reproducible, so they are the one image set worth keeping in history.
+!art/wan-animations/_inputs-green-20260705/**
+
 # Claude dev helpers / scratch (headless screenshot capture)
 _shot.jpg
 _shot.b64
