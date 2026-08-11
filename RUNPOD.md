@@ -9,19 +9,19 @@
 ## 1. Pod & Infrastructure
 
 ### Profile
-- **GPU:** NVIDIA RTX A6000 (48 GB VRAM)
-- **RAM:** 50 GB (not 503 GiB — that was MooseFS pool totals showing host RAM, not pod allocation)
-- **CUDA:** torch 2.6+cu124
-- **Pod proxy ID:** `bizrqm23c0aei0`
-- **A6000 cost:** ~$0.60/hr on-demand EU-SE-1. Stop pod between sessions. `/workspace` volume charges $0.07/GB-month (~$3.50/mo at 50GB cap — trivial).
+- **GPU:** A100 SXM 80GB
+- **ComfyUI:** `/workspace/ComfyUI` — persistent, survives restarts
+- **Models:** `/workspace/ComfyUI/models/` — persistent
+- **Custom nodes:** `/workspace/ComfyUI/custom_nodes/` — persistent
+- **Cost:** varies by provider/region — stop pod between sessions
 
 ### Volume layout
-| Mount | Persists? | Notes |
-|-------|-----------|-------|
-| `/` (5GB overlay) | **No** | Lost on pod stop/restart. ComfyUI code lives here — must be re-applied after restart. |
-| `/workspace` (50GB) | **Yes** | All weights, custom nodes, outputs. Currently ~31GB used. |
+| Path | Persists? | Notes |
+|------|-----------|-------|
+| `/workspace` | **Yes** | Everything lives here — ComfyUI, models, custom nodes, outputs |
+| `/` overlay | **No** | Ephemeral — don't put anything important here |
 
-`df -h /workspace` shows MooseFS pool totals for the whole region — not your cap. Use `du -sh /workspace` for real usage.
+`df -h /workspace` may show MooseFS pool totals for the whole region — not your cap. Use `du -sh /workspace` for real usage.
 
 ---
 
@@ -33,22 +33,14 @@
 Two endpoints — **both authenticated with the same key:**
 
 ```bash
-# RunPod proxy — always works, but NO port forwarding
-ssh -tt -i ~/runpod1 bizrqm23c0aei0-644112d3@ssh.runpod.io
+# RunPod proxy — always works, no port forwarding (get address from dashboard → Connect)
+ssh -i C:/Users/tiger/runpod1 <proxy-address>@ssh.runpod.io
 
-# Direct TCP — for port forwarding (IP:PORT changes each restart)
-ssh -i ~/runpod1 -p <PORT> root@<IP>
+# Direct TCP — needed for port forwarding (IP:PORT changes each restart)
+ssh -i C:/Users/tiger/runpod1 root@<IP> -p <PORT>
 ```
 
-### Critical: authorized_keys is empty after every pod restart
-
-The pod's `/root/.ssh/authorized_keys` resets on restart. Direct TCP will reject the key until you fix it. Do this via proxy first:
-
-```bash
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICQzAoHLWYK90mjMbPXj4MnLAxZz1445BucbD1v5982D maxiaidevelopment@gmail.com" >> ~/.ssh/authorized_keys
-```
-
-Then get the new IP:PORT from RunPod dashboard → Connect → SSH over exposed TCP.
+Get the proxy address and IP:PORT from RunPod dashboard → Connect after each pod start.
 
 ### Port forwarding (always use this — not the web link)
 
@@ -64,42 +56,131 @@ The RunPod web link to port 3000 returns "Access Denied" — their nginx proxy u
 
 ## 3. Post-Restart Checklist
 
-The `/` overlay is ephemeral. After every pod restart:
+ComfyUI is in `/workspace` — persistent. Every restart is just: update + start.
 
 ```bash
-# Step 1 — Add pubkey (via proxy SSH first, then switch to direct TCP)
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICQzAoHLWYK90mjMbPXj4MnLAxZz1445BucbD1v5982D maxiaidevelopment@gmail.com" >> ~/.ssh/authorized_keys
-
-# Step 2 — Update ComfyUI and restore custom_nodes symlink
-cd /ComfyUI && git pull origin master
-rm -rf /ComfyUI/custom_nodes && ln -s /workspace/comfyui/custom_nodes_persistent /ComfyUI/custom_nodes
-pip install -q -r /workspace/comfyui/custom_nodes_persistent/ComfyUI-WanVideoWrapper/requirements.txt
-
-# Step 3 — Recreate extra_model_paths.yaml (note: .yaml not .yml — ComfyUI v0.26+ ignores .yml)
-cp /ComfyUI/extra_model_paths.yml /ComfyUI/extra_model_paths.yaml
-
-# Step 4 — Kill RunPod's auto-started ComfyUI and restart with --highvram
-pkill -f "main.py"
-cd /ComfyUI && nohup python main.py --listen 0.0.0.0 --port 3000 --highvram > /workspace/comfyui.log 2>&1 &
-echo $! > /workspace/comfyui.pid
-
-# Monitor startup
+cd /workspace/ComfyUI && git pull origin master
+pkill -f "main.py" 2>/dev/null
+nohup python main.py --listen 0.0.0.0 --port 3000 --highvram > /workspace/comfyui.log 2>&1 &
 tail -f /workspace/comfyui.log
 ```
 
-Kill/restart command during a session:
+One-liner:
 ```bash
-pkill -f "main.py" && cd /ComfyUI && nohup python main.py --listen 0.0.0.0 --port 3000 --highvram > /workspace/comfyui.log 2>&1 &
+cd /workspace/ComfyUI && git pull origin master && pkill -f "main.py" 2>/dev/null; nohup python main.py --listen 0.0.0.0 --port 3000 --highvram > /workspace/comfyui.log 2>&1 & sleep 8 && tail -30 /workspace/comfyui.log
+```
+
+Kill/restart mid-session:
+```bash
+pkill -f "main.py" && cd /workspace/ComfyUI && nohup python main.py --listen 0.0.0.0 --port 3000 --highvram > /workspace/comfyui.log 2>&1 &
 ```
 
 ### Why `--highvram`
-Prevents ComfyUI from offloading models between KSampler nodes. Without it, each of the 6 KSamplers unloads and reloads the UNet (~10GB) every pass, adding ~2 minutes startup per node. With it, the model stays in VRAM across all KSamplers — dramatically faster multi-pass generation.
+Prevents ComfyUI from offloading models between KSampler nodes. Without it, each of the 6 KSamplers unloads and reloads the UNet (~10GB) every pass, adding ~2 minutes startup per node.
 
-### Why `.yaml` not `.yml`
-ComfyUI v0.26.0 changed the expected extension for extra model paths from `.yml` to `.yaml`. The RunPod template creates `.yml`. If models show as "not found", this is why.
+---
 
-### Why `git pull` nukes the custom_nodes symlink
-`git pull origin master` replaces the symlinked `/ComfyUI/custom_nodes/` directory with a bare empty directory. Always re-run the `ln -s` command after every pull.
+## 3b. Fresh Install (first time on a new pod)
+
+### Clone ComfyUI into workspace
+
+```bash
+cd /workspace
+git clone https://github.com/comfyanonymous/ComfyUI
+cd ComfyUI && pip install -r requirements.txt
+```
+
+### Create model directories
+
+```bash
+mkdir -p /workspace/ComfyUI/models/unet/wan2.2
+mkdir -p /workspace/ComfyUI/models/vae
+mkdir -p /workspace/ComfyUI/models/clip
+mkdir -p /workspace/ComfyUI/models/loras/wan2.2
+mkdir -p /workspace/ComfyUI/models/loras/SVI
+mkdir -p /workspace/ComfyUI/models/upscale_models
+```
+
+### Download models (~31GB — run UNets in background or tmux)
+
+```bash
+cd /workspace/ComfyUI/models
+
+# UNet HighNoise (9.7GB)
+wget -q --show-progress \
+  -O unet/wan2.2/Wan2.2-I2V-A14B-HighNoise-Q5_0.gguf \
+  "https://huggingface.co/QuantStack/Wan2.2-I2V-A14B-GGUF/resolve/main/Wan2.2-I2V-A14B-HighNoise-Q5_0.gguf"
+
+# UNet LowNoise (9.7GB)
+wget -q --show-progress \
+  -O unet/wan2.2/Wan2.2-I2V-A14B-LowNoise-Q5_0.gguf \
+  "https://huggingface.co/QuantStack/Wan2.2-I2V-A14B-GGUF/resolve/main/Wan2.2-I2V-A14B-LowNoise-Q5_0.gguf"
+
+# VAE (243MB)
+wget -q --show-progress \
+  -O vae/wan_2.1_vae.safetensors \
+  "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors"
+
+# Text encoder T5 (6.3GB)
+wget -q --show-progress \
+  -O clip/umt5_xxl_fp8_e4m3fn_scaled.safetensors \
+  "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+
+# LightX2V LoRAs (1.2GB × 2)
+wget -q --show-progress \
+  -O loras/wan2.2/wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors \
+  "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/loras/wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors"
+
+wget -q --show-progress \
+  -O loras/wan2.2/wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors \
+  "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/loras/wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors"
+
+# SVI Pro LoRAs (1.2GB × 2)
+wget -q --show-progress \
+  -O loras/SVI/SVI_v2_PRO_Wan2.2-I2V-A14B_HIGH_lora_rank_128_fp16.safetensors \
+  "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/SVI_v2_PRO_Wan2.2-I2V-A14B_HIGH_lora_rank_128_fp16.safetensors"
+
+wget -q --show-progress \
+  -O loras/SVI/SVI_v2_PRO_Wan2.2-I2V-A14B_LOW_lora_rank_128_fp16.safetensors \
+  "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/SVI_v2_PRO_Wan2.2-I2V-A14B_LOW_lora_rank_128_fp16.safetensors"
+
+# Upscaler (64MB)
+wget -q --show-progress \
+  -O upscale_models/4x-AnimeSharp.pth \
+  "https://huggingface.co/Kim2091/AnimeSharp/resolve/main/4x-AnimeSharp.pth"
+```
+
+If any HuggingFace download returns 401, add `--header="Authorization: Bearer $HF_TOKEN"` to the wget command.
+
+### Install custom nodes
+
+```bash
+cd /workspace/ComfyUI/custom_nodes
+
+git clone https://github.com/kijai/ComfyUI-WanVideoWrapper
+git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite
+git clone https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes
+git clone https://github.com/jags111/efficiency-nodes-comfyui
+git clone https://github.com/chrisgoringe/cg-use-everywhere
+
+pip install -r ComfyUI-WanVideoWrapper/requirements.txt
+pip install -r ComfyUI-VideoHelperSuite/requirements.txt
+```
+
+### Start ComfyUI
+
+```bash
+cd /workspace/ComfyUI
+nohup python main.py --listen 0.0.0.0 --port 3000 --highvram > /workspace/comfyui.log 2>&1 &
+tail -f /workspace/comfyui.log
+```
+
+### Upload the workflow
+
+From your local machine once ComfyUI is running and port-forwarded:
+```bash
+scp -i C:/Users/tiger/runpod1 -P <PORT> "C:\Users\tiger\Downloads\wani2v_rewired.json" root@<IP>:/workspace/ComfyUI/user/default/workflows/wani2v_rewired.json
+```
 
 ---
 
@@ -128,7 +209,7 @@ All under `/workspace/comfyui/models/` (persistent). Total ~31GB.
 ## 5. Workflow — `wani2v_rewired.json`
 
 **Current production workflow:** `C:\Users\tiger\Downloads\wani2v_rewired.json`  
-On pod: `/ComfyUI/user/default/workflows/wani2v_rewired.json`
+On pod: `/workspace/ComfyUI/user/default/workflows/wani2v_rewired.json`
 
 ### History
 The original RunComfy export had 53 Set/Get nodes (12 SetNode + 41 GetNode) from rgthree-comfy that no longer exist in current ComfyUI → all showed red. Fixed by tracing every named pipe to source and inserting direct links: 68 links deleted, 56 direct links added, 53 nodes removed.
