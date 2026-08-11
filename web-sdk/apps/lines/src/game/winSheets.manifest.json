@@ -1,0 +1,113 @@
+{
+  "symbols": {
+    "H1": {
+      "key": "winH1",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 1.319
+    },
+    "H2": {
+      "key": "winH2",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 1.119
+    },
+    "H3": {
+      "key": "winH3",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 0.961
+    },
+    "H4": {
+      "key": "winH4",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 0.874
+    },
+    "L1": {
+      "key": "winL1",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 1.055
+    },
+    "L2": {
+      "key": "winL2",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 0.969
+    },
+    "L3": {
+      "key": "winL3",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 1.04
+    },
+    "L4": {
+      "key": "winL4",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 1.0
+    },
+    "L5": {
+      "key": "winL5",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 1.048
+    },
+    "W": {
+      "key": "winW",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 1.149
+    },
+    "S": {
+      "key": "winS",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 1.041
+    },
+    "M": {
+      "key": "winM",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 1.06
+    },
+    "X": {
+      "key": "winX",
+      "cols": 6,
+      "rows": 4,
+      "frames": 24,
+      "drawScale": 1.139
+    }
+  },
+  "avatarIdle": {
+    "key": "avatarIdleSheet",
+    "cols": 8,
+    "rows": 5,
+    "frames": 40
+  },
+  "avatarCheer": {
+    "key": "avatarCheerSheet",
+    "cols": 6,
+    "rows": 4,
+    "frames": 24
+  },
+  "inkBurst": {
+    "key": "fxInkBurst",
+    "cols": 4,
+    "rows": 4,
+    "frames": 16
+  }
+}

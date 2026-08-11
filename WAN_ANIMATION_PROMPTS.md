@@ -6,17 +6,22 @@ Local Wan 2.2 I2V on RunPod ComfyUI. Prompts are animation notes, not prose.
 
 ## Workflow Parameters
 
+File: `C:\Users\tiger\Downloads\Wan 2.2 I2V 3 pass v5.json` (locked 2026-06-30)
+
 | Setting | Value | Notes |
 |---|---|---|
-| `length` | **97** | Odd · ~4s @ 24fps · 8s ping-pong loop |
-| `fps` (all VHS nodes) | **16** | Set on all three VHS_VideoCombine nodes (Pass_1, Pass_2, Render) — Wan 2.2 native training rate |
-| `steps` INTConstant | **30** | No LightX2V · full sampling |
-| `split_step` INTConstant | **11** | HighNoise 0→11 · LowNoise 11→30 |
-| `resolution` | **730px longest side** | LayerUtility scale node |
-| Passes | **2** | Pass 3 bypassed |
-| LoRAs | **All bypassed** | LightX2V + SVI both off |
-
-Ping-pong: `(97 × 2) - 2 = 192 frames = 8.0s @ 24fps`
+| `length` | **97** | 4k+1 valid · ~5s @ 16fps |
+| `fps` — Render / Render-upscaled | **16** | Wan 2.2 native training rate |
+| `fps` — Render-rife / Render-rife-upscaled | **32** | After RIFE 2× interpolation |
+| `steps` INTConstant | **8** | LightX2V 4-step sampler active |
+| `split_step` INTConstant | **4** | HighNoise 0→4 · LowNoise 4→10000 |
+| `resolution` | **512px longest side** | LayerUtility ImageScaleByAspectRatio |
+| Passes | **1** | Single WanImageToVideoSVIPro, prev_samples=none |
+| SVI LoRA strength | **0.7** | HIGH + LOW both active |
+| LightX2V LoRA strength | **0.7** | high_noise + low_noise both active |
+| ModelSamplingSD3 shift | **8** | Both High and Low model chains |
+| Upscaler | **RealESRGAN_x4plus_anime_6B.pth** | Applied to raw frames + RIFE frames |
+| RIFE | **rife417.pth · 2×** | fast_mode=true · ensemble=true |
 
 ---
 
@@ -883,4 +888,290 @@ Particles:
 • Sparse red embers drift from lowest spike.
 • Trail downward.
 • Dissipate.
+
+---
+
+---
+
+# PROSE PROMPT SYSTEM (v2 — 2026-06-30)
+
+> Logic-Atomization prose prompts. Single descriptive paragraph per symbol, ~70-90 words.
+> Validated on H1 Ao-Oni. Use these for production runs.
+> The primitive-notation system above remains for reference and multi-pass work.
+
+**Validated 2026-06-30:** H1 (Ao-Oni) and H2 (Kitsune-men) prose prompts produced acceptable output. Use these as the quality reference when evaluating H3–L5 runs.
+
+---
+
+## Writing Template
+
+Source system: see `art/wan-animations/FEIHOU_PROMPT_SYSTEM.md`
+
+```
+[1. ANCHOR] A [color/material] [subject] fills the center of the frame,
+[defining features at rest — eyes, markings, edges, attached FX].
+
+[2. CYCLIC SEQUENCE] The [primary feature] slowly [cyclic verb]
+[visible consequence], then gradually [returns]. [Secondary feature]
+continuously [cyclic verb] [direction/rhythm]. A faint [color] aura at
+the [edges] steadily breathes outward then constricts inward. [Particles]
+drift slowly [direction] and dissolve.
+
+[3. LOOP CLOSURE] The glow returns to its resting level and the cycle
+repeats seamlessly.
+
+[4. CAMERA LOCK] Static locked camera. No camera movement.
+```
+
+### Vocabulary
+
+**Approved cyclic verbs:**
+`pulse · breathe · flicker · drift · shimmer · oscillate · sway · fade · undulate · waver · throb · twinkle · curl · lick · expand/recede · brighten/dim`
+
+**Approved degree words (≥3 per prompt):**
+`slowly · gradually · steadily · gently · rhythmically · continuously · faintly · softly · subtly · evenly`
+
+**FORBIDDEN — vague mood:**
+`elegant · vortex · atmosphere · soul · energy · picturesque · beautiful · mystical · ethereal · majestic · stunning · dramatic`
+
+**FORBIDDEN — cause/effect:**
+`because · therefore · causing · as a result · so that · which makes`
+
+**FORBIDDEN — one-shot onset verbs (break loops):**
+`erupt · burst · ignite · awaken · summon · unleash · explode · shatter · emerge · materialize`
+
+### Loop test
+Read each action: *does it return to its start?* If no — rewrite it.
+Read the prompt: *any forbidden word?* If yes — delete it.
+
+### Known model biases — anchor these explicitly
+
+Some features have strong folklore associations in training data. If left vague, Wan fills them in autonomously — usually with fire or particle FX at the wrong place.
+
+| Feature | Model bias | Fix |
+|---|---|---|
+| Tengu long nose | Generates sparks/fire at nose tip (Tengu = fire spirit in training data) | Describe as `pale lacquer nose smooth and still` in anchor |
+| Any prominent appendage left undescribed | Model treats it as a particle emitter | Give it an explicit material + static state in the anchor line |
+| Long-nosed mask (any) | Forward tilt — nose exits frame. "Static camera" locks the camera, not the subject | Add `The mask faces the viewer flat-on, neither tilting nor rotating.` as a standalone sentence after the anchor, before the FX sequence |
+
+**Rule:** Any physically prominent feature that should NOT animate needs a material description + `still` in the anchor sentence. Don't leave appendages undefined.
+
+**Rule:** "Static locked camera" constrains the camera only. To lock the subject's orientation, add an explicit flat-on constraint as a standalone sentence early in the prompt.
+
+---
+
+## H1 — Ao-Oni (Win Loop Prose Prompt)
+
+```
+A deep cobalt oni demon mask fills the center of the frame, painted in
+glossy blue with two large symmetrical cyan eyes glowing steadily at rest
+and ghostly blue flame wisps standing above the brow. The mask faces the
+viewer flat-on, neither tilting nor rotating. The eyes slowly
+pulse brighter, their glow gradually expanding outward across the cobalt
+surface then receding back. The brow flame wisps continuously sway side
+to side in a gentle rhythm. A faint cyan aura at the mask edges steadily
+breathes outward then constricts inward. Tiny luminous embers drift
+slowly upward and dissolve. The glow returns to its resting level and
+the cycle repeats seamlessly. Static locked camera. No camera movement.
+```
+
+## H2 — Kitsune-men (Win Loop Prose Prompt)
+
+```
+A white porcelain fox-spirit mask fills the center of the frame, marked
+with orange-red brush swirls, narrow gold eye slits glowing softly at
+rest, and small pointed fox ears at the top. The mask faces the viewer
+flat-on, neither tilting nor rotating. The eye slits slowly pulse
+brighter, their warm glow gradually expanding then receding. The red
+swirl markings continuously shimmer, their color wavering faintly across
+the cream surface. A soft orange foxfire aura at the mask edges steadily
+breathes outward then constricts inward. Sparse gold sparks drift slowly
+upward and dissolve. The glow returns to its resting level and the cycle
+repeats seamlessly. Static locked camera. No camera movement.
+```
+
+## H3 — Daitengu (Win Loop Prose Prompt)
+
+> **Note 2026-07-01:** Two issues fixed — (1) leaving the nose undescribed causes sparks/fire at nose tip (Tengu fire-spirit prior); fix: `pale lacquer nose smooth and still`. (2) mask tilts forward causing nose to exit frame; "static camera" only locks the camera not the subject — fix: add flat-on orientation sentence early in prompt.
+
+```
+A dark crimson lacquer tengu mask fills the center of the frame, with
+a long pale lacquer nose smooth and still, fierce amber eyes glowing
+steadily at rest, and gold accent lines tracing the heavy brow ridge.
+The mask faces the viewer flat-on, neither tilting nor rotating. The
+amber eyes slowly pulse brighter, their glow gradually expanding
+outward across the lacquer surface then receding back. The gold brow
+lines continuously shimmer, a soft highlight drifting slowly from the
+ridge center outward to each tip and back. A faint crimson aura at the
+mask edges steadily breathes outward then constricts inward. Static
+locked camera. No camera movement.
+```
+
+## H4 — Ko-omote (Win Loop Prose Prompt)
+
+```
+A pale porcelain-white young woman Noh mask fills the center of the
+frame, with serene delicate features, soft cool-blue shadows, and a thin
+gold hairline detail at rest. The mask faces the viewer flat-on,
+neither tilting nor rotating. A spectral pale glow slowly breathes
+around the face, gradually brightening then dimming back to rest. The
+cool blue shadows continuously waver, deepening faintly then softening.
+A faint white-blue aura at the mask edges steadily breathes outward then
+constricts inward. Sparse translucent mist wisps drift slowly upward and
+dissolve. The glow returns to its resting level and the cycle repeats
+seamlessly. Static locked camera. No camera movement.
+```
+
+## H5 — Bake-neko (Win Loop Prose Prompt)
+
+```
+A dark charcoal cat-demon mask fills the center of the frame, with
+shadowed fur texture, slitted amber-yellow eyes glowing steadily at rest,
+and pale green foxfire wisps hovering at the sides. The amber eyes slowly
+pulse brighter, their glow gradually expanding then receding back to a
+low smoulder. The green foxfire wisps continuously flicker and sway side
+to side in a gentle rhythm. A faint green aura at the mask edges steadily
+breathes outward then constricts inward. Sparse green sparks drift slowly
+upward and dissolve. The glow returns to its resting level and the cycle
+repeats seamlessly. Static locked camera. No camera movement.
+```
+
+## L1 — Fire (Win Loop Prose Prompt)
+
+```
+A red-and-orange fire kanji medallion fills the center of the frame, its
+strokes burning steadily at rest on a dark washi disc. The kanji glow
+slowly pulses brighter, gradually expanding outward across the medallion
+then receding. Small flame tongues lick continuously upward along the
+stroke edges, flickering in a gentle rhythm. A faint warm aura at the
+medallion rim steadily breathes outward then constricts inward. Sparse
+orange embers drift slowly upward from the flames and dissolve. The glow
+returns to its resting level and the cycle repeats seamlessly. Static
+locked camera. No camera movement.
+```
+
+## L2 — Water (Win Loop Prose Prompt)
+
+```
+A blue-and-teal water kanji medallion fills the center of the frame, its
+strokes glowing softly at rest on a dark washi disc. The kanji glow
+slowly pulses brighter, gradually expanding outward then receding back.
+A cool watery shimmer continuously undulates across the strokes, the
+surface light wavering gently top to bottom. A faint blue aura at the
+medallion rim steadily breathes outward then constricts inward. Sparse
+droplets drift slowly downward while faint mist drifts upward and
+dissolves. The glow returns to its resting level and the cycle repeats
+seamlessly. Static locked camera. No camera movement.
+```
+
+## L3 — Wood (Win Loop Prose Prompt)
+
+```
+A green wood kanji medallion fills the center of the frame, its strokes
+glowing softly at rest on a dark washi disc. The kanji glow slowly
+pulses brighter, gradually expanding outward across the medallion then
+receding. A soft green light continuously shimmers along the strokes,
+wavering gently from center to rim. A faint green aura at the medallion
+rim steadily breathes outward then constricts inward. Sparse small leaves
+drift slowly past and dissolve, with a single petal drifting gently
+downward each cycle. The glow returns to its resting level and the cycle
+repeats seamlessly. Static locked camera. No camera movement.
+```
+
+## L4 — Gold (Win Loop Prose Prompt)
+
+```
+A gold metal kanji medallion fills the center of the frame, its polished
+strokes gleaming steadily at rest on a dark washi disc. The kanji glow
+slowly pulses brighter, gradually expanding outward then receding. A
+bright metallic glint continuously shimmers, drifting slowly along the
+strokes from one edge to the other and back. A faint golden aura at the
+medallion rim steadily breathes outward then constricts inward. Sparse
+gold sparkles twinkle along the stroke edges and dissolve. The glow
+returns to its resting level and the cycle repeats seamlessly. Static
+locked camera. No camera movement.
+```
+
+## L5 — Earth (Win Loop Prose Prompt)
+
+```
+A brown-and-amber earth kanji medallion fills the center of the frame,
+its strokes glowing warmly at rest on a dark washi disc. The kanji glow
+slowly pulses brighter, gradually expanding outward then receding back.
+A soft amber light continuously shimmers across the strokes, deepening
+faintly then softening in a gentle rhythm. A faint amber aura at the
+medallion rim steadily breathes outward then constricts inward. Sparse
+dust motes drift slowly upward from the lower edge and dissolve. The
+glow returns to its resting level and the cycle repeats seamlessly.
+Static locked camera. No camera movement.
+```
+
+## W — Kitsune Spirit Orb (Win Loop Prose Prompt)
+
+> Added 2026-07-03. Input still: `art/generated/symbols-2026-06-26/_atlas/w.png`
+
+```
+A luminous cyan spirit orb fills the center of the frame, a glassy sphere
+of pale blue foxfire with a bright white core glowing steadily at rest.
+The orb holds its position, neither drifting nor rotating out of frame.
+The inner foxfire light slowly churns in a gentle circular rhythm, its
+glow gradually brightening then dimming back. Thin flame tendrils at the
+orb surface continuously curl and waver softly. A faint cyan aura at the
+rim steadily breathes outward then constricts inward. Sparse blue sparks
+drift slowly upward from the rim and dissolve. The glow returns to its
+resting level and the cycle repeats seamlessly. Static locked camera. No
+camera movement.
+```
+
+## S — Temple Bell (Win Loop Prose Prompt)
+
+> Added 2026-07-03. Input still: `art/generated/symbols-2026-06-26/_atlas/s.png`
+
+```
+An aged bronze temple bell fills the center of the frame, its engraved
+surface and dark rope hanging still at rest. The bell faces the viewer
+flat-on, neither tilting nor rotating. The bell gently sways side to side
+in a slow narrow arc, gradually returning to center each time, the rope
+above swaying softly with a slight lag. A warm highlight continuously
+drifts slowly across the bronze surface from one edge to the other and
+back. A faint gold aura at the bell rim steadily breathes outward then
+constricts inward. Sparse pale foxfire wisps drift slowly upward from the
+rim and dissolve. The motion returns to rest and the cycle repeats
+seamlessly. Static locked camera. No camera movement.
+```
+
+## M — Ofuda Talisman (Win Loop Prose Prompt)
+
+> Added 2026-07-03. Input still: `art/generated/symbols-2026-06-26/_atlas/x.png` (M uses the x.png frame)
+
+```
+A white paper ofuda talisman fills the center of the frame, a vertical
+rectangular charm with a gold kanji seal glowing softly at rest. The
+talisman faces the viewer flat-on, neither tilting nor rotating. The
+paper edges continuously flutter in a gentle rhythm, the lower corners
+wavering softly then settling back. The gold seal slowly pulses brighter,
+its glow gradually expanding across the paper then receding. A faint warm
+aura at the talisman edges steadily breathes outward then constricts
+inward. Fine gold particles drift slowly upward from the seal and
+dissolve. The glow returns to its resting level and the cycle repeats
+seamlessly. Static locked camera. No camera movement.
+```
+
+## X — Oni Kanabo (Win Loop Prose Prompt)
+
+> Added 2026-07-03. Input still: `art/generated/symbols-2026-06-26/_atlas/x2.png`
+
+```
+A heavy black iron kanabo war club fills the center of the frame, a
+studded shaft with dark metal spikes smooth and still at rest, wrapped
+in a red cord grip. The club faces the viewer flat-on, neither tilting
+nor rotating. The club gently sways side to side in a slow heavy
+pendulum rhythm, gradually returning to center each time. A deep red
+glow along the shaft slowly pulses brighter, gradually expanding then
+receding back. Faint sparks continuously twinkle at the spike tips in
+an uneven rhythm. A faint crimson aura at the club edges steadily
+breathes outward then constricts inward. Sparse red embers drift slowly
+downward from the lowest spike and dissolve. The glow returns to its
+resting level and the cycle repeats seamlessly. Static locked camera.
+No camera movement.
 ```

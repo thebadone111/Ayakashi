@@ -1,5 +1,5 @@
 """Build a 24-frame spinning-coin spritesheet from the generated yen coin,
-replacing the reference SD2_Coin sheet (same frame names, sourceSize 684 and
+replacing the reference SD2_Coin sheet (files now named ayakashi_coin.*) (same frame names, sourceSize 684 and
 meta scale "2", so WinCoins/ParticleEmitter need no code changes).
 
 Spin model: horizontal squash through cos(theta) = a coin turning about its
@@ -85,8 +85,8 @@ for i, fr in enumerate(frames):
         "sourceSize": {"w": FRAME, "h": FRAME},
     }
 
-sheet.save(os.path.join(OUT_DIR, "SD2_Coin.webp"), "WEBP", quality=90, method=6)
-old_png = os.path.join(OUT_DIR, "SD2_Coin.png")
+sheet.save(os.path.join(OUT_DIR, "ayakashi_coin.webp"), "WEBP", quality=90, method=6)
+old_png = os.path.join(OUT_DIR, "ayakashi_coin.png")
 if os.path.exists(old_png):
     os.remove(old_png)
 data = {
@@ -94,14 +94,14 @@ data = {
     "meta": {
         "app": "ayakashi build-coin-sheet.py",
         "version": "1.0",
-        "image": "SD2_Coin.webp",
+        "image": "ayakashi_coin.webp",
         "format": "RGBA8888",
         "size": {"w": COLS * FRAME, "h": ROWS * FRAME},
         "scale": "2",
     },
 }
-with open(os.path.join(OUT_DIR, "SD2_Coin.json"), "w") as fh:
+with open(os.path.join(OUT_DIR, "ayakashi_coin.json"), "w") as fh:
     json.dump(data, fh, indent=1)
 
 print(f"sheet: {COLS * FRAME}x{ROWS * FRAME}  "
-      f"{os.path.getsize(os.path.join(OUT_DIR, 'SD2_Coin.webp')) // 1024}KB webp, {N_FRAMES} frames")
+      f"{os.path.getsize(os.path.join(OUT_DIR, 'ayakashi_coin.webp')) // 1024}KB webp, {N_FRAMES} frames")
